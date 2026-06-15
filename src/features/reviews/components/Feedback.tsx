@@ -1,4 +1,3 @@
-// src/components/Feedback.tsx
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -22,18 +21,15 @@ export function Feedback({
 }: FeedbackProps) {
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-5">
-      {/* HEADER CARD UTAMA */}
       <CardHeader className="flex flex-row items-center justify-between p-0 space-y-0">
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}
         </CardTitle>
-        {/* Penunjuk Jumlah Pesan Masuk */}
         <span className="text-sm text-gray-400 font-medium">
           {feedbacks.length} messages
         </span>
       </CardHeader>
 
-      {/* KONTEN UTAMA DENGAN OVERFLOW SCROLL VERTICAL */}
       <CardContent
         className={`p-0 overflow-y-auto pr-1 space-y-4 scroll-smooth ${maxHeightClass} 
         scrollbar-none [&::-webkit-scrollbar]:hidden`}
@@ -44,7 +40,6 @@ export function Feedback({
               key={item.id}
               className="w-full bg-amber-50/40 border border-amber-200/50 rounded-2xl p-5 space-y-2"
             >
-              {/* Baris Atas: Ikon, Label Boks, & Tanggal */}
               <div className="flex items-center justify-between text-amber-800 font-bold text-sm">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 stroke-[2.5]" />
@@ -55,12 +50,10 @@ export function Feedback({
                 </span>
               </div>
 
-              {/* Baris Tengah: Subjek Referensi Konten (Re:) */}
               <div className="text-sm font-medium text-amber-900/90">
                 Re: {item.subject}
               </div>
 
-              {/* Baris Bawah: Detail Isi Pesan Masukan */}
               <p className="text-sm text-amber-900/80 font-normal leading-relaxed wrap-break-word">
                 {item.message}
               </p>

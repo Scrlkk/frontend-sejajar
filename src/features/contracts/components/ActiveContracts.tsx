@@ -28,9 +28,7 @@ export function ActiveContracts({
   onViewAll,
 }: ActiveContractsProps) {
   return (
-    // CARD UTAMA SEBAGAI WRAKPER LUAR
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-5">
-      {/* HEADER CARD UTAMA (JUSTIFY BETWEEN) */}
       <CardHeader className="flex flex-row items-center justify-between p-0 space-y-0">
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}
@@ -48,7 +46,6 @@ export function ActiveContracts({
 
       <CardContent className="p-0">
         {contracts.length === 0 ? (
-          /* EMPTY STATE */
           <div className="flex flex-col items-center justify-center py-6 px-4">
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
               <FileText className="h-8 w-8 text-gray-300" />
@@ -62,20 +59,16 @@ export function ActiveContracts({
             </p>
           </div>
         ) : (
-          /* CAROUSEL CARDS */
           <div className="flex items-stretch gap-4 overflow-x-auto pb-2 pt-1 select-none scroll-smooth scrollbar-none [&::-webkit-scrollbar]:hidden">
             {contracts.map((contract) => {
-              // Menghitung persentase progres untuk Progress Bar Shadcn
               const progressPercentage =
                 (contract.currentProgress / contract.targetProgress) * 100;
 
               return (
-                // PERULANGAN CARD ELEMEN DI DALAM MAPPING
                 <Card
                   key={contract.id}
                   className="min-w-90 sm:min-w-98 max-w-md shrink-0 bg-white border border-gray-300 rounded-xl p-5 space-y-3.5 shadow-xs hover:border-red-logo hover:bg-red-50/50 transition-all"
                 >
-                  {/* Baris 1: Kode Kontrak & Status Active */}
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-gray-400">{contract.code}</span>
                     <Badge className="bg-emerald-50 text-emerald-600 hover:bg-emerald-50 font-bold px-2.5 py-0.5 rounded-lg border-none shadow-none flex items-center gap-1.5">
@@ -84,7 +77,6 @@ export function ActiveContracts({
                     </Badge>
                   </div>
 
-                  {/* Baris 2: Judul Kampanye & Nama Brand */}
                   <div className="space-y-1">
                     <h3 className="font-semibold text-gray-900 text-base md:text-lg leading-snug truncate">
                       {contract.title}
@@ -94,7 +86,6 @@ export function ActiveContracts({
                     </p>
                   </div>
 
-                  {/* Baris 3: Daftar Platform Badges */}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {contract.platforms.map((platform, idx) => (
                       <Badge
@@ -107,7 +98,6 @@ export function ActiveContracts({
                     ))}
                   </div>
 
-                  {/* Baris 4: Progress Bar Area */}
                   <div className="space-y-1 pt-1">
                     <div className="flex items-center justify-between text-xs md:text-sm font-bold">
                       <span className="text-sm text-gray-400 font-medium">
@@ -117,14 +107,12 @@ export function ActiveContracts({
                         {contract.currentProgress}/{contract.targetProgress}
                       </span>
                     </div>
-                    {/* Progress bar custom warna maroon khas tim menggunakan utility text-current */}
                     <Progress
                       value={progressPercentage}
                       className="h-1.5 bg-gray-100 [&>div]:bg-red-800"
                     />
                   </div>
 
-                  {/* Baris 5: Tanggal & Keterangan Overdue */}
                   <div className="flex items-center justify-between text-xs md:text-sm font-bold pt-1">
                     <span className="text-sm text-gray-400 font-medium">
                       {contract.date}

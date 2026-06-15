@@ -1,4 +1,8 @@
-import { useNavigate, useRouteError, isRouteErrorResponse } from "react-router-dom";
+import {
+  useNavigate,
+  useRouteError,
+  isRouteErrorResponse,
+} from "react-router-dom";
 import { Home, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,20 +12,16 @@ export const InternalError = () => {
 
   const isRouteError = isRouteErrorResponse(error);
   const statusCode = isRouteError ? error.status : 500;
-  const statusText = isRouteError
-    ? error.statusText
-    : "Internal Server Error";
+  const statusText = isRouteError ? error.statusText : "Internal Server Error";
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative background elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-amber-100/40 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-red-100/30 rounded-full blur-3xl animate-pulse [animation-delay:1s]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-orange-50/20 rounded-full blur-3xl" />
       </div>
 
-      {/* Grid pattern overlay */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{
@@ -32,7 +32,6 @@ export const InternalError = () => {
       />
 
       <div className="relative z-10 text-center max-w-lg mx-auto">
-        {/* Error code with layered effect */}
         <div className="relative mb-6">
           <h1 className="text-[160px] md:text-[200px] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-gray-200 to-gray-300 select-none">
             {statusCode}
@@ -42,12 +41,10 @@ export const InternalError = () => {
           </h1>
         </div>
 
-        {/* Icon */}
         <div className="mx-auto mb-6 w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shadow-sm">
           <AlertTriangle className="w-7 h-7 text-amber-700/70" />
         </div>
 
-        {/* Text */}
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
           Terjadi Kesalahan
         </h2>
@@ -56,7 +53,6 @@ export const InternalError = () => {
           atau kembali ke dashboard.
         </p>
 
-        {/* Error detail (only in development) */}
         {import.meta.env.DEV && error && (
           <div className="mb-8 mx-auto max-w-md rounded-xl border border-red-100 bg-red-50/50 p-4 text-left">
             <p className="text-xs font-semibold text-red-800/70 uppercase tracking-wider mb-1">
@@ -74,7 +70,6 @@ export const InternalError = () => {
 
         {!import.meta.env.DEV && <div className="mb-10" />}
 
-        {/* Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button
             onClick={() => window.location.reload()}
@@ -101,7 +96,6 @@ export const InternalError = () => {
           </Button>
         </div>
 
-        {/* Footer hint */}
         <p className="mt-16 text-xs text-gray-300 font-medium tracking-wide">
           ERROR {statusCode} — {statusText.toUpperCase()}
         </p>

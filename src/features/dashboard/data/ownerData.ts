@@ -49,7 +49,6 @@ export interface EmployeePerformanceData {
 }
 
 export const employeePerformanceData: EmployeePerformanceData[] = [
-  // 2026
   {
     id: 1,
     name: "Lucas H.",
@@ -116,7 +115,6 @@ export const employeePerformanceData: EmployeePerformanceData[] = [
     month: "Jun",
     year: 2026,
   },
-  // 2025
   {
     id: 1,
     name: "Lucas H.",

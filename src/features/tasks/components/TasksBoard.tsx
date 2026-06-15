@@ -28,7 +28,6 @@ export function TaskBoard({ tasks }: TasksBoardProps) {
 
         return (
           <div key={column.key}>
-            {/* Column Header Card */}
             <Card className="bg-white rounded-t-xl rounded-b-none border border-b-0 border-gray-200 outline outline-gray-300/40 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span
@@ -46,7 +45,6 @@ export function TaskBoard({ tasks }: TasksBoardProps) {
               </button>
             </Card>
 
-            {/* Column Tasks Container */}
             <div
               className={`rounded-b-xl border-gray-200 outline outline-gray-300/40 shadow-lg p-3 min-h-37.5 ${columnBgColors[column.key] || "bg-gray-50/50"}`}
             >

@@ -112,7 +112,6 @@ export const engagementEntries: ManualEngagementEntry[] = [
 ];
 
 export const topContentData: PerformingContentItem[] = [
-  // All Time
   {
     id: 1,
     rank: 1,
@@ -161,7 +160,6 @@ export const topContentData: PerformingContentItem[] = [
     shares: 980,
     period: "all",
   },
-  // This Month
   {
     id: 5,
     rank: 1,

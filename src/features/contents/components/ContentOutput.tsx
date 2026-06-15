@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
@@ -16,9 +16,7 @@ import {
 export interface ContentOutputData {
   month: string;
   year: number;
-  Published: number;
-  Scheduled: number;
-  Draft: number;
+  [key: string]: number | string;
 }
 
 interface ContentOutputProps {
@@ -27,20 +25,16 @@ interface ContentOutputProps {
   headerAction?: ReactNode;
 }
 
-const chartConfig = {
-  Published: {
-    label: "Published",
-    color: "#991b1b",
-  },
-  Scheduled: {
-    label: "Scheduled",
-    color: "#10b981",
-  },
-  Draft: {
-    label: "Draft",
-    color: "#e5e7eb",
-  },
-} satisfies ChartConfig;
+const KEY_COLORS: Record<string, string> = {
+  Published: "#991b1b",
+  Scheduled: "#10b981",
+  Draft: "#e5e7eb",
+  "To Do": "#9ca3af",
+  "On Progress": "#eab308",
+  "Pending Review": "#3b82f6",
+  Approved: "#10b981",
+  Revision: "#ef4444",
+};
 
 const CustomTooltip = ({
   active,
@@ -83,10 +77,11 @@ const CustomTooltip = ({
 
 const computeYDomain = (
   data: ContentOutputData[],
+  keys: string[],
   tickCount = 4,
 ): { domain: [number, number]; ticks: number[] } => {
   const rawMax = Math.max(
-    ...data.flatMap((d) => [d.Published, d.Scheduled, d.Draft]),
+    ...data.flatMap((d) => keys.map((key) => Number(d[key]) || 0)),
     0,
   );
 
@@ -110,7 +105,23 @@ export function ContentOutput({
   title = "Content Output Over Time",
   headerAction,
 }: ContentOutputProps) {
-  const { domain, ticks: yTicks } = computeYDomain(data);
+  const keys = useMemo(() => {
+    if (data.length === 0) return [];
+    return Object.keys(data[0]).filter((k) => k !== "month" && k !== "year");
+  }, [data]);
+
+  const { domain, ticks: yTicks } = computeYDomain(data, keys);
+
+  const chartConfig = useMemo(() => {
+    const config: ChartConfig = {};
+    keys.forEach((key) => {
+      config[key] = {
+        label: key,
+        color: KEY_COLORS[key] || "#94a3b8",
+      };
+    });
+    return config;
+  }, [keys]);
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6">
@@ -140,7 +151,7 @@ export function ContentOutput({
             <ChartContainer config={chartConfig} className="h-55 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={data}
+                   data={data}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   barGap={4}
                 >
@@ -171,43 +182,29 @@ export function ContentOutput({
                     cursor={{ fill: "transparent" }}
                   />
 
-                  <Bar
-                    dataKey="Published"
-                    fill={chartConfig.Published.color}
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={16}
-                  />
-
-                  <Bar
-                    dataKey="Scheduled"
-                    fill={chartConfig.Scheduled.color}
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={16}
-                  />
-
-                  <Bar
-                    dataKey="Draft"
-                    fill={chartConfig.Draft.color}
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={16}
-                  />
+                  {keys.map((key) => (
+                    <Bar
+                      key={key}
+                      dataKey={key}
+                      fill={chartConfig[key]?.color}
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={16}
+                    />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
 
-            <div className="flex items-center gap-6 text-xs font-semibold text-gray-500 mt-4 pt-2 border-t border-gray-50">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded bg-[#991b1b]" />
-                <span>Published</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded bg-[#10b981]" />
-                <span>Scheduled</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded bg-[#e5e7eb]" />
-                <span>Draft</span>
-              </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-500 mt-4 pt-2 border-t border-gray-50">
+              {keys.map((key) => (
+                <div key={key} className="flex items-center gap-2">
+                  <span
+                    className="h-3 w-3 rounded"
+                    style={{ backgroundColor: chartConfig[key]?.color }}
+                  />
+                  <span>{key}</span>
+                </div>
+              ))}
             </div>
           </>
         )}

@@ -1,4 +1,3 @@
-// src/components/Contracts.tsx
 import { useState } from "react";
 import { Search, Calendar, ChevronRight, MoveRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -54,9 +53,7 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-6">
-      {/* 1. KONTEN ATAS: KOTAK FILTER TABS & SEARCH BAR (DIJADIKAN SATU) */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-gray-100">
-        {/* Search Input Bar */}
         <div className="relative w-full md:w-90">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
@@ -70,7 +67,6 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
           />
         </div>
 
-        {/* Navigasi Kategori Tab (Pending Diganti Menjadi Overdue) */}
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -105,7 +101,6 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
         </Tabs>
       </div>
 
-      {/* 2. KONTEN BAWAH: GRID PERULANGAN CARD LIST KONTRAK */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {filteredContracts.length > 0 ? (
           filteredContracts.map((item) => {
@@ -118,10 +113,8 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                 onClick={() => onCardClick?.(item)}
                 className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-3 relative hover:border-red-logo hover:bg-red-50/20 transition-all cursor-pointer group"
               >
-                {/* Navigasi Panah Kecil Kanan Atas */}
                 <ChevronRight className="absolute right-5 top-6 h-4 w-4 text-gray-300 group-hover:text-red-logo transition-colors" />
 
-                {/* Baris 1: Kode Kontrak & Status Badge */}
                 <div className="flex items-center gap-3 text-xs font-semibold">
                   <span className="text-gray-400 py-0.5">{item.code}</span>
                   <Badge
@@ -134,7 +127,6 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                   </Badge>
                 </div>
 
-                {/* Baris 2: Judul & Brand */}
                 <div className="space-y-0.5">
                   <h3 className="font-semibold text-gray-900 text-lg md:text-xl leading-snug">
                     {item.title}
@@ -144,12 +136,10 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                   </p>
                 </div>
 
-                {/* Baris 3: Deskripsi Teks Kampanye */}
                 <p className="text-sm text-gray-400 font-normal leading-relaxed line-clamp-2">
                   {item.description}
                 </p>
 
-                {/* Baris 4: Platform Badges */}
                 <div className="flex items-center gap-2 pt-1">
                   {item.platforms.map((platform, idx) => (
                     <Badge
@@ -162,7 +152,6 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                   ))}
                 </div>
 
-                {/* Baris 5: Progress Bar Indicator */}
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between text-xs md:text-sm font-bold">
                     <span className="text-gray-500/90 font-medium">
@@ -177,7 +166,6 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                     className="h-1.5 bg-gray-100 [&>div]:bg-red-800"
                   />
 
-                  {/* Teks persentase kemajuan di bawah progress bar */}
                   <div className="flex items-center justify-between text-xs font-semibold pt-0.5">
                     <span className="text-gray-400/80 font-semibold">
                       {Math.round(progressPercentage)}% Complete
@@ -190,7 +178,6 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                   </div>
                 </div>
 
-                {/* Baris 6: Footer Card (Rentang Kalender & Nilai Rupiah) */}
                 <div className="flex items-center justify-between pt-1.5 border-t border-gray-50 text-xs md:text-sm font-semibold text-gray-400">
                   <div className="flex items-center gap-1.5 font-medium">
                     <Calendar className="h-4 w-4 text-gray-400" />
@@ -200,7 +187,6 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                     </span>
                     <span>{item.endDate}</span>
                   </div>
-                  {/* Harga Konten */}
                   <span className="text-gray-900 font-bold">
                     {item.valueAmount}
                   </span>

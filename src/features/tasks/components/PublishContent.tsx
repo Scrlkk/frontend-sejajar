@@ -90,7 +90,7 @@ export function PublishContent({
   };
 
   return (
-    <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-sm">
+    <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border-b border-gray-100">
         <Tabs
           value={activeTab}

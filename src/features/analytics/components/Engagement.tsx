@@ -80,7 +80,6 @@ export function Engagement({
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4">
-      {/* HEADER: TITLE, SEARCH, & BUTTON */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
         <div className="flex gap-4 w-full sm:w-1/2">
@@ -104,7 +103,6 @@ export function Engagement({
         </div>
       </div>
 
-      {/* TABLE */}
       <div className="flex-1 overflow-x-auto rounded-xl border border-gray-50">
         <Table>
           <TableHeader className="bg-gray-50/50">
@@ -143,7 +141,6 @@ export function Engagement({
                   key={entry.id}
                   className="border-b border-gray-50 last:border-none hover:bg-gray-50/30 transition-colors"
                 >
-                  {/* Content Title */}
                   <TableCell className="py-4">
                     <div className="flex flex-col max-w-60">
                       <span className="font-bold text-gray-900 leading-snug wrap-break-word">
@@ -152,7 +149,6 @@ export function Engagement({
                     </div>
                   </TableCell>
 
-                  {/* Platform */}
                   <TableCell className="py-4">
                     <Badge
                       variant="outline"
@@ -162,7 +158,6 @@ export function Engagement({
                     </Badge>
                   </TableCell>
 
-                  {/* Date */}
                   <TableCell className="py-4 text-gray-500 font-medium text-sm">
                     <span className="flex items-center gap-1.5">
                       {new Date(entry.date).toLocaleDateString("id-ID", {
@@ -173,7 +168,6 @@ export function Engagement({
                     </span>
                   </TableCell>
 
-                  {/* Views */}
                   <TableCell className="py-4 text-center">
                     <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700/90">
                       <Eye className="h-3.5 w-3.5 stroke-[2.5]" />
@@ -181,7 +175,6 @@ export function Engagement({
                     </span>
                   </TableCell>
 
-                  {/* Likes */}
                   <TableCell className="py-4 text-center">
                     <span className="inline-flex items-center gap-1 text-xs font-bold text-pink-600">
                       <Heart className="h-3.5 w-3.5 stroke-[2.5]" />
@@ -189,7 +182,6 @@ export function Engagement({
                     </span>
                   </TableCell>
 
-                  {/* Comments */}
                   <TableCell className="py-4 text-center">
                     <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
                       <MessageCircle className="h-3.5 w-3.5 stroke-[2.5]" />
@@ -197,7 +189,6 @@ export function Engagement({
                     </span>
                   </TableCell>
 
-                  {/* Shares */}
                   <TableCell className="py-4 text-center">
                     <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
                       <Share2 className="h-3.5 w-3.5 stroke-[2.5]" />
@@ -205,7 +196,6 @@ export function Engagement({
                     </span>
                   </TableCell>
 
-                  {/* Actions - Manage Dropdown */}
                   <TableCell className="py-4">
                     <div className="flex items-center justify-center">
                       <DropdownMenu>
@@ -298,7 +288,6 @@ export function Engagement({
         </Table>
       </div>
 
-      {/* PAGINATION */}
       <div className="flex items-center justify-between pt-2 text-sm text-gray-500 border-t border-gray-100 mt-auto">
         <div>
           Showing{" "}

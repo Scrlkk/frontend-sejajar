@@ -46,16 +46,13 @@ export function PerformingContent({
             key={item.id}
             className="flex flex-col sm:flex-row sm:items-center justify-between py-4 first:pt-0 last:pb-0 gap-4"
           >
-            {/* Sisi Kiri: Angka Rank, Judul Konten, & Badge Platform */}
             <div className="flex items-start gap-4 min-w-0 flex-1">
-              {/* Penunjuk Rank Angka (#1, #2) */}
               <span
                 className={`text-base md:text-lg font-bold min-w-8 pt-0.5 ${item.rankColor}`}
               >
                 #{item.rank}
               </span>
 
-              {/* Detail Judul dan Platform */}
               <div className="space-y-1.5 min-w-0 flex-1">
                 <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">
                   {item.title}
@@ -69,21 +66,17 @@ export function PerformingContent({
               </div>
             </div>
 
-            {/* Sisi Kanan: Metrik Angka (Views, Likes, Shares) */}
             <div className="flex items-center gap-5 text-xs md:text-sm font-bold shrink-0 self-end sm:self-center">
-              {/* Metrik Views (Merah Bata / Orange Tua) */}
               <div className="flex items-center gap-1.5 text-red-700/90">
                 <Eye className="h-4 w-4 stroke-[2.5]" />
                 <span>{item.views.toLocaleString()}</span>
               </div>
 
-              {/* Metrik Likes (Pink Tua) */}
               <div className="flex items-center gap-1.5 text-pink-600">
                 <Heart className="h-4 w-4 stroke-[2.5]" />
                 <span>{item.likes.toLocaleString()}</span>
               </div>
 
-              {/* Metrik Shares (Hijau Emerald) */}
               <div className="flex items-center gap-1.5 text-emerald-600">
                 <Share2 className="h-4 w-4 stroke-[2.5]" />
                 <span>{item.shares.toLocaleString()}</span>

@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   FileText,
-  CheckSquare,
   Calendar,
   FilePen,
   Upload,
@@ -12,6 +11,7 @@ import {
   Clock,
   TrendingUp,
   type LucideIcon,
+  Files,
 } from "lucide-react";
 
 export type SidebarMenuItem = {
@@ -30,10 +30,10 @@ export const sidebarMenuItems: SidebarMenuItem[] = [
     subtitle: "Manage and review all contracts",
   },
   {
-    title: "Tasks",
-    to: "/tasks",
-    icon: CheckSquare,
-    subtitle: "Track and manage your tasks",
+    title: "Content",
+    to: "/content",
+    icon: Files,
+    subtitle: "Track and manage your content",
   },
   {
     title: "Schedules",

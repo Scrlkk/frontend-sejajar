@@ -24,14 +24,12 @@ export const TasksPage = () => {
 
   return (
     <div className="space-y-4">
-      {/* Dashboard cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {tasksCardData.map((card) => (
           <CardDashboard key={card.title} {...card} />
         ))}
       </div>
 
-      {/* Filter component */}
       <TasksFilter
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -41,7 +39,6 @@ export const TasksPage = () => {
         onNewTask={() => console.log("New Task clicked")}
       />
 
-      {/* Kanban columns grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <TaskBoard tasks={filteredTasks} />
       </div>

@@ -156,7 +156,7 @@ export const sampleContractsData: ContractCardItem[] = [
     statusDot: "bg-blue-500",
     year: 2026,
   },
-  // 2025 Contracts
+
   {
     id: 5,
     code: "CNT-2025-001",
@@ -194,4 +194,3 @@ export const sampleContractsData: ContractCardItem[] = [
     year: 2025,
   },
 ];
-

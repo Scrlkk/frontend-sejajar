@@ -28,7 +28,7 @@ export function PostSchedule({
   onPublish,
 }: PostScheduleProps) {
   return (
-    <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadown-sm p-6">
+    <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6">
       <CardHeader className="flex flex-row items-center justify-between p-0 mb-6 space-y-0">
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}

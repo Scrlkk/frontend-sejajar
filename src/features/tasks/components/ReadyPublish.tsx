@@ -32,7 +32,7 @@ export function ReadyPublish({
   onRowSchedule,
 }: ReadyPublishProps) {
   return (
-    <Card className="w-full max-h-110 flex flex-col bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-sm p-6 gap-6">
+    <Card className="w-full max-h-110 flex flex-col bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 gap-6">
       <CardHeader className="flex flex-row items-center justify-between p-0 space-y-0 shrink-0">
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}

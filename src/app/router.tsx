@@ -19,6 +19,10 @@ import { ContentLeadPage } from "@/features/dashboard/pages/ContentLeadPage";
 import { ContractPage } from "@/features/contracts/pages/ContractPage";
 import { TasksPage } from "@/features/tasks/pages/TasksPage";
 import { OwnerPage } from "@/features/dashboard/pages/OwnerPage";
+import { ScriptWriterPage } from "@/features/dashboard/pages/ScriptWriterPage";
+import { ContentEditorPage } from "@/features/dashboard/pages/ContentEditorPage";
+import { UploadsPage } from "@/features/tasks/pages/UploadsPage";
+import { DraftsPage } from "@/features/tasks/pages/DraftsPage";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +55,14 @@ export const router = createBrowserRouter([
         element: <OwnerPage />,
       },
       {
+        path: "/script-writer",
+        element: <ScriptWriterPage />,
+      },
+      {
+        path: "/content-editor",
+        element: <ContentEditorPage />,
+      },
+      {
         path: "/contracts",
         element: <ContractPage />,
       },
@@ -66,8 +78,14 @@ export const router = createBrowserRouter([
         path: "/calendar",
         element: <CalendarPage />,
       },
-      { path: "/drafts" },
-      { path: "/uploads" },
+      {
+        path: "/drafts",
+        element: <DraftsPage />,
+      },
+      {
+        path: "/uploads",
+        element: <UploadsPage />,
+      },
       {
         path: "/publish",
         element: <PublishPage />,

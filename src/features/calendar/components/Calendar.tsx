@@ -94,11 +94,8 @@ export function ContentCalendar({
 
   return (
     <Card className="w-full max-h-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-4">
-      {/* BAGIAN ATAS: Header Kalender & Navigasi Cepat */}
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between p-0 mb-6 space-y-4 sm:space-y-0">
-        {/* Tombol Navigasi & Nama Bulan */}
         <div className="flex items-center gap-2">
-          {/* Tombol Bulan Sebelumnya */}
           <Button
             variant="outline"
             size="icon"
@@ -108,7 +105,6 @@ export function ContentCalendar({
             <ChevronLeft className="h-4 w-4" />
           </Button>
 
-          {/* Judul Bulan/Tahun (Bisa diklik untuk pilih tahun & bulan cepat) */}
           <Popover open={isPickerOpen} onOpenChange={handlePickerOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -123,7 +119,6 @@ export function ContentCalendar({
               align="start"
             >
               <div className="space-y-4">
-                {/* Year Selector */}
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => setTempYear((y) => y - 1)}
@@ -142,10 +137,8 @@ export function ContentCalendar({
                   </button>
                 </div>
 
-                {/* Separator */}
                 <div className="h-px bg-gray-100" />
 
-                {/* Month Grid 4x3 */}
                 <div className="grid grid-cols-4 gap-1.5">
                   {MONTHS.map((m, idx) => {
                     const isSelected = idx === tempMonth;
@@ -170,7 +163,6 @@ export function ContentCalendar({
                   })}
                 </div>
 
-                {/* Separator */}
                 <div className="h-px bg-gray-100" />
 
                 <Button
@@ -184,7 +176,6 @@ export function ContentCalendar({
             </PopoverContent>
           </Popover>
 
-          {/* Tombol Bulan Selanjutnya */}
           <Button
             variant="outline"
             size="icon"
@@ -194,7 +185,6 @@ export function ContentCalendar({
             <ChevronRight className="h-4 w-4" />
           </Button>
 
-          {/* Tombol Today */}
           <Button
             variant="outline"
             onClick={handleToday}
@@ -204,7 +194,6 @@ export function ContentCalendar({
           </Button>
         </div>
 
-        {/* Indikator Legenda Platform (Sisi Kanan Atas) */}
         <div className="flex items-center gap-4 text-xs font-semibold text-gray-500">
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-[#252f41]" /> TikTok
@@ -219,7 +208,6 @@ export function ContentCalendar({
       </CardHeader>
 
       <CardContent className="p-0">
-        {/* BARIS UTAMA: Nama Hari (Sun - Sat) */}
         <div className="grid grid-cols-7 text-center mb-2">
           {WEEKDAYS.map((day) => (
             <div key={day} className="text-sm font-bold text-gray-400 py-1">
@@ -228,7 +216,6 @@ export function ContentCalendar({
           ))}
         </div>
 
-        {/* GRID UTAMA: Hari & Kotak Tanggal */}
         <div className="grid grid-cols-7 gap-px bg-gray-100/50 rounded-2xl overflow-hidden border border-gray-100/30">
           {allDaysGrid.map((day, dayIdx) => {
             const isCurrentMonth = isSameMonth(day, currentDate);
@@ -237,7 +224,6 @@ export function ContentCalendar({
               ? isSameDay(day, selectedDay)
               : false;
 
-            // Mencari event yang memiliki tanggal yang sama dengan hari ini
             const dayEvents = events.filter((event) =>
               isSameDay(event.date, day),
             );
@@ -254,7 +240,6 @@ export function ContentCalendar({
                       : "bg-white"
                 } ${isToday ? "bg-emerald-50/40! border-emerald-300/60! rounded-xl m-0.5" : ""}`}
               >
-                {/* Penunjuk Angka Tanggal */}
                 <div className="flex justify-end items-start w-full">
                   <span
                     className={`text-xs font-bold p-1 rounded-md min-w-5.5 text-center ${
@@ -265,7 +250,6 @@ export function ContentCalendar({
                   </span>
                 </div>
 
-                {/* List Card Event Di Dalam Kotak Tanggal */}
                 <div className="mt-1 space-y-1 flex-1 overflow-y-auto max-h-18.75 scrollbar-none">
                   {isCurrentMonth &&
                     dayEvents.map((event) => (

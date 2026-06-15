@@ -1,12 +1,11 @@
-// src/components/CalendarPublish.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PackageOpen } from "lucide-react";
 
 export interface MiniPublishItem {
   id: string | number;
-  title: string; // Contoh: "Iced Coffee DIY - 5 Easy Recipes"
-  dateText: string; // Contoh: "May 12, 2024 • 11:00"
+  title: string;
+  dateText: string;
 }
 
 interface CalendarPublishProps {
@@ -22,14 +21,12 @@ export function CalendarPublish({
 }: CalendarPublishProps) {
   return (
     <Card className="w-full max-w-sm bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-5 space-y-4">
-      {/* HEADER CARD */}
       <CardHeader className="p-0">
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}
         </CardTitle>
       </CardHeader>
 
-      {/* LIST KONTEN READY */}
       <CardContent className="p-0 space-y-3">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-4 text-center">
@@ -49,19 +46,15 @@ export function CalendarPublish({
               key={item.id}
               className="w-full bg-emerald-50/20 border border-emerald-500/20 rounded-2xl p-4 space-y-3"
             >
-              {/* Judul Konten */}
               <h4 className="font-bold text-gray-900 text-sm md:text-base leading-snug truncate">
                 {item.title}
               </h4>
 
-              {/* Baris Bawah: Waktu & Tombol Publish */}
               <div className="flex items-center justify-between gap-4">
-                {/* Keterangan Waktu */}
                 <span className="text-xs md:text-sm font-medium text-gray-400">
                   {item.dateText}
                 </span>
 
-                {/* Tombol Aksi Publish */}
                 <Button
                   size="sm"
                   onClick={() => onPublishClick?.(item)}

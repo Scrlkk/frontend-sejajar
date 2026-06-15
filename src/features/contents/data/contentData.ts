@@ -47,7 +47,6 @@ export interface ContractPerformanceData {
 }
 
 export const performanceContentData: ContractPerformanceData[] = [
-  // 2025
   { month: "Jan", year: 2025, Active: 15, Completed: 10, Overdue: 0 },
   { month: "Feb", year: 2025, Active: 20, Completed: 12, Overdue: 5 },
   { month: "Mar", year: 2025, Active: 25, Completed: 18, Overdue: 0 },
@@ -60,11 +59,10 @@ export const performanceContentData: ContractPerformanceData[] = [
   { month: "Oct", year: 2025, Active: 60, Completed: 50, Overdue: 10 },
   { month: "Nov", year: 2025, Active: 65, Completed: 55, Overdue: 0 },
   { month: "Dec", year: 2025, Active: 70, Completed: 60, Overdue: 20 },
-  // 2026
   { month: "Jan", year: 2026, Active: 35, Completed: 25, Overdue: 5 },
   { month: "Feb", year: 2026, Active: 40, Completed: 30, Overdue: 0 },
   { month: "Mar", year: 2026, Active: 45, Completed: 35, Overdue: 10 },
   { month: "Apr", year: 2026, Active: 50, Completed: 40, Overdue: 0 },
   { month: "May", year: 2026, Active: 55, Completed: 45, Overdue: 15 },
   { month: "Jun", year: 2026, Active: 60, Completed: 50, Overdue: 0 },
-];
+];

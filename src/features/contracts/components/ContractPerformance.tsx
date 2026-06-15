@@ -89,7 +89,6 @@ const computeXDomain = (
     return { domain: [0, 80], ticks: [0, 20, 40, 60, 80] };
   }
 
-  // Find a nice step value for dynamic bounds
   let step: number;
   if (rawMax > 100) step = 20;
   else if (rawMax > 50) step = 10;
@@ -110,7 +109,6 @@ export function ContractPerformance({
   title = "Contract Performance",
   headerAction,
 }: ContractPerformanceProps) {
-  // Transform ContractCardItem to chart friendly format
   const chartData = data.map((c) => {
     const numericValue = parseInt(c.valueAmount.replace(/[^0-9]/g, "")) || 0;
     const progressPercent =

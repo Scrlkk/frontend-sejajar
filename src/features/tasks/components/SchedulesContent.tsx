@@ -1,4 +1,3 @@
-// src/components/SchedulesContent.tsx
 import { useState } from "react";
 import {
   Search,
@@ -87,7 +86,6 @@ export function SchedulesContent({
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4">
-      {/* HEADER UTAMA: JUDUL, SEARCH, & BUTTON */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-lg font-bold text-gray-900">{title}</h2>
         <div className="flex gap-4 w-full sm:w-1/2">
@@ -111,7 +109,6 @@ export function SchedulesContent({
         </div>
       </div>
 
-      {/* STRUKTUR TABEL */}
       <div className="flex-1 overflow-x-auto rounded-xl border border-gray-50">
         <Table>
           <TableHeader className="bg-gray-50/50">
@@ -147,7 +144,6 @@ export function SchedulesContent({
                   key={item.id}
                   className="border-b border-gray-50 last:border-none hover:bg-gray-50/30 transition-colors"
                 >
-                  {/* Kolom Content (Judul + Sub-Judul) */}
                   <TableCell className="py-4">
                     <div className="flex flex-col max-w-60">
                       <span className="font-bold text-gray-900 leading-snug wrap-break-word">
@@ -159,7 +155,6 @@ export function SchedulesContent({
                     </div>
                   </TableCell>
 
-                  {/* Kolom Platform */}
                   <TableCell className="py-4">
                     <Badge
                       variant="secondary"
@@ -169,7 +164,6 @@ export function SchedulesContent({
                     </Badge>
                   </TableCell>
 
-                  {/* Kolom Pillar */}
                   <TableCell className="py-4">
                     <Badge
                       className={`${item.pillarBg} shadow-none rounded-full px-2.5 py-0.5 font-medium text-xs border-none flex items-center gap-1.5 w-fit`}
@@ -181,17 +175,14 @@ export function SchedulesContent({
                     </Badge>
                   </TableCell>
 
-                  {/* Kolom Post Date */}
                   <TableCell className="py-4 text-gray-500 font-medium text-sm">
                     {item.postDate}
                   </TableCell>
 
-                  {/* Kolom Time */}
                   <TableCell className="py-4 text-gray-500 font-medium text-sm">
                     {item.time}
                   </TableCell>
 
-                  {/* Kolom Status */}
                   <TableCell className="py-4">
                     <Badge
                       className={`${item.statusBg} shadow-none rounded-full px-2.5 py-0.5 font-bold text-xs border-none flex items-center gap-1.5 w-fit`}
@@ -203,7 +194,6 @@ export function SchedulesContent({
                     </Badge>
                   </TableCell>
 
-                  {/* Kolom Actions */}
                   <TableCell className="py-4">
                     <div className="flex items-center justify-center">
                       <DropdownMenu>
@@ -314,7 +304,6 @@ export function SchedulesContent({
         </Table>
       </div>
 
-      {/* CONTROLLERS PAGINATION */}
       <div className="flex items-center justify-between pt-2 text-sm text-gray-500 border-t border-gray-100 mt-auto">
         <div>
           Showing{" "}

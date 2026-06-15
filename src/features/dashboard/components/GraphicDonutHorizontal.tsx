@@ -37,7 +37,6 @@ export function GraphicDonutHorizontal({
 
       <CardContent className="p-0">
         <div className="flex items-center gap-8">
-          {/* Donut Chart - Left */}
           <div className="h-52 w-52 shrink-0 flex items-center justify-center">
             <ChartContainer config={chartConfig} className="h-full w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -60,7 +59,6 @@ export function GraphicDonutHorizontal({
             </ChartContainer>
           </div>
 
-          {/* Legend - Right */}
           <div className="flex-1 space-y-4 max-h-64 overflow-y-auto">
             {data.map((item, index) => {
               const percentage =

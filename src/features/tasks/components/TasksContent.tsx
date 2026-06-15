@@ -17,6 +17,8 @@ export type TaskBoardItem = {
   assigneeBg: string;
   status: "todo" | "onProgress" | "revision" | "done";
   isOverdue: boolean;
+  date: Date;
+  priority: "low" | "medium" | "high" | "critical";
 };
 
 interface TasksContentProps {
@@ -28,7 +30,6 @@ export function TasksContent({ task }: TasksContentProps) {
 
   return (
     <Card className="w-full bg-white rounded-xl p-4 space-y-2.5 hover:border-red-logo hover:shadow-md transition-all cursor-pointer group">
-      {/* Baris 1: Badge Tipe + Warning Icon */}
       <div className="flex items-center justify-between">
         <Badge
           className={`${task.typeBg} rounded-md font-medium text-[10px] px-2 py-0.5 border-none shadow-none flex items-center gap-1`}
@@ -39,12 +40,10 @@ export function TasksContent({ task }: TasksContentProps) {
         {task.isOverdue && <TriangleAlert className="h-4 w-4 text-red-500" />}
       </div>
 
-      {/* Baris 2: Judul Task */}
       <h4 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2">
         {task.title}
       </h4>
 
-      {/* Baris 3: Category Badge */}
       <Badge
         variant="outline"
         className={`w-full flex justify-start gap-1.5 rounded-xl font-medium text-xs text-gray-500 shadow-none ${task.categoryBorder || "border-gray-300"} ${task.categoryBg || "bg-transparent"}`}
@@ -53,7 +52,6 @@ export function TasksContent({ task }: TasksContentProps) {
         {task.category}
       </Badge>
 
-      {/* Baris 4: Footer — Avatar + Nama | Calendar + Overdue */}
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-2">
           <div

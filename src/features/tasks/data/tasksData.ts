@@ -16,9 +16,12 @@ import {
   Clapperboard,
   PenLine,
   Hash,
+  FileUp,
+  FilePen,
 } from "lucide-react";
 import type { CardDashboardProps } from "@/features/dashboard/components/CardDashboard";
 import type { TaskBoardItem } from "@/features/tasks/components/TasksContent";
+import type { UploadedVideoItem } from "@/features/tasks/components/Uploads";
 
 export const taskBoardColumns = [
   {
@@ -44,7 +47,6 @@ export const taskBoardColumns = [
 ];
 
 export const sampleTaskBoardData: TaskBoardItem[] = [
-  // TO DO
   {
     id: 1,
     title: "Skincare Morning Routine Reel",
@@ -60,6 +62,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-pink-50 text-pink-600",
     status: "todo",
     isOverdue: true,
+    date: new Date(2026, 5, 12),
+    priority: "medium",
   },
   {
     id: 2,
@@ -76,6 +80,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-purple-50 text-purple-600",
     status: "todo",
     isOverdue: true,
+    date: new Date(2026, 5, 14),
+    priority: "low",
   },
   {
     id: 3,
@@ -92,6 +98,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-pink-50 text-pink-600",
     status: "todo",
     isOverdue: false,
+    date: new Date(2026, 5, 15),
+    priority: "high",
   },
   {
     id: 4,
@@ -108,8 +116,9 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-blue-50 text-blue-600",
     status: "todo",
     isOverdue: false,
+    date: new Date(2026, 5, 16),
+    priority: "medium",
   },
-  // ON PROGRESS
   {
     id: 5,
     title: "Skincare Morning Routine Reel",
@@ -125,6 +134,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-purple-50 text-purple-600",
     status: "onProgress",
     isOverdue: true,
+    date: new Date(2026, 5, 17),
+    priority: "critical",
   },
   {
     id: 6,
@@ -141,6 +152,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-emerald-50 text-emerald-600",
     status: "onProgress",
     isOverdue: true,
+    date: new Date(2026, 5, 18),
+    priority: "low",
   },
   {
     id: 7,
@@ -157,8 +170,9 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-pink-100 text-pink-700",
     status: "onProgress",
     isOverdue: false,
+    date: new Date(2026, 5, 15),
+    priority: "high",
   },
-  // REVISION
   {
     id: 8,
     title: "Day 1 Challenge - Full Body Warmup",
@@ -173,9 +187,10 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeInitials: "JR",
     assigneeBg: "bg-purple-50 text-purple-600",
     status: "revision",
-    isOverdue: true,
+    isOverdue: false,
+    date: new Date(2026, 5, 20),
+    priority: "medium",
   },
-  // DONE
   {
     id: 9,
     title: "Foundation Tutorial - Spring Collection",
@@ -191,6 +206,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-purple-50 text-purple-600",
     status: "done",
     isOverdue: false,
+    date: new Date(2026, 5, 10),
+    priority: "low",
   },
   {
     id: 10,
@@ -206,7 +223,9 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeInitials: "LH",
     assigneeBg: "bg-pink-50 text-pink-600",
     status: "done",
-    isOverdue: true,
+    isOverdue: false,
+    date: new Date(2026, 5, 11),
+    priority: "low",
   },
   {
     id: 11,
@@ -223,6 +242,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-purple-100 text-purple-700",
     status: "done",
     isOverdue: false,
+    date: new Date(2026, 5, 15),
+    priority: "high",
   },
   {
     id: 12,
@@ -239,6 +260,8 @@ export const sampleTaskBoardData: TaskBoardItem[] = [
     assigneeBg: "bg-emerald-50 text-emerald-600",
     status: "done",
     isOverdue: false,
+    date: new Date(2026, 5, 8),
+    priority: "medium",
   },
 ];
 
@@ -705,5 +728,228 @@ export const tasksCardData: CardDashboardProps[] = [
     icon: TriangleAlert,
     iconColor: "text-red-600",
     iconBgColor: "bg-red-600/10",
+  },
+];
+
+export const uploadsCardData: CardDashboardProps[] = [
+  {
+    title: "Total Uploads",
+    value: 24,
+    description: "This Month",
+    icon: FileUp,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    title: "Pending",
+    value: 12,
+    description: "Awaiting Reviews",
+    icon: Clock,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    title: "Approved",
+    value: 18,
+    description: "Assigned Tasks",
+    icon: CircleCheckBig,
+    iconColor: "text-blue-600",
+    iconBgColor: "bg-blue-600/10",
+  },
+  {
+    title: "Revision",
+    value: "6",
+    description: "Needs Attention",
+    icon: TriangleAlert,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+];
+
+export const sampleUploadsData: UploadedVideoItem[] = [
+  {
+    id: 1,
+    title: "Day 1 Challenge – Final Edit",
+    type: "video",
+    durationText: "0:58",
+    platform: "TikTok",
+    platformBg: "bg-[#252f41] text-white",
+    fileSizeText: "128 MB",
+    uploadedTimeText: "Uploaded 21d ago",
+    status: "Approved",
+    statusBg: "bg-emerald-50 text-emerald-600 hover:bg-emerald-50",
+    statusDot: "bg-emerald-500",
+  },
+  {
+    id: 2,
+    title: "Skincare Reel – Raw Cut",
+    type: "video",
+    durationText: "1:32",
+    platform: "Instagram",
+    platformBg: "bg-pink-600 text-white",
+    fileSizeText: "214 MB",
+    uploadedTimeText: "Uploaded 22d ago",
+    status: "Revision",
+    statusBg: "bg-red-50 text-red-500 hover:bg-red-50",
+    statusDot: "bg-red-500",
+    revisionNote: "Colour grading is off — re-export with warmer tone.",
+  },
+  {
+    id: 3,
+    title: "Aesthetic Coffee – Banner Image",
+    type: "image",
+    platform: "Instagram",
+    platformBg: "bg-pink-600 text-white",
+    fileSizeText: "4.8 MB",
+    uploadedTimeText: "Uploaded 2 hours ago",
+    status: "Pending",
+    statusBg: "bg-amber-50 text-amber-600 hover:bg-amber-50",
+    statusDot: "bg-amber-500",
+  },
+  {
+    id: 4,
+    title: "Aesthetic Beer – Full Image",
+    type: "image",
+    platform: "Instagram",
+    platformBg: "bg-pink-600 text-white",
+    fileSizeText: "6.8 MB",
+    uploadedTimeText: "Uploaded 2 hours ago",
+    status: "Approved",
+    statusBg: "bg-emerald-50 text-emerald-600 hover:bg-emerald-50",
+    statusDot: "bg-emerald-500",
+  },
+];
+
+export const DraftsCard: CardDashboardProps[] = [
+  {
+    title: "Total Drafts",
+    value: 24,
+    description: "This Month",
+    icon: FilePen,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    title: "To Do",
+    value: 18,
+    description: "Assigned Tasks",
+    icon: PenLine,
+    iconColor: "text-gray-600",
+    iconBgColor: "bg-gray-600/10",
+  },
+  {
+    title: "Pending",
+    value: 12,
+    description: "Awaiting Reviews",
+    icon: Clock,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    title: "Revision",
+    value: "6",
+    description: "Needs Attention",
+    icon: TriangleAlert,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+];
+
+export interface DraftsItem {
+  id: string | number;
+  title: string;
+  category: string;
+  categoryBg: string;
+  status: "To Do" | "Pending" | "Revision" | "Approved" | "Overdue";
+  statusBg: string;
+  statusDot: string;
+  revisionNote?: string;
+  wordCount: number;
+  savedTimeText: string;
+  iconBg: string;
+  iconColor: string;
+}
+
+export const sampleDraftsData: DraftsItem[] = [
+  {
+    id: 1,
+    title: "Day 1 Challenge – Hook Script",
+    category: "Educational",
+    categoryBg: "bg-blue-50 text-blue-600 hover:bg-blue-50 border-none",
+    status: "Revision",
+    statusBg: "bg-red-50 text-red-600 hover:bg-red-50",
+    statusDot: "bg-red-500",
+    revisionNote: "Revise the hook — make it more punchy and direct.",
+    wordCount: 420,
+    savedTimeText: "Saved 21d ago",
+    iconBg: "bg-indigo-50",
+    iconColor: "text-indigo-600",
+  },
+  {
+    id: 2,
+    title: "Skincare Routine (Morning) – VO Script",
+    category: "Beauty",
+    categoryBg: "bg-pink-50 text-pink-600 hover:bg-pink-50 border-none",
+    status: "To Do",
+    statusBg: "bg-gray-50 text-gray-600 hover:bg-gray-50",
+    statusDot: "bg-gray-600",
+    wordCount: 310,
+    savedTimeText: "Saved 22d ago",
+    iconBg: "bg-pink-50",
+    iconColor: "text-pink-600",
+  },
+  {
+    id: 3,
+    title: "Product Review – Best Skincare 2025",
+    category: "Beauty",
+    categoryBg: "bg-pink-50 text-pink-600 hover:bg-pink-50 border-none",
+    status: "Pending",
+    statusBg: "bg-amber-50 text-amber-600 hover:bg-amber-50",
+    statusDot: "bg-amber-500",
+    wordCount: 520,
+    savedTimeText: "Saved 3d ago",
+    iconBg: "bg-pink-50",
+    iconColor: "text-pink-600",
+  },
+  {
+    id: 4,
+    title: "Iced Coffee DIY – 5 Easy Recipes",
+    category: "Education",
+    categoryBg: "bg-blue-50 text-blue-600 hover:bg-blue-50 border-none",
+    status: "To Do",
+    statusBg: "bg-gray-50 text-gray-600 hover:bg-gray-50",
+    statusDot: "bg-gray-600",
+    wordCount: 280,
+    savedTimeText: "Saved 2d ago",
+    iconBg: "bg-indigo-50",
+    iconColor: "text-indigo-600",
+  },
+  {
+    id: 5,
+    title: "Morning Coffee Routine Reel – Caption",
+    category: "Lifestyle",
+    categoryBg:
+      "bg-emerald-50 text-emerald-600 hover:bg-emerald-50 border-none",
+    status: "Overdue",
+    statusBg: "bg-red-50 text-red-600 hover:bg-red-50",
+    statusDot: "bg-red-500",
+    revisionNote: "This draft is 3 days overdue.",
+    wordCount: 150,
+    savedTimeText: "Saved 5d ago",
+    iconBg: "bg-emerald-50",
+    iconColor: "text-emerald-600",
+  },
+  {
+    id: 6,
+    title: "Behind the Scene – Photoshoot",
+    category: "Behind the Scenes",
+    categoryBg: "bg-purple-50 text-purple-600 hover:bg-purple-50 border-none",
+    status: "Approved",
+    statusBg: "bg-emerald-50 text-emerald-600 hover:bg-emerald-50",
+    statusDot: "bg-emerald-500",
+    wordCount: 380,
+    savedTimeText: "Saved 1d ago",
+    iconBg: "bg-purple-50",
+    iconColor: "text-purple-600",
   },
 ];

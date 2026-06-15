@@ -1,4 +1,3 @@
-// src/components/CalendarSchedules.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays } from "lucide-react";
@@ -27,14 +26,12 @@ export function CalendarSchedules({
 }: CalendarSchedulesProps) {
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-5 space-y-3">
-      {/* TANGGAL ATAS */}
       <CardHeader className="p-0">
         <CardTitle className="text-lg font-semibold text-gray-900">
           {dateTitle}
         </CardTitle>
       </CardHeader>
 
-      {/* LIST ITEM JADWAL */}
       <CardContent className="p-0 space-y-3">
         {schedules.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-4 text-center">
@@ -49,14 +46,11 @@ export function CalendarSchedules({
             key={item.id}
             className="w-full border border-gray-200 bg-gray-50 rounded-2xl p-4 space-y-3"
           >
-            {/* Judul Konten */}
             <h4 className="font-semibold text-gray-900 text-xs md:text-sm leading-snug">
               {item.title}
             </h4>
 
-            {/* Kelompok Badges (Kategori & Status) */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Badge Kategori (Gaya Outlined Soft seperti di gambar) */}
               <Badge
                 variant="outline"
                 className={`${item.categoryBg} rounded-full font-medium px-2.5 py-0.5 text-xs flex items-center gap-1.5 shadow-none`}
@@ -67,7 +61,6 @@ export function CalendarSchedules({
                 {item.category}
               </Badge>
 
-              {/* Badge Status (Gaya Solid Soft) */}
               <Badge
                 className={`${item.statusBg} rounded-full font-medium px-2.5 py-0.5 text-xs border-none shadow-none flex items-center gap-1.5`}
               >
@@ -78,7 +71,6 @@ export function CalendarSchedules({
               </Badge>
             </div>
 
-            {/* Platform & Waktu */}
             <div className="text-xs font-medium text-gray-400">
               {item.platform} • {item.time}
             </div>

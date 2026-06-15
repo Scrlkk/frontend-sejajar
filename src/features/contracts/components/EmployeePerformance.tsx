@@ -68,9 +68,7 @@ export function EmployeePerformance({
                       : "border-gray-100 bg-white hover:border-gray-200"
                   }`}
                 >
-                  {/* Left Section: Rank, Avatar, Name & Role */}
                   <div className="flex items-center gap-4">
-                    {/* Rank Badge */}
                     <span
                       className={`text-xs font-bold w-6 text-center ${
                         isTopRank ? "text-amber-500 text-sm" : "text-gray-400"
@@ -79,14 +77,12 @@ export function EmployeePerformance({
                       #{rank}
                     </span>
 
-                    {/* Initials Avatar */}
                     <div
                       className={`h-9 w-9 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 shadow-xs ${employee.avatarBg}`}
                     >
                       {employee.initials}
                     </div>
 
-                    {/* Name & Role */}
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 leading-none mb-1">
                         {employee.name}
@@ -97,20 +93,17 @@ export function EmployeePerformance({
                     </div>
                   </div>
 
-                  {/* Right Section: Tasks Count & Progress Indicator */}
                   <div className="flex flex-col items-end gap-1.5">
                     <span className="text-xs font-bold text-gray-950">
                       {employee.tasksCount} tasks
                     </span>
                     <div className="flex items-center gap-2">
-                      {/* Custom Progress Bar */}
                       <div className="h-1.5 w-20 bg-gray-100 rounded-full overflow-hidden shrink-0 flex justify-end">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
                           style={{ width: `${barWidthPercent}%` }}
                         />
                       </div>
-                      {/* Rate Percentage */}
                       <span
                         className={`text-[11px] font-bold shrink-0 w-8 text-right ${rateColor}`}
                       >
