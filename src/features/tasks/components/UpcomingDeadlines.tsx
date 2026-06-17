@@ -1,6 +1,7 @@
 import { AlertTriangle, Clock, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 export interface DeadlineItem {
   id: string | number;
@@ -24,6 +25,7 @@ export function UpcomingDeadlines({
   title = "Upcoming Deadlines",
   deadlines,
 }: UpcomingDeadlinesProps) {
+  const navigate = useNavigate();
   return (
     <Card className="w-full max-w-3xl bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-4">
 
@@ -56,10 +58,11 @@ export function UpcomingDeadlines({
             return (
               <div
                 key={item.id}
-                className={`w-full rounded-2xl p-4 flex flex-row items-center justify-between gap-4 transition-all border
+                onClick={() => navigate(`/tasks?id=${item.id}`)}
+                className={`w-full rounded-2xl p-4 flex flex-row items-center justify-between gap-4 transition-all border cursor-pointer hover:shadow-md hover:border-gray-400/80
                   ${
                     isOverdue
-                      ? "bg-red-50 border border-red-500"
+                      ? "bg-red-50 border border-red-500 hover:border-red-650"
                       : "bg-white border border-gray-300"
                   }
                 `}

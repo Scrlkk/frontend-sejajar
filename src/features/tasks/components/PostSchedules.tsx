@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Calendar, Eye, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
+import { ModalPreviewPublish } from "./ModalPreviewPublish";
 
 export interface ScheduleItem {
   id: string | number;
@@ -27,6 +30,45 @@ export function PostSchedule({
   onPreview,
   onPublish,
 }: PostScheduleProps) {
+  const [items, setItems] = useState<ScheduleItem[]>(() => schedules);
+  const [prevSchedules, setPrevSchedules] = useState(schedules);
+
+  if (schedules !== prevSchedules) {
+    setPrevSchedules(schedules);
+    setItems(schedules);
+  }
+
+  // Preview modal states & actions
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [itemToPreview, setItemToPreview] = useState<ScheduleItem | null>(null);
+
+  const openPreviewModal = (item: ScheduleItem) => {
+    setItemToPreview(item);
+    // Open in next tick to allow any click triggers to complete cleanly
+    setTimeout(() => {
+      setIsPreviewModalOpen(true);
+    }, 100);
+    onPreview?.(item);
+  };
+
+  const handlePublish = (item: ScheduleItem) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id === item.id) {
+          return {
+            ...it,
+            status: "Published",
+            hasPublishButton: false,
+          };
+        }
+        return it;
+      }),
+    );
+    setIsPreviewModalOpen(false);
+    toast.success("Konten berhasil dipublikasikan!");
+    onPublish?.(item);
+  };
+
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6">
       <CardHeader className="flex flex-row items-center justify-between p-0 mb-6 space-y-0">
@@ -37,7 +79,7 @@ export function PostSchedule({
       </CardHeader>
 
       <CardContent className="p-0 divide-y divide-gray-100/70">
-        {schedules.length === 0 ? (
+        {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 px-4 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50/30">
             <div className="h-14 w-14 bg-white rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm mb-4 text-gray-400">
               <Calendar className="h-6 w-6 stroke-[1.5] text-gray-400" />
@@ -49,7 +91,7 @@ export function PostSchedule({
               Jadwal konten yang akan dipublikasikan hari ini akan ditampilkan di sini.
             </p>
           </div>
-        ) : schedules.map((item) => {
+        ) : items.map((item) => {
           const isPublished = item.status === "Published";
           const borderColor = isPublished
             ? "border-emerald-600"
@@ -99,8 +141,8 @@ export function PostSchedule({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onPreview?.(item)}
-                  className="bg-gray-50/50 hover:bg-gray-100 text-gray-600 border-gray-300 rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 shadow-none"
+                  onClick={() => openPreviewModal(item)}
+                  className="bg-gray-50/50 hover:bg-gray-100 text-gray-600 border-gray-300 rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 shadow-none cursor-pointer"
                 >
                   <Eye className="h-3.5 w-3.5" />
                   Preview
@@ -109,8 +151,8 @@ export function PostSchedule({
                 {item.hasPublishButton && (
                   <Button
                     size="sm"
-                    onClick={() => onPublish?.(item)}
-                    className="bg-red-700 hover:bg-red-logo text-white rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 border-none"
+                    onClick={() => handlePublish(item)}
+                    className="bg-red-700 hover:bg-red-logo text-white rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 border-none cursor-pointer"
                   >
                     <Send className="h-3.5 w-3.5 rotate-45" />
                     Publish
@@ -121,6 +163,15 @@ export function PostSchedule({
           );
         })}
       </CardContent>
+
+      {/* Separated Preview Publish Modal */}
+      <ModalPreviewPublish
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        item={itemToPreview}
+        onPublish={handlePublish}
+      />
     </Card>
   );
 }
+

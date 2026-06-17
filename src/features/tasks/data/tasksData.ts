@@ -1,7 +1,7 @@
 import type { ScheduleItem } from "@/features/tasks/components/PostSchedules";
 import type { PublishItem } from "@/features/tasks/components/ReadyPublish";
 import type { QueueItem } from "@/features/tasks/components/PublishContent";
-import type { ScheduledContentItem } from "../components/SchedulesContent";
+import type { ScheduledContentItem } from "@/features/tasks/components/SchedulesContent";
 import {
   CalendarCheck,
   Clock,
@@ -18,6 +18,7 @@ import {
   Hash,
   FileUp,
   FilePen,
+  ClipboardPen,
 } from "lucide-react";
 import type { CardDashboardProps } from "@/features/dashboard/components/CardDashboard";
 import type { TaskBoardItem } from "@/features/tasks/components/TasksContent";
@@ -33,6 +34,11 @@ export const taskBoardColumns = [
     key: "onProgress" as const,
     label: "ON PROGRESS",
     dotColor: "bg-amber-500",
+  },
+  {
+    key: "pending" as const,
+    label: "PENDING",
+    dotColor: "bg-purple-500",
   },
   {
     key: "revision" as const,
@@ -471,8 +477,8 @@ export const scheduledData: ScheduledContentItem[] = [
     postDate: "Apr 21, 2024",
     time: "15:00",
     status: "Published",
-    statusBg: "bg-emerald-50 text-emerald-600",
-    statusDot: "bg-emerald-500",
+    statusBg: "bg-blue-50 text-blue-600",
+    statusDot: "bg-blue-500",
     hasPublishButton: false,
   },
   {
@@ -535,8 +541,8 @@ export const scheduledData: ScheduledContentItem[] = [
     postDate: "Apr 21, 2024",
     time: "15:00",
     status: "Published",
-    statusBg: "bg-emerald-50 text-emerald-600",
-    statusDot: "bg-emerald-500",
+    statusBg: "bg-blue-50 text-blue-600",
+    statusDot: "bg-blue-500",
     hasPublishButton: false,
   },
   {
@@ -599,8 +605,8 @@ export const scheduledData: ScheduledContentItem[] = [
     postDate: "Apr 21, 2024",
     time: "15:00",
     status: "Published",
-    statusBg: "bg-emerald-50 text-emerald-600",
-    statusDot: "bg-emerald-500",
+    statusBg: "bg-blue-50 text-blue-600",
+    statusDot: "bg-blue-500",
     hasPublishButton: false,
   },
   {
@@ -690,18 +696,10 @@ export const publishCardData: CardDashboardProps[] = [
 
 export const tasksCardData: CardDashboardProps[] = [
   {
-    title: "Total Tasks",
-    value: 24,
-    description: "This Month",
-    icon: CircleCheckBig,
-    iconColor: "text-blue-600",
-    iconBgColor: "bg-blue-600/10",
-  },
-  {
     title: "To Do",
     value: 12,
     description: "Unassigned Tasks",
-    icon: Clock,
+    icon: ClipboardPen,
     iconColor: "text-gray-600",
     iconBgColor: "bg-gray-600/10",
   },
@@ -712,6 +710,14 @@ export const tasksCardData: CardDashboardProps[] = [
     icon: Hourglass,
     iconColor: "text-yellow-600",
     iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    title: "Review",
+    value: 24,
+    description: "Awaiting Approval",
+    icon: Clock,
+    iconColor: "text-purple-600",
+    iconBgColor: "bg-purple-600/10",
   },
   {
     title: "Revision",
@@ -779,6 +785,11 @@ export const sampleUploadsData: UploadedVideoItem[] = [
     status: "Approved",
     statusBg: "bg-emerald-50 text-emerald-600 hover:bg-emerald-50",
     statusDot: "bg-emerald-500",
+    assigner: {
+      name: "Sarah Miller",
+      role: "Content Lead",
+      initials: "SM",
+    },
   },
   {
     id: 2,
@@ -793,6 +804,11 @@ export const sampleUploadsData: UploadedVideoItem[] = [
     statusBg: "bg-red-50 text-red-500 hover:bg-red-50",
     statusDot: "bg-red-500",
     revisionNote: "Colour grading is off — re-export with warmer tone.",
+    assigner: {
+      name: "Diego Santos",
+      role: "Marketing Lead",
+      initials: "DS",
+    },
   },
   {
     id: 3,
@@ -805,6 +821,11 @@ export const sampleUploadsData: UploadedVideoItem[] = [
     status: "Pending",
     statusBg: "bg-amber-50 text-amber-600 hover:bg-amber-50",
     statusDot: "bg-amber-500",
+    assigner: {
+      name: "Sarah Miller",
+      role: "Content Lead",
+      initials: "SM",
+    },
   },
   {
     id: 4,
@@ -817,6 +838,11 @@ export const sampleUploadsData: UploadedVideoItem[] = [
     status: "Approved",
     statusBg: "bg-emerald-50 text-emerald-600 hover:bg-emerald-50",
     statusDot: "bg-emerald-500",
+    assigner: {
+      name: "Sarah Miller",
+      role: "Content Lead",
+      initials: "SM",
+    },
   },
 ];
 
@@ -855,12 +881,73 @@ export const DraftsCard: CardDashboardProps[] = [
   },
 ];
 
+export interface AssignerInfo {
+  name: string;
+  role: string;
+  initials: string;
+}
+
+export interface AssignedContentPlan {
+  id: string | number;
+  title: string;
+  category: string;
+  platform: string;
+  assignedBy: AssignerInfo;
+}
+
+export const sampleAssignedContentPlans: AssignedContentPlan[] = [
+  {
+    id: "plan-1",
+    title: "Skincare Morning Routine Reel",
+    category: "Beauty",
+    platform: "Instagram",
+    assignedBy: {
+      name: "Sarah Miller",
+      role: "Content Lead",
+      initials: "SM",
+    },
+  },
+  {
+    id: "plan-2",
+    title: "Coffee Ep.2 – Latte Art Secrets",
+    category: "Lifestyle",
+    platform: "TikTok",
+    assignedBy: {
+      name: "Diego Santos",
+      role: "Marketing Lead",
+      initials: "DS",
+    },
+  },
+  {
+    id: "plan-3",
+    title: "5 Tips Belajar Cepat & Efektif",
+    category: "Education",
+    platform: "YouTube",
+    assignedBy: {
+      name: "Aria Wijaya",
+      role: "Edu Director",
+      initials: "AW",
+    },
+  },
+  {
+    id: "plan-4",
+    title: "Aesthetic Morning Coffee Routine Caption",
+    category: "Lifestyle",
+    platform: "Instagram",
+    assignedBy: {
+      name: "Diego Santos",
+      role: "Marketing Lead",
+      initials: "DS",
+    },
+  },
+];
+
 export interface DraftsItem {
   id: string | number;
   title: string;
   category: string;
   categoryBg: string;
-  status: "To Do" | "Pending" | "Revision" | "Approved" | "Overdue";
+  status: "Pending" | "Revision" | "Approved" | "Overdue";
   statusBg: string;
   statusDot: string;
   revisionNote?: string;
@@ -868,6 +955,7 @@ export interface DraftsItem {
   savedTimeText: string;
   iconBg: string;
   iconColor: string;
+  assigner?: AssignerInfo;
 }
 
 export const sampleDraftsData: DraftsItem[] = [
@@ -884,19 +972,29 @@ export const sampleDraftsData: DraftsItem[] = [
     savedTimeText: "Saved 21d ago",
     iconBg: "bg-indigo-50",
     iconColor: "text-indigo-600",
+    assigner: {
+      name: "Sarah Miller",
+      role: "Content Lead",
+      initials: "SM",
+    },
   },
   {
     id: 2,
     title: "Skincare Routine (Morning) – VO Script",
     category: "Beauty",
     categoryBg: "bg-pink-50 text-pink-600 hover:bg-pink-50 border-none",
-    status: "To Do",
-    statusBg: "bg-gray-50 text-gray-600 hover:bg-gray-50",
-    statusDot: "bg-gray-600",
+    status: "Pending",
+    statusBg: "bg-amber-50 text-amber-600 hover:bg-amber-50",
+    statusDot: "bg-amber-500",
     wordCount: 310,
     savedTimeText: "Saved 22d ago",
     iconBg: "bg-pink-50",
     iconColor: "text-pink-600",
+    assigner: {
+      name: "Diego Santos",
+      role: "Marketing Lead",
+      initials: "DS",
+    },
   },
   {
     id: 3,
@@ -910,19 +1008,29 @@ export const sampleDraftsData: DraftsItem[] = [
     savedTimeText: "Saved 3d ago",
     iconBg: "bg-pink-50",
     iconColor: "text-pink-600",
+    assigner: {
+      name: "Sarah Miller",
+      role: "Content Lead",
+      initials: "SM",
+    },
   },
   {
     id: 4,
     title: "Iced Coffee DIY – 5 Easy Recipes",
     category: "Education",
     categoryBg: "bg-blue-50 text-blue-600 hover:bg-blue-50 border-none",
-    status: "To Do",
-    statusBg: "bg-gray-50 text-gray-600 hover:bg-gray-50",
-    statusDot: "bg-gray-600",
+    status: "Pending",
+    statusBg: "bg-amber-50 text-amber-600 hover:bg-amber-50",
+    statusDot: "bg-amber-500",
     wordCount: 280,
     savedTimeText: "Saved 2d ago",
     iconBg: "bg-indigo-50",
     iconColor: "text-indigo-600",
+    assigner: {
+      name: "Aria Wijaya",
+      role: "Edu Director",
+      initials: "AW",
+    },
   },
   {
     id: 5,
@@ -938,6 +1046,11 @@ export const sampleDraftsData: DraftsItem[] = [
     savedTimeText: "Saved 5d ago",
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-600",
+    assigner: {
+      name: "Diego Santos",
+      role: "Marketing Lead",
+      initials: "DS",
+    },
   },
   {
     id: 6,
@@ -951,5 +1064,10 @@ export const sampleDraftsData: DraftsItem[] = [
     savedTimeText: "Saved 1d ago",
     iconBg: "bg-purple-50",
     iconColor: "text-purple-600",
+    assigner: {
+      name: "Sarah Miller",
+      role: "Content Lead",
+      initials: "SM",
+    },
   },
 ];

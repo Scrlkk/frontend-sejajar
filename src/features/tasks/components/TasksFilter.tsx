@@ -1,4 +1,4 @@
-import { Search, PenLine, Clapperboard, Hash, Users, Plus } from "lucide-react";
+import { Search, PenLine, Clapperboard, Hash } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -7,8 +7,6 @@ interface TasksFilterProps {
   setSearchQuery: (query: string) => void;
   activeTypeFilter: string;
   setActiveTypeFilter: (filter: string) => void;
-  onAssignTeam?: () => void;
-  onNewTask?: () => void;
 }
 
 const typeFilters = [
@@ -23,8 +21,6 @@ export function TasksFilter({
   setSearchQuery,
   activeTypeFilter,
   setActiveTypeFilter,
-  onAssignTeam,
-  onNewTask,
 }: TasksFilterProps) {
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg px-6 py-2">
@@ -59,23 +55,6 @@ export function TasksFilter({
               ))}
             </TabsList>
           </Tabs>
-
-          <div className="flex items-center gap-2 shrink-0 py-1.5">
-            <button
-              onClick={onAssignTeam}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-200 hover:bg-gray-50 rounded-md text-xs font-semibold text-slate-800 transition-colors shadow-none cursor-pointer"
-            >
-              <Users className="h-4 w-4 text-slate-600" />
-              Assign Team
-            </button>
-            <button
-              onClick={onNewTask}
-              className="flex items-center gap-1.5 px-4 py-2 bg-red-logo hover:opacity-90 active:opacity-100 rounded-md text-xs font-semibold text-white transition-colors shadow-none cursor-pointer"
-            >
-              <Plus className="h-4 w-4" />
-              New Task
-            </button>
-          </div>
         </div>
       </div>
     </Card>

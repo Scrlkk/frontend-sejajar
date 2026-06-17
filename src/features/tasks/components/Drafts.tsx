@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Search, Plus, FilePen, History, AlertTriangle, Clock, CircleCheckBig, PenLine } from "lucide-react";
+import {
+  Search,
+  Plus,
+  FilePen,
+  Trash2,
+  AlertTriangle,
+  Clock,
+  CircleCheckBig,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -10,15 +18,10 @@ interface DraftsProps {
   drafts: DraftsItem[];
   onNewDraft?: () => void;
   onOpen?: (item: DraftsItem) => void;
-  onHistory?: (item: DraftsItem) => void;
+  onDelete?: (id: string | number) => void;
 }
 
-export function Drafts({
-  drafts,
-  onNewDraft,
-  onOpen,
-  onHistory,
-}: DraftsProps) {
+export function Drafts({ drafts, onNewDraft, onOpen, onDelete }: DraftsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
@@ -27,8 +30,6 @@ export function Drafts({
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
-    if (activeTab === "to_do")
-      return matchesSearch && item.status === "To Do";
     if (activeTab === "pending")
       return matchesSearch && item.status === "Pending";
     if (activeTab === "revision")
@@ -41,8 +42,9 @@ export function Drafts({
     return matchesSearch;
   });
 
-  const countStatus = (statusName: "To Do" | "Pending" | "Revision" | "Approved" | "Overdue") =>
-    drafts.filter((d) => d.status === statusName).length;
+  const countStatus = (
+    statusName: "Pending" | "Revision" | "Approved" | "Overdue",
+  ) => drafts.filter((d) => d.status === statusName).length;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -50,12 +52,12 @@ export function Drafts({
         return <AlertTriangle className="h-5 w-5 text-red-500 stroke-[1.5]" />;
       case "Overdue":
         return <AlertTriangle className="h-5 w-5 text-red-500 stroke-[1.5]" />;
-      case "To Do":
-        return <PenLine className="h-5 w-5 text-gray-500 stroke-[1.5]" />;
       case "Pending":
         return <Clock className="h-5 w-5 text-yellow-500 stroke-[1.5]" />;
       case "Approved":
-        return <CircleCheckBig className="h-5 w-5 text-emerald-500 stroke-[1.5]" />;
+        return (
+          <CircleCheckBig className="h-5 w-5 text-emerald-500 stroke-[1.5]" />
+        );
       default:
         return null;
     }
@@ -75,12 +77,6 @@ export function Drafts({
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
               All ({drafts.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="to_do"
-              className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
-            >
-              To Do ({countStatus("To Do")})
             </TabsTrigger>
             <TabsTrigger
               value="pending"
@@ -141,7 +137,9 @@ export function Drafts({
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3.5 min-w-0">
-                    <div className={`h-11 w-11 rounded-xl ${item.iconBg} ${item.iconColor} flex items-center justify-center shrink-0`}>
+                    <div
+                      className={`h-11 w-11 rounded-xl ${item.iconBg} ${item.iconColor} flex items-center justify-center shrink-0`}
+                    >
                       <FilePen className="h-5 w-5 stroke-2" />
                     </div>
 
@@ -172,11 +170,12 @@ export function Drafts({
                   </div>
                 </div>
 
-                {(item.status === "Revision" || item.status === "Overdue") && item.revisionNote && (
-                  <div className="w-full bg-red-50/40 border border-red-400 rounded-xl p-3 text-xs md:text-sm text-red-800 font-semibold leading-relaxed">
-                    {item.revisionNote}
-                  </div>
-                )}
+                {(item.status === "Revision" || item.status === "Overdue") &&
+                  item.revisionNote && (
+                    <div className="w-full bg-red-50/40 border border-red-400 rounded-xl p-3 text-xs md:text-sm text-red-800 font-semibold leading-relaxed">
+                      {item.revisionNote}
+                    </div>
+                  )}
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-50 text-xs md:text-sm font-bold text-gray-400">
@@ -188,14 +187,16 @@ export function Drafts({
 
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => onHistory?.(item)}
-                    className="flex items-center gap-1.5 hover:text-gray-900 text-gray-500 font-semibold transition-colors cursor-pointer group"
+                    type="button"
+                    onClick={() => onDelete?.(item.id)}
+                    className="flex items-center gap-1.5 text-red-500 hover:text-red-650 hover:bg-red-50 p-1.5 rounded-lg transition-all cursor-pointer font-semibold"
                   >
-                    <History className="h-4 w-4 text-gray-400 group-hover:text-gray-900 transition-colors" />
-                    History
+                    <Trash2 className="h-4 w-4" />
+                    Delete
                   </button>
 
                   <Button
+                    type="button"
                     onClick={() => onOpen?.(item)}
                     className="bg-red-800 hover:bg-red-900 text-white rounded-md px-5 h-9 font-semibold text-xs flex items-center gap-1 border-none shadow-none cursor-pointer"
                   >
@@ -205,9 +206,30 @@ export function Drafts({
               </div>
             </Card>
           ))
+        ) : drafts.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-250 bg-slate-50/20 rounded-2xl">
+            <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-800 shadow-sm mb-4">
+              <FilePen className="h-6 w-6 stroke-[1.5]" />
+            </div>
+            <h4 className="text-base font-bold text-gray-900 mb-1">
+              Belum Ada Draft Konten
+            </h4>
+            <p className="text-xs text-gray-500 max-w-sm leading-relaxed mb-5">
+              Mulai dengan membuat draft script atau artikel untuk konten yang
+              telah ditugaskan kepada Anda.
+            </p>
+          </div>
         ) : (
-          <div className="col-span-full text-center py-16 text-gray-400 text-sm bg-gray-50/50 rounded-2xl border border-gray-100/80">
-            No drafts found matching the selected filters.
+          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center bg-gray-50/50 rounded-2xl border border-gray-100/80">
+            <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-gray-400 mb-3 border border-gray-205">
+              <Search className="h-4 w-4" />
+            </div>
+            <h4 className="text-sm font-bold text-gray-800">
+              Tidak ada draft yang cocok
+            </h4>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Coba sesuaikan kata kunci pencarian atau filter status Anda.
+            </p>
           </div>
         )}
       </div>

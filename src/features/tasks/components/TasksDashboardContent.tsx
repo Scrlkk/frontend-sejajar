@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import type { TaskBoardItem } from "@/features/tasks/components/TasksContent";
+import { useNavigate } from "react-router-dom";
 
 interface TaskDashboardContentProps {
   task: TaskBoardItem;
@@ -20,12 +21,14 @@ const statusCardStyles: Record<string, string> = {
 };
 
 export function TaskDashboardContent({ task }: TaskDashboardContentProps) {
+  const navigate = useNavigate();
   const displayDueDate = mockDueDates[task.id as number] || "Due: Apr 24, 2024";
   const cardStyle = statusCardStyles[task.status] || "bg-white border-gray-100";
 
   return (
     <div
-      className={`w-full border rounded-xl p-4 space-y-3 shadow-xs hover:shadow-sm transition-all ${cardStyle}`}
+      onClick={() => navigate(`/tasks?id=${task.id}`)}
+      className={`w-full border rounded-xl p-4 space-y-3 shadow-xs hover:shadow-sm transition-all cursor-pointer ${cardStyle}`}
     >
       <h4 className="font-semibold text-gray-900 text-sm leading-snug wrap-break-word">
         {task.title}

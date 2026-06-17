@@ -4,7 +4,7 @@ import {
   scriptOutputData,
 } from "@/features/dashboard/data/scriptwriterCard";
 import { RevisionDashboard } from "@/features/reviews/components/RevisionDashboard";
-import { GraphicDonutHorizontal } from "../components/GraphicDonutHorizontal";
+import { GraphicDonutHorizontal } from "@/features/dashboard/components/GraphicDonutHorizontal";
 import { pillarData } from "@/features/contents/data/contentData";
 import {
   Select,
@@ -20,9 +20,12 @@ import { sampleDeadlines } from "@/features/dashboard/data/contenteditor";
 import { RecentComments } from "@/features/reviews/components/RecentComments";
 import { sampleComments } from "@/features/reviews/data/reviewsData";
 
+import { useNavigate } from "react-router-dom";
+
 export const ScriptWriterPage = () => {
+  const navigate = useNavigate();
   const handleReviseClick = () => {
-    console.log("Membuka workspace atau modal editor untuk merevisi file...");
+    navigate("/drafts?id=1");
   };
 
   const availableYears = useMemo(() => {

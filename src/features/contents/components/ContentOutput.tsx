@@ -31,7 +31,7 @@ const KEY_COLORS: Record<string, string> = {
   Draft: "#e5e7eb",
   "To Do": "#9ca3af",
   "On Progress": "#eab308",
-  "Pending Review": "#3b82f6",
+  Review: "#3b82f6",
   Approved: "#10b981",
   Revision: "#ef4444",
 };

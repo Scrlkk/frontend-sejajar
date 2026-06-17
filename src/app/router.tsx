@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
@@ -12,7 +12,6 @@ import { AdminSocialMediaPage } from "@/features/dashboard/pages/AdminSocialMedi
 import { CalendarPage } from "@/features/calendar/pages/CalendarPage";
 import { NotFound } from "@/layouts/NotFound";
 import { InternalError } from "@/layouts/InternalError";
-import { SchedulesPage } from "@/features/tasks/pages/SchedulesPage";
 import { AnalyticsPage } from "@/features/analytics/pages/AnalyticsPage";
 import { EngagementPage } from "@/features/analytics/pages/EngagementPage";
 import { ContentLeadPage } from "@/features/dashboard/pages/ContentLeadPage";
@@ -23,6 +22,8 @@ import { ScriptWriterPage } from "@/features/dashboard/pages/ScriptWriterPage";
 import { ContentEditorPage } from "@/features/dashboard/pages/ContentEditorPage";
 import { UploadsPage } from "@/features/tasks/pages/UploadsPage";
 import { DraftsPage } from "@/features/tasks/pages/DraftsPage";
+import { ContractContentPage } from "@/features/contracts/pages/ContractContentPage";
+import { ClientsPage } from "@/features/clients/pages/ClientsPage";
 
 export const router = createBrowserRouter([
   {
@@ -63,16 +64,20 @@ export const router = createBrowserRouter([
         element: <ContentEditorPage />,
       },
       {
+        path: "/clients",
+        element: <ClientsPage />,
+      },
+      {
         path: "/contracts",
         element: <ContractPage />,
       },
       {
-        path: "/tasks",
-        element: <TasksPage />,
+        path: "/contracts/:id",
+        element: <ContractContentPage />,
       },
       {
-        path: "/schedules",
-        element: <SchedulesPage />,
+        path: "/tasks",
+        element: <TasksPage />,
       },
       {
         path: "/calendar",
@@ -111,14 +116,7 @@ export const router = createBrowserRouter([
   {
     path: "/",
     errorElement: <InternalError />,
-    element: (
-      <a
-        href="/login"
-        className="w-full h-screen flex flex-col justify-center items-center bg-blue-600 text-white font-bold tracking-wider text-5xl"
-      >
-        Company Profile
-      </a>
-    ),
+    element: <Navigate to="/login" replace />,
   },
   {
     path: "*",

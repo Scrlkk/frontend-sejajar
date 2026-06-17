@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ export function ActiveContracts({
   title = "Active Contracts",
   onViewAll,
 }: ActiveContractsProps) {
+  const navigate = useNavigate();
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-5">
       <CardHeader className="flex flex-row items-center justify-between p-0 space-y-0">
@@ -67,7 +68,8 @@ export function ActiveContracts({
               return (
                 <Card
                   key={contract.id}
-                  className="min-w-90 sm:min-w-98 max-w-md shrink-0 bg-white border border-gray-300 rounded-xl p-5 space-y-3.5 shadow-xs hover:border-red-logo hover:bg-red-50/50 transition-all"
+                  onClick={() => navigate(`/contracts/${contract.id}`)}
+                  className="min-w-90 sm:min-w-98 max-w-md shrink-0 bg-white border border-gray-300 rounded-xl p-5 space-y-3.5 shadow-xs hover:border-red-logo hover:bg-red-50/50 transition-all cursor-pointer"
                 >
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-gray-400">{contract.code}</span>

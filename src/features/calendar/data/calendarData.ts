@@ -1,8 +1,8 @@
 import type { CalendarEvent } from "@/features/calendar/components/Calendar";
 import type { MiniScheduleItem } from "@/features/calendar/components/CalendarSchedules";
-import type { PlatformSummaryItem } from "@/features/calendar/components/PlatformSummary";
 import type { MiniPublishItem } from "@/features/calendar/components/CalendarPublish";
-
+import type { CardDashboardProps } from "@/features/dashboard/components/CardDashboard";
+import { BarChart3, Smartphone, TabletSmartphone, TvMinimal } from "lucide-react";
 
 export const myEvents: CalendarEvent[] = [
   {
@@ -74,27 +74,6 @@ export const miniSchedules: MiniScheduleItem[] = [
   },
 ];
 
-export const samplePlatformSummary: PlatformSummaryItem[] = [
-  {
-    id: 1,
-    name: "TikTok",
-    postCount: 3,
-    dotColor: "bg-[#252f41]",
-  },
-  {
-    id: 2,
-    name: "Instagram",
-    postCount: 4,
-    dotColor: "bg-pink-500",
-  },
-  {
-    id: 3,
-    name: "YouTube",
-    postCount: 1,
-    dotColor: "bg-red-600",
-  },
-];
-
 export const publishItems: MiniPublishItem[] = [
   {
     id: 1,
@@ -102,8 +81,43 @@ export const publishItems: MiniPublishItem[] = [
     dateText: "May 12, 2024 · 11:00",
   },
   {
-    id: 1,
-    title: "Iced Coffee DIY - 5 Easy Recipes",
-    dateText: "May 12, 2024 · 11:00",
+    id: 2,
+    title: "Morning Coffee Routine Reel",
+    dateText: "May 13, 2024 · 08:30",
+  },
+];
+
+export const calendarCards: CardDashboardProps[] = [
+  {
+    title: "Instagram",
+    value: 12,
+    description: "Platform Summary",
+    icon: TabletSmartphone,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    title: "Youtube",
+    value: 24,
+    description: "Platform Summary",
+    icon: TvMinimal,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    title: "Tiktok",
+    value: 18,
+    description: "Platform Summary",
+    icon: Smartphone,
+    iconColor: "text-blue-600",
+    iconBgColor: "bg-blue-600/10",
+  },
+  {
+    title: "Total Summary",
+    value: 6,
+    description: "This Month",
+    icon: BarChart3,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
   },
 ];

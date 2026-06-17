@@ -2,11 +2,12 @@ import { useState } from "react";
 import type { UserData } from "@/features/users/data/usersData";
 import {
   Plus,
-  Pencil,
   Trash2,
   Search,
   ChevronLeft,
   ChevronRight,
+  UserRoundPen,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -19,6 +20,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ModalUsers } from "@/features/users/components/ModalUsers";
+import type { UserFormValues } from "@/features/users/components/ModalUsers";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UserManagementProps {
   users: UserData[];
@@ -31,10 +49,33 @@ export function UserManagement({
   title = "User Management",
   itemsPerPage = 8,
 }: UserManagementProps) {
+  const [prevUsers, setPrevUsers] = useState<UserData[]>(users);
+  const [usersList, setUsersList] = useState<UserData[]>(users);
+
+  // Adjust state synchronously if props change
+  if (users !== prevUsers) {
+    setPrevUsers(users);
+    setUsersList(users);
+  }
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
-  const filteredUsers = users.filter((user) => {
+  const roles = Array.from(new Set(usersList.map((user) => user.role))).filter(
+    (role) => role !== "Super Admin" && role !== "Superadmin",
+  );
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+
+  const filteredUsers = usersList.filter((user) => {
+    if (user.role === "Super Admin" || user.role === "Superadmin") return false;
+
     const matchesName = user.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -44,7 +85,14 @@ export function UserManagement({
     const matchesRole = user.role
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    return matchesName || matchesEmail || matchesRole;
+    const matchesStatus =
+      statusFilter === "all" || user.status === statusFilter;
+    const matchesRoleFilter = roleFilter === "all" || user.role === roleFilter;
+    return (
+      (matchesName || matchesEmail || matchesRole) &&
+      matchesStatus &&
+      matchesRoleFilter
+    );
   });
 
   const totalItems = filteredUsers.length;
@@ -59,25 +107,238 @@ export function UserManagement({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
 
+  // Helper to generate visuals based on role
+  const getRoleVisuals = (role: string) => {
+    switch (role) {
+      case "Owner":
+        return {
+          avatarBg: "bg-amber-50 text-amber-600",
+          roleBg: "bg-amber-50 text-amber-600 hover:bg-amber-50",
+        };
+      case "Content Lead":
+        return {
+          avatarBg: "bg-blue-50 text-blue-600",
+          roleBg: "bg-blue-50 text-blue-600 hover:bg-blue-50",
+        };
+      case "Admin Social Media":
+        return {
+          avatarBg: "bg-emerald-50 text-emerald-600",
+          roleBg: "bg-emerald-50 text-emerald-600 hover:bg-emerald-50",
+        };
+      case "Content Editor":
+      case "Editor":
+        return {
+          avatarBg: "bg-pink-50 text-pink-600",
+          roleBg: "bg-pink-50 text-pink-500 hover:bg-pink-50",
+        };
+      case "Script Writer":
+        return {
+          avatarBg: "bg-purple-50 text-purple-600",
+          roleBg: "bg-purple-50 text-purple-600 hover:bg-purple-50",
+        };
+      default:
+        return {
+          avatarBg: "bg-gray-50 text-gray-600",
+          roleBg: "bg-gray-50 text-gray-500 hover:bg-gray-50",
+        };
+    }
+  };
+
+  const getInitials = (fullName: string) => {
+    return (
+      fullName
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase() || "U"
+    );
+  };
+
+  const handleOpenAddModal = () => {
+    setSelectedUser(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (user: UserData) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  // Delete confirmation dialog states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
+
+  const handleDeleteUser = (user: UserData) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      setUsersList((prev) =>
+        prev.map((u) =>
+          u.id === userToDelete.id ? { ...u, status: "inactive" } : u,
+        ),
+      );
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  // Reactivate confirmation dialog states
+  const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
+  const [userToReactivate, setUserToReactivate] = useState<UserData | null>(
+    null,
+  );
+
+  const handleReactivateUser = (user: UserData) => {
+    setUserToReactivate(user);
+    setIsReactivateModalOpen(true);
+  };
+
+  const confirmReactivateUser = () => {
+    if (userToReactivate) {
+      setUsersList((prev) =>
+        prev.map((u) =>
+          u.id === userToReactivate.id ? { ...u, status: "active" } : u,
+        ),
+      );
+      setIsReactivateModalOpen(false);
+      setUserToReactivate(null);
+    }
+  };
+
+  const handleSaveUser = (data: UserFormValues & { id?: number }) => {
+    const visuals = getRoleVisuals(data.role);
+    const initials = getInitials(data.fullName);
+
+    if (data.id) {
+      // Edit mode
+      setUsersList((prev) =>
+        prev.map((u) =>
+          u.id === data.id
+            ? {
+                ...u,
+                name: data.fullName,
+                email: data.email,
+                role: data.role,
+                status: data.isActive ? "active" : "inactive",
+                initials,
+                ...visuals,
+              }
+            : u,
+        ),
+      );
+    } else {
+      // Add mode
+      const newId = Math.max(...usersList.map((u) => u.id), 0) + 1;
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+
+      const newUser: UserData = {
+        id: newId,
+        name: data.fullName,
+        email: data.email,
+        role: data.role,
+        initials,
+        tasks: 0,
+        joined: formattedDate,
+        status: data.isActive ? "active" : "inactive",
+        ...visuals,
+      };
+
+      setUsersList((prev) => [newUser, ...prev]);
+    }
+  };
+
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-row items-center justify-between gap-4">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-        <div className="flex gap-4 w-1/2">
-          <div className="w-full relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name, email, or role..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/20 focus:border-red-800 transition-colors"
-            />
-          </div>
-          <Button className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center gap-2 self-end sm:self-auto">
-            <Plus className="h-4 w-4" />
-            Add User
-          </Button>
+        <Button
+          onClick={handleOpenAddModal}
+          className="w-auto bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+        >
+          <Plus className="h-4 w-4" />
+          Add User
+        </Button>
+      </div>
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full">
+        <div className="w-full relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name, email, or role..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/20 focus:border-red-800 transition-colors"
+          />
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Select
+            value={statusFilter}
+            onValueChange={(val) =>
+              setStatusFilter(val as "all" | "active" | "inactive")
+            }
+          >
+            <SelectTrigger className="w-full sm:w-40 rounded-xl border-gray-200 bg-gray-50/50 py-2.5 text-left focus:outline-none focus:border-red-800 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-gray-100 bg-white p-1 shadow-lg">
+              <SelectItem
+                value="all"
+                className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+              >
+                All Status
+              </SelectItem>
+              <SelectItem
+                value="active"
+                className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+              >
+                Active Users
+              </SelectItem>
+              <SelectItem
+                value="inactive"
+                className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+              >
+                Inactive Users
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={roleFilter}
+            onValueChange={(val) => {
+              setRoleFilter(val);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-40 rounded-xl border-gray-200 bg-gray-50/50 py-2.5 text-left focus:outline-none focus:border-red-800 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors">
+              <SelectValue placeholder="All Roles" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-gray-100 bg-white p-1 shadow-lg">
+              <SelectItem
+                value="all"
+                className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+              >
+                All Roles
+              </SelectItem>
+              {roles.map((role) => (
+                <SelectItem
+                  key={role}
+                  value={role}
+                  className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+                >
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -139,7 +400,13 @@ export function UserManagement({
                   </TableCell>
 
                   <TableCell className="py-3.5">
-                    <Badge className="bg-emerald-50 text-emerald-600 hover:bg-emerald-50 shadow-none rounded-lg px-2 py-0.5 font-bold text-xs border-none">
+                    <Badge
+                      className={`${
+                        user.status === "active"
+                          ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50"
+                          : "bg-red-50 text-red-600 hover:bg-red-50"
+                      } shadow-none rounded-lg px-2 py-0.5 font-bold text-xs border-none`}
+                    >
                       {user.status}
                     </Badge>
                   </TableCell>
@@ -149,22 +416,35 @@ export function UserManagement({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
+                        onClick={() => handleOpenEditModal(user)}
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <UserRoundPen className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {user.status === "active" ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteUser(user)}
+                          className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleReactivateUser(user)}
+                          className="h-8 w-8 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg cursor-pointer"
+                        >
+                          <UserCheck className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
               ))
-            ) : users.length === 0 ? (
+            ) : usersList.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -214,10 +494,26 @@ export function UserManagement({
                       />
                     </svg>
                     <p className="text-sm font-medium text-gray-500">
-                      No matching users
+                      {searchQuery
+                        ? "No matching users"
+                        : statusFilter === "inactive"
+                          ? "No inactive users"
+                          : statusFilter === "active"
+                            ? "No active users"
+                            : roleFilter !== "all"
+                              ? `No users with role ${roleFilter}`
+                              : "No matching users"}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      We couldn't find any users matching "{searchQuery}".
+                      {searchQuery
+                        ? `We couldn't find any users matching "${searchQuery}".`
+                        : statusFilter !== "all" && roleFilter !== "all"
+                          ? `We couldn't find any ${statusFilter} users with role "${roleFilter}" in the system.`
+                          : statusFilter !== "all"
+                            ? `We couldn't find any ${statusFilter} users in the system.`
+                            : roleFilter !== "all"
+                              ? `We couldn't find any users with role "${roleFilter}" in the system.`
+                              : "We couldn't find any users matching the criteria."}
                     </p>
                   </div>
                 </TableCell>
@@ -271,6 +567,92 @@ export function UserManagement({
           </Button>
         </div>
       </div>
+
+      {/* Modal Users Component */}
+      {isModalOpen && (
+        <ModalUsers
+          key={selectedUser ? `edit-${selectedUser.id}` : "add-new"}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveUser}
+          user={selectedUser}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="sm:max-w-100 rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl outline-none">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              Deactivate Account (Soft Delete)
+            </DialogTitle>
+            <DialogDescription className="text-xs text-gray-500 mt-2 leading-relaxed">
+              Are you sure you want to deactivate{" "}
+              <span className="font-semibold text-gray-950">
+                {userToDelete?.name}
+              </span>
+              ? Their access will be suspended, but you can reactivate this
+              account at any time from the edit settings.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-700 px-5 cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmDeleteUser}
+              className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium px-5 transition-all cursor-pointer"
+            >
+              Deactivate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reactivate Confirmation Dialog */}
+      <Dialog
+        open={isReactivateModalOpen}
+        onOpenChange={setIsReactivateModalOpen}
+      >
+        <DialogContent className="sm:max-w-100 rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl outline-none">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              Reactivate Account
+            </DialogTitle>
+            <DialogDescription className="text-xs text-gray-500 mt-2 leading-relaxed">
+              Are you sure you want to reactivate{" "}
+              <span className="font-semibold text-gray-950">
+                {userToReactivate?.name}
+              </span>
+              ? Their access will be restored, and they will be able to log in
+              and use the system again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsReactivateModalOpen(false)}
+              className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-700 px-5 cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmReactivateUser}
+              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 transition-all cursor-pointer"
+            >
+              Reactivate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

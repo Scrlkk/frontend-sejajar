@@ -1,9 +1,28 @@
 import { useState } from "react";
-import { Search, Calendar, ChevronRight, MoveRight } from "lucide-react";
+import {
+  Search,
+  Calendar,
+  MoveRight,
+  Plus,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  FolderClosed,
+  FileSearch,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 export interface ContractCardItem {
   id: string | number;
@@ -21,14 +40,26 @@ export interface ContractCardItem {
   statusBg: string;
   statusDot: string;
   year?: number;
+  contentLead?: string;
 }
 
 interface ContractsProps {
   contracts: ContractCardItem[];
   onCardClick?: (item: ContractCardItem) => void;
+  onAddClick?: () => void;
+  onEditClick?: (item: ContractCardItem) => void;
+  onDeleteClick?: (id: string | number) => void;
+  onStatusChange?: (id: string | number, newStatus: string) => void;
 }
 
-export function Contracts({ contracts, onCardClick }: ContractsProps) {
+export function Contracts({
+  contracts,
+  onCardClick,
+  onAddClick,
+  onEditClick,
+  onDeleteClick,
+  onStatusChange,
+}: ContractsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
@@ -67,38 +98,48 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
           />
         </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full md:w-auto"
-        >
-          <TabsList className="bg-gray-100/80 p-1 rounded-xl h-10 gap-1 w-full md:w-auto justify-start overflow-x-auto">
-            <TabsTrigger
-              value="all"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              All ({contracts.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="active"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Active ({countStatus("Active")})
-            </TabsTrigger>
-            <TabsTrigger
-              value="completed"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Completed ({countStatus("Completed")})
-            </TabsTrigger>
-            <TabsTrigger
-              value="overdue"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Overdue ({countStatus("Overdue")})
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full md:w-auto"
+          >
+            <TabsList className="bg-gray-100/80 p-1 rounded-xl h-10 gap-1 w-full md:w-auto justify-start overflow-x-auto">
+              <TabsTrigger
+                value="all"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                All ({contracts.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="active"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Active ({countStatus("Active")})
+              </TabsTrigger>
+              <TabsTrigger
+                value="completed"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Completed ({countStatus("Completed")})
+              </TabsTrigger>
+              <TabsTrigger
+                value="overdue"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Overdue ({countStatus("Overdue")})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <Button
+            onClick={onAddClick}
+            className="bg-red-800 hover:bg-red-900 text-white rounded-lg h-10 px-4 gap-2 cursor-pointer shadow-sm text-sm font-semibold w-full sm:w-auto justify-center shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+            Add Contract
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -113,7 +154,73 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                 onClick={() => onCardClick?.(item)}
                 className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-3 relative hover:border-red-logo hover:bg-red-50/20 transition-all cursor-pointer group"
               >
-                <ChevronRight className="absolute right-5 top-6 h-4 w-4 text-gray-300 group-hover:text-red-logo transition-colors" />
+                {/* Actions Dropdown replacing simple '>' button */}
+                <div
+                  className="absolute right-5 top-6 z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:text-red-logo hover:bg-gray-150/50 rounded-lg cursor-pointer transition-colors"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-44 bg-white border border-gray-250/80 shadow-md rounded-xl p-1 z-50"
+                    >
+                      <DropdownMenuItem
+                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
+                        onClick={() => onEditClick?.(item)}
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                        <span>Edit Contract</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="border-gray-100 my-1" />
+
+                      <DropdownMenuLabel className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        Set Status
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
+                        onClick={() => onStatusChange?.(item.id, "Active")}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
+                        <span>Active</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50 transition-colors"
+                        onClick={() => onStatusChange?.(item.id, "Completed")}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>Completed</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
+                        onClick={() => onStatusChange?.(item.id, "Canceled")}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                        <span>Canceled</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="border-gray-100 my-1" />
+
+                      <DropdownMenuItem
+                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
+                        onClick={() => onDeleteClick?.(item.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-red-550 shrink-0" />
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
                 <div className="flex items-center gap-3 text-xs font-semibold">
                   <span className="text-gray-400 py-0.5">{item.code}</span>
@@ -128,7 +235,7 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                 </div>
 
                 <div className="space-y-0.5">
-                  <h3 className="font-semibold text-gray-900 text-lg md:text-xl leading-snug">
+                  <h3 className="font-semibold text-gray-900 text-lg md:text-xl leading-snug line-clamp-1">
                     {item.title}
                   </h3>
                   <p className="text-sm text-gray-400 font-medium">
@@ -136,7 +243,7 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
                   </p>
                 </div>
 
-                <p className="text-sm text-gray-400 font-normal leading-relaxed line-clamp-2">
+                <p className="text-sm text-gray-400 font-normal leading-relaxed line-clamp-1">
                   {item.description}
                 </p>
 
@@ -194,9 +301,41 @@ export function Contracts({ contracts, onCardClick }: ContractsProps) {
               </Card>
             );
           })
+        ) : contracts.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50/20 rounded-2xl border border-dashed border-gray-200 shadow-xs">
+            <div className="h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-800 shadow-sm border border-red-100 mb-4 animate-pulse">
+              <FolderClosed className="h-7 w-7" />
+            </div>
+            <h4 className="text-sm font-bold text-gray-900 mb-1">
+              Belum Ada Kontrak
+            </h4>
+            <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-5 font-semibold">
+              Mulai dengan mendaftarkan kontrak baru untuk mengelola dan melacak
+              progres produksi konten Anda.
+            </p>
+          </div>
         ) : (
-          <div className="col-span-full text-center py-16 text-gray-400 text-sm bg-white rounded-2xl border border-gray-100 shadow-xs">
-            No contracts found matching the selected filters.
+          <div className="col-span-full flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50/20 rounded-2xl border border-dashed border-gray-200 shadow-xs">
+            <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 shadow-sm border border-slate-100 mb-4">
+              <FileSearch className="h-7 w-7" />
+            </div>
+            <h4 className="text-sm font-bold text-gray-900 mb-1">
+              Kontrak Tidak Ditemukan
+            </h4>
+            <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-5 font-semibold">
+              Tidak ada kontrak yang cocok dengan kata kunci pencarian atau
+              filter tab saat ini.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setActiveTab("all");
+              }}
+              className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-755 text-xs font-bold cursor-pointer h-9 px-4"
+            >
+              Reset Filter
+            </Button>
           </div>
         )}
       </div>

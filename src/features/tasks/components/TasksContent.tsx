@@ -2,6 +2,16 @@ import { Calendar, TriangleAlert, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
+export type TaskCommentItem = {
+  id: string;
+  sender: string;
+  senderInitials: string;
+  senderBg: string;
+  text: string;
+  timestamp: string;
+  isMe?: boolean;
+};
+
 export type TaskBoardItem = {
   id: string | number;
   title: string;
@@ -15,21 +25,30 @@ export type TaskBoardItem = {
   assignee: string;
   assigneeInitials: string;
   assigneeBg: string;
-  status: "todo" | "onProgress" | "revision" | "done";
+  status: "todo" | "onProgress" | "revision" | "done" | "pending";
   isOverdue: boolean;
   date: Date;
   priority: "low" | "medium" | "high" | "critical";
+  description?: string;
+  pillar?: string;
+  role?: string;
+  deliverables?: string[];
+  comments?: TaskCommentItem[];
 };
 
 interface TasksContentProps {
   task: TaskBoardItem;
+  onSelect?: (task: TaskBoardItem) => void;
 }
 
-export function TasksContent({ task }: TasksContentProps) {
+export function TasksContent({ task, onSelect }: TasksContentProps) {
   const TypeIcon = task.typeIcon;
 
   return (
-    <Card className="w-full bg-white rounded-xl p-4 space-y-2.5 hover:border-red-logo hover:shadow-md transition-all cursor-pointer group">
+    <Card 
+      onClick={() => onSelect?.(task)}
+      className="w-full bg-white rounded-xl p-4 space-y-2.5 hover:border-red-logo hover:shadow-md transition-all cursor-pointer group"
+    >
       <div className="flex items-center justify-between">
         <Badge
           className={`${task.typeBg} rounded-md font-medium text-[10px] px-2 py-0.5 border-none shadow-none flex items-center gap-1`}

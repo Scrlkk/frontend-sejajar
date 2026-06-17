@@ -1,7 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
-import type { GraphicDonutData } from "./GraphicDonut";
+import type { GraphicDonutData } from "@/features/dashboard/components/GraphicDonut";
 
 interface GraphicDonutHorizontalProps {
   data: GraphicDonutData[];

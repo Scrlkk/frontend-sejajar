@@ -10,14 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface ActivityLogItem {
   id: string | number;
   name: string;
   initials: string;
   avatarBg: string;
-  actionType: "UPDATE" | "CREATE" | "PUBLISH" | string;
+  actionType:
+    | "UPDATE"
+    | "CREATE"
+    | "PUBLISH"
+    | "DELETE"
+    | "LOGIN"
+    | "LOGOUT"
+    | string;
   actionBg: string;
   description: string;
   date: string;
@@ -53,10 +60,18 @@ export function SystemLog({ logs, itemsPerPage = 5 }: SystemActivityLogProps) {
       const now = new Date();
 
       if (timeFilter === "today") {
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
         matchesTime = logDate >= startOfDay;
       } else if (timeFilter === "week") {
-        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+        const startOfWeek = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() - now.getDay(),
+        );
         matchesTime = logDate >= startOfWeek;
       } else if (timeFilter === "month") {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -98,18 +113,10 @@ export function SystemLog({ logs, itemsPerPage = 5 }: SystemActivityLogProps) {
           <CardTitle className="text-lg font-semibold text-gray-900">
             System Activity Log
           </CardTitle>
-          <Button
-            size="sm"
-            variant="outline"
-            className="bg-white border border-gray-300 text-gray-600 hover:text-black hover:bg-gray-200"
-          >
-            <Download className="w-4 h-4" />
-            Export
-          </Button>
         </div>
 
         <div className="w-full flex flex-col justify-between space-y-3 sm:flex-row sm:space-y-0 items-center gap-3">
-          <div className="relative w-full max-w-sm sm:flex-1">
+          <div className="relative w-full max-w-lg sm:flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
@@ -121,7 +128,10 @@ export function SystemLog({ logs, itemsPerPage = 5 }: SystemActivityLogProps) {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Select value={activityType} onValueChange={handleActivityTypeChange}>
+            <Select
+              value={activityType}
+              onValueChange={handleActivityTypeChange}
+            >
               <SelectTrigger className="w-full sm:w-40 rounded-sm focus:ring-0 border-gray-200 bg-gray-50/50 text-sm h-9.5">
                 <SelectValue placeholder="All Activity Type" />
               </SelectTrigger>
@@ -191,19 +201,47 @@ export function SystemLog({ logs, itemsPerPage = 5 }: SystemActivityLogProps) {
           ))
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-12 h-12 mb-3 text-gray-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
-            <p className="text-sm font-medium text-gray-500">No activity logs yet</p>
-            <p className="text-xs text-gray-400 mt-1">Activity will appear here once actions are recorded.</p>
+            <p className="text-sm font-medium text-gray-500">
+              No activity logs yet
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Activity will appear here once actions are recorded.
+            </p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              className="w-12 h-12 mb-3 text-gray-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
-            <p className="text-sm font-medium text-gray-500">No results found</p>
-            <p className="text-xs text-gray-400 mt-1">Try adjusting your search or filters.</p>
+            <p className="text-sm font-medium text-gray-500">
+              No results found
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Try adjusting your search or filters.
+            </p>
           </div>
         )}
       </CardContent>

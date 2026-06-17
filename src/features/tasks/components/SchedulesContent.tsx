@@ -4,10 +4,10 @@ import {
   Plus,
   Eye,
   Pencil,
-  XCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SchedulesModal } from "./SchedulesModal";
+import { DeleteModal } from "./DeleteModal";
+import { ModalPreviewPublish } from "./ModalPreviewPublish";
 
 export interface ScheduledContentItem {
   id: string | number;
@@ -65,7 +68,160 @@ export function SchedulesContent({
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredItems = contents.filter((item) => {
+  // Local CRUD items state initialized from props
+  const [prevContents, setPrevContents] = useState(contents);
+  const [items, setItems] = useState<ScheduledContentItem[]>(() => contents);
+
+  if (contents !== prevContents) {
+    setPrevContents(contents);
+    setItems(contents);
+  }
+
+  // Modal visibility & mode states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [editingItemId, setEditingItemId] = useState<string | number | null>(
+    null,
+  );
+
+  // Delete modal confirmation states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<ScheduledContentItem | null>(
+    null,
+  );
+
+  // Preview modal states & actions
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [itemToPreview, setItemToPreview] = useState<ScheduledContentItem | null>(null);
+
+  const openPreviewModal = (item: ScheduledContentItem) => {
+    setItemToPreview(item);
+    // Open in next tick to allow DropdownMenu to fully close first,
+    // avoiding Radix overlay pointer-events locking issue.
+    setTimeout(() => {
+      setIsPreviewModalOpen(true);
+    }, 100);
+    onPreview?.(item);
+  };
+
+  const handlePublish = (item: ScheduledContentItem) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id === item.id) {
+          return {
+            ...it,
+            status: "Published",
+            statusBg: "bg-blue-50 text-blue-600 hover:bg-blue-50",
+            statusDot: "bg-blue-500",
+          };
+        }
+        return it;
+      }),
+    );
+    setIsPreviewModalOpen(false);
+  };
+
+  const openCreateModal = () => {
+    setModalMode("create");
+    setEditingItemId(null);
+    setIsModalOpen(true);
+    onScheduleNew?.();
+  };
+
+  const openEditModal = (item: ScheduledContentItem) => {
+    setModalMode("edit");
+    setEditingItemId(item.id);
+    setTimeout(() => {
+      setIsModalOpen(true);
+    }, 100);
+    onEdit?.(item);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setEditingItemId(null);
+    }, 300);
+  };
+
+  const handleModalSave = (data: {
+    title: string;
+    campaign: string;
+    platform: string;
+    platformBg: string;
+    pillar: string;
+    pillarBg: string;
+    pillarDot: string;
+    postDate: string;
+    time: string;
+    status?: string;
+    statusBg?: string;
+    statusDot?: string;
+  }) => {
+    if (modalMode === "create") {
+      const newItem: ScheduledContentItem = {
+        id: `schedule-${Date.now()}`,
+        title: data.title,
+        campaign: data.campaign,
+        platform: data.platform,
+        platformBg: data.platformBg,
+        pillar: data.pillar,
+        pillarBg: data.pillarBg,
+        pillarDot: data.pillarDot,
+        postDate: data.postDate,
+        time: data.time,
+        status: data.status || "Approved",
+        statusBg: data.statusBg || "bg-emerald-50 text-emerald-600",
+        statusDot: data.statusDot || "bg-emerald-500",
+        hasPublishButton: true,
+      };
+      setItems((prev) => [newItem, ...prev]);
+    } else {
+      setItems((prev) =>
+        prev.map((it) => {
+          if (it.id === editingItemId) {
+            return {
+              ...it,
+              title: data.title,
+              campaign: data.campaign,
+              platform: data.platform,
+              platformBg: data.platformBg,
+              pillar: data.pillar,
+              pillarBg: data.pillarBg,
+              pillarDot: data.pillarDot,
+              postDate: data.postDate,
+              time: data.time,
+            };
+          }
+          return it;
+        }),
+      );
+    }
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setEditingItemId(null);
+    }, 300);
+  };
+
+  const openDeleteModal = (item: ScheduledContentItem) => {
+    setItemToDelete(item);
+    // Open in next tick to allow DropdownMenu to fully close first,
+    // avoiding Radix overlay pointer-events locking issue.
+    setTimeout(() => {
+      setIsDeleteModalOpen(true);
+    }, 100);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (itemToDelete) {
+      setItems((prev) => prev.filter((it) => it.id !== itemToDelete.id));
+      onCancel?.(itemToDelete);
+    }
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const filteredItems = items.filter((item) => {
     return (
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.campaign.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -100,8 +256,8 @@ export function SchedulesContent({
             />
           </div>
           <Button
-            onClick={onScheduleNew}
-            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center gap-2 shrink-0"
+            onClick={openCreateModal}
+            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
           >
             <Plus className="h-4 w-4" />
             Schedule New
@@ -212,25 +368,25 @@ export function SchedulesContent({
                           className="w-40 rounded-xl"
                         >
                           <DropdownMenuItem
-                            onClick={() => onPreview?.(item)}
+                            onClick={() => openPreviewModal(item)}
                             className="cursor-pointer text-xs gap-2 rounded-lg"
                           >
                             <Eye className="h-3.5 w-3.5" />
                             Preview
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => onEdit?.(item)}
+                            onClick={() => openEditModal(item)}
                             className="cursor-pointer text-xs gap-2 rounded-lg"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => onCancel?.(item)}
+                            onClick={() => openDeleteModal(item)}
                             className="cursor-pointer text-xs gap-2 rounded-lg text-red-600 focus:text-red-600"
                           >
-                            <XCircle className="h-3.5 w-3.5" />
-                            Batalkan
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -238,7 +394,7 @@ export function SchedulesContent({
                   </TableCell>
                 </TableRow>
               ))
-            ) : contents.length === 0 ? (
+            ) : items.length === 0 ? (
               /* State Jika Data Sistem Kosong */
               <TableRow>
                 <TableCell
@@ -348,6 +504,45 @@ export function SchedulesContent({
           </Button>
         </div>
       </div>
+
+      {/* Separated Schedule Create/Edit Dialog Modal */}
+      <SchedulesModal
+        key={editingItemId || "new"}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        mode={modalMode}
+        editingItem={items.find((it) => it.id === editingItemId) || null}
+        onSave={handleModalSave}
+      />
+
+      {/* Separated Custom Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Hapus Jadwal Konten?"
+        description={
+          itemToDelete ? (
+            <>
+              Apakah Anda yakin ingin menghapus jadwal konten{" "}
+              <span className="font-semibold text-gray-800">
+                "{itemToDelete.title}"
+              </span>
+              ? Tindakan ini tidak dapat dibatalkan.
+            </>
+          ) : (
+            ""
+          )
+        }
+        onConfirm={handleDeleteConfirm}
+      />
+
+      {/* Separated Preview Publish Modal */}
+      <ModalPreviewPublish
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        item={itemToPreview}
+        onPublish={handlePublish}
+      />
     </div>
   );
 }

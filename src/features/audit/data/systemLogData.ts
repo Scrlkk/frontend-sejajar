@@ -80,6 +80,36 @@ export const activityLogs: ActivityLogItem[] = [
     description: 'Added new team member "Nina Patel" as Admin Social Media',
     date: "Jun 6, 2026",
   },
+  {
+    id: 7,
+    name: "Sophia Williams",
+    initials: "SW",
+    avatarBg: "bg-red-50 text-red-600",
+    actionType: "DELETE",
+    actionBg: "bg-red-100 text-red-700 hover:bg-red-100",
+    description: 'Deleted content item "Old Summer Campaign"',
+    date: "Jun 6, 2026",
+  },
+  {
+    id: 8,
+    name: "Nina Patel",
+    initials: "NP",
+    avatarBg: "bg-emerald-50 text-emerald-600",
+    actionType: "LOGIN",
+    actionBg: "bg-blue-100 text-blue-700 hover:bg-blue-100",
+    description: 'Logged into the system from IP 192.168.1.45',
+    date: "Jun 5, 2026",
+  },
+  {
+    id: 9,
+    name: "Sarah Mitchell",
+    initials: "SM",
+    avatarBg: "bg-blue-50 text-blue-600",
+    actionType: "LOGOUT",
+    actionBg: "bg-gray-100 text-gray-700 hover:bg-gray-100",
+    description: 'Logged out of the system',
+    date: "Jun 5, 2026",
+  },
 ];
 
 export const logsCards: CardDashboardProps[] = [

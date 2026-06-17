@@ -2,15 +2,17 @@ import { useState } from "react";
 import {
   Play,
   Send,
-  FileText,
   Trash2,
   Search,
   AlertCircle,
   Clock,
+  PenLine,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
+import { DeleteModal } from "./DeleteModal";
 
 export interface QueueItem {
   id: string | number;
@@ -38,17 +40,89 @@ export function PublishContent({
   onCaption,
   onRemove,
 }: PublishContentProps) {
+  const [localItems, setLocalItems] = useState<QueueItem[]>(() => items);
+  const [prevItems, setPrevItems] = useState(items);
+
+  if (items !== prevItems) {
+    setPrevItems(items);
+    setLocalItems(items);
+  }
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  const draftCount = items.filter((i) => i.status === "Draft").length;
-  const scheduledCount = items.filter((i) => i.status === "Schedule").length;
-  const waitingApprovalCount = items.filter(
+  const [editingId, setEditingId] = useState<string | number | null>(null);
+  const [editingText, setEditingText] = useState("");
+
+  // Delete modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<QueueItem | null>(null);
+
+  const handleStartEdit = (item: QueueItem) => {
+    setEditingId(item.id);
+    setEditingText(item.caption || "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingText("");
+  };
+
+  const handleSaveEdit = (id: string | number) => {
+    setLocalItems((prev) =>
+      prev.map((it) => {
+        if (it.id === id) {
+          const newCaption = editingText.trim() || undefined;
+          const isPublishable = it.status === "Schedule" && !!newCaption;
+          const updatedItem = {
+            ...it,
+            caption: newCaption,
+            isPublishable: isPublishable,
+          };
+          onCaption?.(updatedItem);
+          return updatedItem;
+        }
+        return it;
+      }),
+    );
+    setEditingId(null);
+    setEditingText("");
+    toast.success("Caption berhasil disimpan!");
+  };
+
+  const handlePublishClick = (item: QueueItem) => {
+    onPublish?.(item);
+    setLocalItems((prev) => prev.filter((it) => it.id !== item.id));
+    toast.success("Konten berhasil dipublikasikan!");
+  };
+
+  const handleRemoveClick = (item: QueueItem) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (itemToDelete) {
+      onRemove?.(itemToDelete.id);
+      setLocalItems((prev) => prev.filter((it) => it.id !== itemToDelete.id));
+      toast.success("Konten berhasil dihapus dari antrean!");
+    }
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const draftCount = localItems.filter((i) => i.status === "Draft").length;
+  const scheduledCount = localItems.filter(
+    (i) => i.status === "Schedule",
+  ).length;
+  const waitingApprovalCount = localItems.filter(
     (i) => i.status === "Waiting Approval",
   ).length;
-  const revisionCount = items.filter((i) => i.status === "Revision").length;
+  const revisionCount = localItems.filter(
+    (i) => i.status === "Revision",
+  ).length;
 
-  const filteredItems = items.filter((item) => {
+  const filteredItems = localItems.filter((item) => {
     const matchesSearch = item.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -102,7 +176,7 @@ export function PublishContent({
               value="all"
               className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
-              All ({items.length})
+              All ({localItems.length})
             </TabsTrigger>
             <TabsTrigger
               value="draft"
@@ -112,16 +186,16 @@ export function PublishContent({
             </TabsTrigger>
 
             <TabsTrigger
-              value="scheduled"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Ready to Publish ({scheduledCount})
-            </TabsTrigger>
-            <TabsTrigger
               value="waiting-approval"
               className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               Waiting Approval ({waitingApprovalCount})
+            </TabsTrigger>
+            <TabsTrigger
+              value="scheduled"
+              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              Ready to Publish ({scheduledCount})
             </TabsTrigger>
             <TabsTrigger
               value="revision"
@@ -193,14 +267,48 @@ export function PublishContent({
                     )}
                   </div>
 
-                  {item.caption ? (
-                    <div className="w-full bg-gray-50/70 border border-gray-300 rounded-xl p-3">
+                  {editingId === item.id ? (
+                    <div className="w-full space-y-2">
+                      <textarea
+                        value={editingText}
+                        onChange={(e) => setEditingText(e.target.value)}
+                        placeholder="Write a caption..."
+                        rows={3}
+                        autoFocus
+                        className="w-full p-3 bg-white border border-gray-300 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-colors resize-none"
+                      />
+                      <div className="flex items-center gap-2 justify-start">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveEdit(item.id)}
+                          className="h-8 text-xs font-semibold rounded-lg px-3 bg-red-800 hover:bg-red-logo text-white shadow-none border-none cursor-pointer"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          className="h-8 text-xs font-semibold rounded-lg px-3 hover:bg-gray-50 shadow-none border-gray-250 cursor-pointer"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : item.caption ? (
+                    <div
+                      onClick={() => handleStartEdit(item)}
+                      className="w-full bg-gray-50/70 border border-gray-300 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
                       <p className="w-full text-sm text-gray-600 font-normal line-clamp-2">
                         {item.caption}
                       </p>
                     </div>
                   ) : (
-                    <div className="w-full border border-dashed border-gray-300 rounded-xl p-3 text-xs text-gray-400 font-normal cursor-pointer hover:bg-gray-50/50 transition-colors">
+                    <div
+                      onClick={() => handleStartEdit(item)}
+                      className="w-full border border-dashed border-gray-300 rounded-xl p-3 text-xs text-gray-400 font-normal cursor-pointer hover:bg-gray-50/50 transition-colors"
+                    >
                       + Add caption...
                     </div>
                   )}
@@ -211,8 +319,8 @@ export function PublishContent({
                 <Button
                   size="sm"
                   disabled={!item.isPublishable}
-                  onClick={() => onPublish?.(item)}
-                  className={`h-9 text-xs font-semibold rounded-lg gap-1.5 justify-center md:w-full border-none shadow-none transition-colors ${
+                  onClick={() => handlePublishClick(item)}
+                  className={`h-9 text-xs font-semibold rounded-lg gap-1.5 justify-center md:w-full border-none shadow-none transition-colors cursor-pointer ${
                     item.isPublishable
                       ? "bg-red-800 hover:bg-red-logo text-white"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -225,18 +333,18 @@ export function PublishContent({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onCaption?.(item)}
-                  className="h-9 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-xl gap-1.5 justify-center md:w-full"
+                  onClick={() => handleStartEdit(item)}
+                  className="h-9 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
                 >
-                  <FileText className="h-3.5 w-3.5" />
+                  <PenLine className="h-3.5 w-3.5" />
                   Caption
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onRemove?.(item.id)}
-                  className="h-9 text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl gap-1.5 justify-center md:w-full"
+                  onClick={() => handleRemoveClick(item)}
+                  className="h-9 text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Remove
@@ -250,6 +358,27 @@ export function PublishContent({
           </div>
         )}
       </div>
+
+      {/* Generic Delete Modal for Queue Items */}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmRemove}
+        title="Hapus Konten dari Antrean?"
+        description={
+          itemToDelete ? (
+            <>
+              Apakah Anda yakin ingin menghapus konten{" "}
+              <span className="font-semibold text-gray-800">
+                "{itemToDelete.title}"
+              </span>{" "}
+              dari antrean? Tindakan ini tidak dapat dibatalkan.
+            </>
+          ) : (
+            ""
+          )
+        }
+      />
     </div>
   );
 }

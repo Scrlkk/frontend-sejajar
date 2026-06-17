@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Search, Upload, Play, Eye, History, Trash2, Image } from "lucide-react";
+import { Search, Upload, Play, Trash2, Image } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+import type { AssignerInfo } from "@/features/tasks/data/tasksData";
 
 export interface UploadedMediaItem {
   id: string | number;
@@ -18,6 +20,7 @@ export interface UploadedMediaItem {
   statusBg: string;
   statusDot: string;
   revisionNote?: string;
+  assigner?: AssignerInfo;
 }
 
 export type UploadedVideoItem = UploadedMediaItem;
@@ -25,16 +28,14 @@ export type UploadedVideoItem = UploadedMediaItem;
 interface UploadsProps {
   uploads: UploadedMediaItem[];
   onUploadNew?: () => void;
-  onPreview?: (item: UploadedMediaItem) => void;
-  onHistory?: (item: UploadedMediaItem) => void;
+  onOpen?: (item: UploadedMediaItem) => void;
   onDelete?: (id: string | number) => void;
 }
 
 export function Uploads({
   uploads,
   onUploadNew,
-  onPreview,
-  onHistory,
+  onOpen,
   onDelete,
 }: UploadsProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -190,36 +191,49 @@ export function Uploads({
               </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-50 text-xs md:text-sm font-bold text-gray-500">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => onPreview?.(item)}
-                    className="flex items-center gap-1.5 hover:text-gray-900 transition-colors cursor-pointer"
-                  >
-                    <Eye className="h-4 w-4 text-gray-400" />
-                    Preview
-                  </button>
-
-                  <button
-                    onClick={() => onHistory?.(item)}
-                    className="flex items-center gap-1.5 hover:text-gray-900 transition-colors cursor-pointer"
-                  >
-                    <History className="h-4 w-4 text-gray-400" />
-                    History
-                  </button>
-                </div>
-
                 <button
+                  type="button"
                   onClick={() => onDelete?.(item.id)}
-                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 text-red-500 hover:text-red-650 hover:bg-red-50 p-1.5 rounded-lg transition-all cursor-pointer font-semibold"
                 >
                   <Trash2 className="h-4 w-4" />
+                  Delete
                 </button>
+
+                <Button
+                  type="button"
+                  onClick={() => onOpen?.(item)}
+                  className="bg-red-800 hover:bg-red-900 text-white rounded-md px-5 h-9 font-semibold text-xs flex items-center gap-1 border-none shadow-none cursor-pointer"
+                >
+                  Open
+                </Button>
               </div>
             </Card>
           ))
+        ) : uploads.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-250 bg-slate-50/20 rounded-2xl">
+            <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-800 shadow-sm mb-4">
+              <Upload className="h-6 w-6 stroke-[1.5]" />
+            </div>
+            <h4 className="text-base font-bold text-gray-900 mb-1">
+              Belum Ada Media Asset
+            </h4>
+            <p className="text-xs text-gray-500 max-w-sm leading-relaxed mb-5">
+              Unggah file video atau gambar hasil produksi untuk ditinjau dan
+              disetujui.
+            </p>
+          </div>
         ) : (
-          <div className="col-span-full text-center py-16 text-gray-400 text-sm bg-gray-50/50 rounded-2xl border border-gray-100/80">
-            No uploads found matching the selected filters.
+          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center bg-gray-50/50 rounded-2xl border border-gray-100/80">
+            <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-gray-400 mb-3 border border-gray-205">
+              <Search className="h-4 w-4" />
+            </div>
+            <h4 className="text-sm font-bold text-gray-800">
+              Tidak ada file yang cocok
+            </h4>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Coba sesuaikan kata kunci pencarian atau filter status Anda.
+            </p>
           </div>
         )}
       </div>

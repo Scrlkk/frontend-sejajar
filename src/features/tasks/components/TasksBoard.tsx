@@ -8,6 +8,7 @@ import { taskBoardColumns } from "@/features/tasks/data/tasksData";
 
 interface TasksBoardProps {
   tasks: TaskBoardItem[];
+  onSelectTask?: (task: TaskBoardItem) => void;
 }
 
 const columnBgColors: Record<string, string> = {
@@ -15,9 +16,10 @@ const columnBgColors: Record<string, string> = {
   onProgress: "bg-yellow-100/50",
   revision: "bg-red-200/50",
   done: "bg-emerald-100/50",
+  pending: "bg-purple-200/50",
 };
 
-export function TaskBoard({ tasks }: TasksBoardProps) {
+export function TaskBoard({ tasks, onSelectTask }: TasksBoardProps) {
   const getColumnTasks = (status: TaskBoardItem["status"]) =>
     tasks.filter((t) => t.status === status);
 
@@ -51,10 +53,10 @@ export function TaskBoard({ tasks }: TasksBoardProps) {
               <div className="space-y-3">
                 {columnTasks.length > 0 ? (
                   columnTasks.map((task) => (
-                    <TasksContent key={task.id} task={task} />
+                    <TasksContent key={task.id} task={task} onSelect={onSelectTask} />
                   ))
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-6 px-4 text-center rounded-xl border border-dashed border-gray-300/80 bg-white/30 backdrop-blur-[2px]">
+                  <div className="flex flex-col items-center justify-center py-8 px-4 text-center rounded-xl border border-dashed border-gray-300/80 bg-white/30 backdrop-blur-[2px]">
                     <div className="h-10 w-10 rounded-full bg-white border border-gray-200/50 flex items-center justify-center text-gray-400 mb-3 shadow-sm">
                       <ClipboardList className="h-5 w-5" />
                     </div>

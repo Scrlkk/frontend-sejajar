@@ -1,7 +1,8 @@
 import type { ContractItem } from "@/features/contracts/components/ActiveContracts";
 import type { CardDashboardProps } from "@/features/dashboard/components/CardDashboard";
 import type { ContractCardItem } from "@/features/contracts/components/Contracts";
-import { FileText } from "lucide-react";
+import { Calendar, FileText } from "lucide-react";
+import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 
 export const contractDataCards: CardDashboardProps[] = [
   {
@@ -9,8 +10,8 @@ export const contractDataCards: CardDashboardProps[] = [
     value: "5",
     description: "Total Contracts",
     icon: FileText,
-    iconColor: "text-red-600",
-    iconBgColor: "bg-red-600/10",
+    iconColor: "text-gray-600",
+    iconBgColor: "bg-gray-600/10",
   },
   {
     title: "Active Contracts",
@@ -33,8 +34,59 @@ export const contractDataCards: CardDashboardProps[] = [
     value: "1",
     description: "Overdue Contracts",
     icon: FileText,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+];
+
+export const plansDataCards: CardDashboardProps[] = [
+  {
+    title: "Total Plans",
+    value: "5",
+    description: "Total Plans",
+    icon: FileText,
+    iconColor: "text-slate-600",
+    iconBgColor: "bg-slate-600/10",
+  },
+  {
+    title: "On Progress",
+    value: "2",
+    description: "Plans On Going",
+    icon: FileText,
     iconColor: "text-yellow-600",
     iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    title: "Review",
+    value: "1",
+    description: "Review Plans",
+    icon: FileText,
+    iconColor: "text-purple-600",
+    iconBgColor: "bg-purple-600/10",
+  },
+  {
+    title: "Approved",
+    value: "1",
+    description: "Approved Plans",
+    icon: FileText,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    title: "Published",
+    value: "1",
+    description: "Published Plans",
+    icon: FileText,
+    iconColor: "text-blue-600",
+    iconBgColor: "bg-blue-600/10",
+  },
+  {
+    title: "Days Left",
+    value: "1",
+    description: "Days Left",
+    icon: Calendar,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
   },
 ];
 
@@ -86,21 +138,21 @@ export const activeContractsData: ContractItem[] = [
 export const sampleContractsData: ContractCardItem[] = [
   {
     id: 1,
-    code: "CNT-2026-001",
+    code: "CNT-2024-001",
     title: "Q1 Brand Awareness Campaign",
     brand: "TechVision Corp",
     description:
       "Quarterly brand awareness campaign focusing on product education and lifestyle content.",
     platforms: ["TikTok", "Instagram"],
-    currentProgress: 18,
+    currentProgress: 24,
     targetProgress: 24,
-    startDate: "July 1, 2026",
-    endDate: "August 15, 2026",
+    startDate: "Jan 1, 2024",
+    endDate: "Mar 31, 2024",
     valueAmount: "Rp 15M",
-    status: "Active",
-    statusBg: "bg-green-100 text-green-600 hover:bg-green-100",
-    statusDot: "bg-green-500",
-    year: 2026,
+    status: "Completed",
+    statusBg: "bg-blue-100 text-blue-600 hover:bg-blue-100",
+    statusDot: "bg-blue-500",
+    year: 2024,
   },
   {
     id: 2,
@@ -194,3 +246,243 @@ export const sampleContractsData: ContractCardItem[] = [
     year: 2025,
   },
 ];
+
+export const sampleContractInfoData = [
+  { label: "Client", value: "TechVision Corp" },
+  { label: "Code", value: "CNT-2024-001" },
+  { label: "Start Date", value: "Jan 1, 2024" },
+  { label: "End Date", value: "Mar 31, 2024" },
+  { label: "Platforms", value: "TikTok, Instagram" },
+  { label: "Contact Email", value: "john@techvision.com" },
+  { label: "Contact Phone", value: "+62 812-3456-7890" },
+];
+
+export const sampleProductionProgress = {
+  title: "Production Progress",
+  current: 24,
+  target: 24,
+  items: [
+    { label: "Draft", value: 1, dotColor: "bg-slate-500", textColor: "text-slate-500" },
+    { label: "Assigned", value: 1, dotColor: "bg-blue-600", textColor: "text-blue-600" },
+    { label: "On Progress", value: 1, dotColor: "bg-amber-600", textColor: "text-amber-600" },
+    { label: "Review", value: 1, dotColor: "bg-purple-600", textColor: "text-purple-600" },
+    { label: "Revision", value: 1, dotColor: "bg-red-600", textColor: "text-red-600" },
+    { label: "Approved", value: 1, dotColor: "bg-emerald-600", textColor: "text-emerald-600" },
+  ],
+};
+
+export const sampleTeamMembers = [
+  { name: "Sarah Mitchell", role: "Content Lead", initials: "SM", avatarBg: "bg-indigo-50 text-indigo-600" },
+  { name: "Alisha Khan", role: "Content Lead", initials: "AK", avatarBg: "bg-amber-50 text-amber-600" },
+  { name: "Michael Brown", role: "Content Lead", initials: "MB", avatarBg: "bg-emerald-50 text-emerald-600" },
+  { name: "James Rivera", role: "Script Writer", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
+  { name: "Mia Chen", role: "Script Writer", initials: "MC", avatarBg: "bg-purple-50 text-purple-600" },
+  { name: "Lucas Hoffmann", role: "Editor", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+  { name: "Aria Thompson", role: "Editor", initials: "AT", avatarBg: "bg-rose-50 text-rose-600" },
+  { name: "Diego Santos", role: "Admin Social Media", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+];
+
+
+export const sampleContentPlans: ContentPlanCardItem[] = [
+  {
+    id: "cp-1",
+    contractId: 1,
+    title: "Skincare Evening Routine",
+    category: "Product Review",
+    categoryBg: "bg-amber-50 text-amber-700 border-amber-100",
+    platform: "TikTok",
+    format: "Video",
+    priority: "High",
+    dueDate: "July 18, 2026",
+    overdue: false,
+    status: "Draft",
+    assignedTeam: [],
+  },
+  {
+    id: "cp-2",
+    contractId: 1,
+    title: "Iced Coffee DIY Tutorial",
+    category: "Entertainment",
+    categoryBg: "bg-rose-50 text-rose-700 border-rose-100",
+    platform: "Instagram",
+    format: "Video",
+    priority: "Medium",
+    dueDate: "May 20, 2024",
+    overdue: true,
+    status: "Assigned",
+    assignedTeam: [
+      { name: "Mia Chen", initials: "MC", avatarBg: "bg-purple-50 text-purple-600" },
+      { name: "Aria Thompson", initials: "AT", avatarBg: "bg-rose-50 text-rose-600" },
+    ],
+  },
+  {
+    id: "cp-3",
+    contractId: 1,
+    title: "Foundation Tutorial Spring Look",
+    category: "Education",
+    categoryBg: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    platform: "Instagram",
+    format: "Video",
+    priority: "High",
+    dueDate: "July 10, 2026",
+    overdue: false,
+    status: "On Progress",
+    assignedTeam: [
+      { name: "James Rivera", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
+      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+    ],
+  },
+  {
+    id: "cp-4",
+    contractId: 1,
+    title: "Video Games Adsense",
+    category: "Games",
+    categoryBg: "bg-green-50 text-green-700 border-green-100",
+    platform: "Instagram",
+    format: "Image",
+    priority: "High",
+    dueDate: "July 10, 2026",
+    overdue: false,
+    status: "Revision",
+    feedback: "Tolong dipercepat deadlinenya maju.",
+    assignedTeam: [
+      { name: "James Rivera", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
+      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+    ],
+  },
+  {
+    id: "cp-5",
+    contractId: 1,
+    title: "Skincare Morning Routine Reel",
+    category: "Product Review",
+    categoryBg: "bg-amber-50 text-amber-700 border-amber-100",
+    platform: "Instagram",
+    format: "Video",
+    priority: "Medium",
+    dueDate: "June 28, 2026",
+    overdue: false,
+    status: "Review",
+    assignedTeam: [
+      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+    ],
+  },
+  // Contract ID 2: Summer Lifestyle Series
+  {
+    id: "cp-2-1",
+    contractId: 2,
+    title: "Summer Chill Iced Latte",
+    category: "Product Review",
+    categoryBg: "bg-amber-50 text-amber-700 border-amber-100",
+    platform: "TikTok",
+    format: "Video",
+    priority: "High",
+    dueDate: "July 20, 2026",
+    overdue: false,
+    status: "Draft",
+    assignedTeam: [],
+  },
+  {
+    id: "cp-2-2",
+    contractId: 2,
+    title: "Vlog: Hot Summer Day Outfits",
+    category: "Entertainment",
+    categoryBg: "bg-rose-50 text-rose-700 border-rose-100",
+    platform: "Instagram",
+    format: "Video",
+    priority: "Medium",
+    dueDate: "July 22, 2026",
+    overdue: false,
+    status: "Assigned",
+    assignedTeam: [
+      { name: "Mia Chen", initials: "MC", avatarBg: "bg-purple-50 text-purple-600" },
+    ],
+  },
+  {
+    id: "cp-2-3",
+    contractId: 2,
+    title: "Why Eco Cups Matter",
+    category: "Education",
+    categoryBg: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    platform: "TikTok",
+    format: "Video",
+    priority: "High",
+    dueDate: "June 25, 2026",
+    overdue: false,
+    status: "Revision",
+    feedback: "Warna teks kuning kurang terbaca di background putih.",
+    assignedTeam: [
+      { name: "James Rivera", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
+    ],
+  },
+  // Contract ID 3: Spring Product Launch
+  {
+    id: "cp-3-1",
+    contractId: 3,
+    title: "BeautyGlow Lipstick Swatches",
+    category: "Product Review",
+    categoryBg: "bg-amber-50 text-amber-700 border-amber-100",
+    platform: "Instagram",
+    format: "Image",
+    priority: "Medium",
+    dueDate: "June 10, 2026",
+    overdue: false,
+    status: "Approved",
+    assignedTeam: [
+      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+    ],
+  },
+  {
+    id: "cp-3-2",
+    contractId: 3,
+    title: "Flawless Spring Makeup Routine",
+    category: "Education",
+    categoryBg: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    platform: "TikTok",
+    format: "Video",
+    priority: "High",
+    dueDate: "June 12, 2026",
+    overdue: false,
+    status: "Review",
+    assignedTeam: [
+      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+    ],
+  },
+  // Contract ID 4: Winter Campaign 2026
+  {
+    id: "cp-4-1",
+    contractId: 4,
+    title: "Winter Fleece Hoodie Unboxing",
+    category: "Product Review",
+    categoryBg: "bg-amber-50 text-amber-700 border-amber-100",
+    platform: "TikTok",
+    format: "Video",
+    priority: "Medium",
+    dueDate: "May 10, 2026",
+    overdue: false,
+    status: "Published",
+    assignedTeam: [
+      { name: "Sarah Mitchell", initials: "SM", avatarBg: "bg-indigo-50 text-indigo-600" },
+    ],
+  },
+  {
+    id: "cp-4-2",
+    contractId: 4,
+    title: "5 Workout Outfits for Snowy Days",
+    category: "Entertainment",
+    categoryBg: "bg-rose-50 text-rose-700 border-rose-100",
+    platform: "Instagram",
+    format: "Image",
+    priority: "Low",
+    dueDate: "May 12, 2026",
+    overdue: false,
+    status: "Published",
+    assignedTeam: [
+      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+    ],
+  },
+];
+
+

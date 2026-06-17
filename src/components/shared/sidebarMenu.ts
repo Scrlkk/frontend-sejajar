@@ -8,10 +8,10 @@ import {
   ChartColumn,
   Shield,
   Database,
-  Clock,
   TrendingUp,
   type LucideIcon,
   Files,
+  UsersRound,
 } from "lucide-react";
 
 export type SidebarMenuItem = {
@@ -30,17 +30,19 @@ export const sidebarMenuItems: SidebarMenuItem[] = [
     subtitle: "Manage and review all contracts",
   },
   {
-    title: "Content",
-    to: "/content",
-    icon: Files,
-    subtitle: "Track and manage your content",
+    title: "Clients",
+    to: "/clients",
+    icon: UsersRound,
+    subtitle: "Manage your clients",
   },
+
   {
-    title: "Schedules",
-    to: "/schedules",
-    icon: Clock,
-    subtitle: "Create, edit and delete post schedules",
+    title: "Tasks",
+    to: "/tasks",
+    icon: Files,
+    subtitle: "Track and manage your tasks",
   },
+
   {
     title: "Calendar",
     to: "/calendar",

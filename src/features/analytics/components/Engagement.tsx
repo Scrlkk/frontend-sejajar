@@ -29,6 +29,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { ManualEngagementEntry } from "@/features/analytics/data/analyticsData";
+import toast from "react-hot-toast";
+import { EngagementModal } from "./EngagementModal";
+import { DeleteModal } from "@/features/tasks/components/DeleteModal";
 
 type Platform = ManualEngagementEntry["platform"];
 
@@ -56,13 +59,88 @@ export function Engagement({
   onUpdate,
   onDelete,
 }: EngagementProps) {
-  const [entries] = useState<ManualEngagementEntry[]>(initialEntries);
+  const [entries, setEntries] =
+    useState<ManualEngagementEntry[]>(initialEntries);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [editingItem, setEditingItem] = useState<ManualEngagementEntry | null>(
+    null,
+  );
+
+  // Delete modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] =
+    useState<ManualEngagementEntry | null>(null);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
+  };
+
+  const handleAddClick = () => {
+    setModalMode("create");
+    setEditingItem(null);
+    setIsModalOpen(true);
+    onAdd?.();
+  };
+
+  const handleUpdateClick = (item: ManualEngagementEntry) => {
+    setModalMode("edit");
+    setEditingItem(item);
+    setTimeout(() => {
+      setIsModalOpen(true);
+    }, 100);
+    onUpdate?.(item);
+  };
+
+  const handleDeleteClick = (item: ManualEngagementEntry) => {
+    setItemToDelete(item);
+    setTimeout(() => {
+      setIsDeleteModalOpen(true);
+    }, 100);
+    onDelete?.(item);
+  };
+
+  const handleModalSave = (data: {
+    contentTitle: string;
+    platform: ManualEngagementEntry["platform"];
+    date: string;
+    views: number;
+    likes: number;
+    comments: number;
+    shares: number;
+  }) => {
+    if (modalMode === "create") {
+      const newEntry: ManualEngagementEntry = {
+        id: Date.now(),
+        ...data,
+      };
+      setEntries((prev) => [newEntry, ...prev]);
+      toast.success("Entri engagement berhasil ditambahkan!");
+    } else if (editingItem) {
+      setEntries((prev) =>
+        prev.map((entry) =>
+          entry.id === editingItem.id ? { ...entry, ...data } : entry,
+        ),
+      );
+      toast.success("Entri engagement berhasil diperbarui!");
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      setEntries((prev) =>
+        prev.filter((entry) => entry.id !== itemToDelete.id),
+      );
+      toast.success("Entri engagement berhasil dihapus!");
+    }
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
   };
 
   const filteredEntries = entries.filter((entry) => {
@@ -94,8 +172,8 @@ export function Engagement({
             />
           </div>
           <Button
-            onClick={onAdd}
-            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center gap-2 shrink-0"
+            onClick={handleAddClick}
+            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
           >
             <Plus className="h-4 w-4" />
             Tambah
@@ -214,14 +292,14 @@ export function Engagement({
                           className="w-40 rounded-xl"
                         >
                           <DropdownMenuItem
-                            onClick={() => onUpdate?.(entry)}
+                            onClick={() => handleUpdateClick(entry)}
                             className="cursor-pointer text-xs gap-2 rounded-lg"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                             Update
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => onDelete?.(entry)}
+                            onClick={() => handleDeleteClick(entry)}
                             className="cursor-pointer text-xs gap-2 rounded-lg text-red-600 focus:text-red-600"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -332,6 +410,43 @@ export function Engagement({
           </Button>
         </div>
       </div>
+
+      {/* Engagement Create/Edit Modal */}
+      <EngagementModal
+        key={
+          isModalOpen
+            ? editingItem
+              ? `edit-eng-${editingItem.id}`
+              : "new-eng"
+            : "closed"
+        }
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        mode={modalMode}
+        editingItem={editingItem}
+        onSave={handleModalSave}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Entri Engagement?"
+        description={
+          itemToDelete ? (
+            <>
+              Apakah Anda yakin ingin menghapus data engagement untuk{" "}
+              <span className="font-semibold text-gray-800">
+                "{itemToDelete.contentTitle}"
+              </span>
+              ? Tindakan ini tidak dapat dibatalkan.
+            </>
+          ) : (
+            ""
+          )
+        }
+      />
     </div>
   );
 }
