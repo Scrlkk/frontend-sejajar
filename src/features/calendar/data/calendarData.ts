@@ -2,7 +2,12 @@ import type { CalendarEvent } from "@/features/calendar/components/Calendar";
 import type { MiniScheduleItem } from "@/features/calendar/components/CalendarSchedules";
 import type { MiniPublishItem } from "@/features/calendar/components/CalendarPublish";
 import type { CardDashboardProps } from "@/features/dashboard/components/CardDashboard";
-import { BarChart3, Smartphone, TabletSmartphone, TvMinimal } from "lucide-react";
+import {
+  BarChart3,
+  Smartphone,
+  TabletSmartphone,
+  TvMinimal,
+} from "lucide-react";
 
 export const myEvents: CalendarEvent[] = [
   {
@@ -13,7 +18,7 @@ export const myEvents: CalendarEvent[] = [
     platform: "Instagram",
     badgeBg: "bg-pink-50 text-pink-500 hover:bg-pink-100",
     lineColor: "border-pink-500",
-    status: "Schedule",
+    status: "Scheduled",
   },
   {
     id: 2,
@@ -23,7 +28,7 @@ export const myEvents: CalendarEvent[] = [
     platform: "Instagram",
     badgeBg: "bg-pink-50 text-pink-500 hover:bg-pink-100",
     lineColor: "border-pink-500",
-    status: "Schedule",
+    status: "Scheduled",
   },
   {
     id: 3,
@@ -66,7 +71,7 @@ export const miniSchedules: MiniScheduleItem[] = [
     category: "Instagram",
     categoryBg: "bg-pink-50 text-pink-600 border-pink-200",
     categoryDot: "bg-pink-600",
-    status: "Schedule",
+    status: "Approved",
     statusBg: "bg-blue-100 text-blue-600 hover:bg-blue-100",
     statusDot: "bg-blue-600",
     platform: "Instagram",

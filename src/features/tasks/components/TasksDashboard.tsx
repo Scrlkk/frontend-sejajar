@@ -19,7 +19,7 @@ export function TaskDashboard({
     (task) => task.type === "Script",
   );
 
-  const activeColumns = taskBoardColumns.filter((col) => col.key !== "done");
+  const activeColumns = taskBoardColumns.filter((col) => col.key !== "approved");
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-6">

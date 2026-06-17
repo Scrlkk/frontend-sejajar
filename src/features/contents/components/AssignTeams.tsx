@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import type { ContentPlanCardItem, TeamMember } from "@/features/contents/components/ContentPlan";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
+import { AvatarUser } from "@/features/users/components/AvatarUser";
 
 interface AssignTeamsProps {
   isOpen: boolean;
@@ -192,11 +193,11 @@ export function AssignTeams({
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {/* Avatar */}
-                            <div
-                              className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm shrink-0 ${member.avatarBg}`}
-                            >
-                              {member.initials}
-                            </div>
+                            <AvatarUser
+                              initials={member.initials}
+                              avatarBg={member.avatarBg}
+                              size="md"
+                            />
                             {/* Details */}
                             <div className="min-w-0">
                               <h5 className="text-xs font-semibold text-slate-800 truncate leading-snug">

@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ScheduledContentItem } from "./SchedulesContent";
+import type { ScheduledContentItem } from "@/features/tasks/components/SchedulesContent";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 

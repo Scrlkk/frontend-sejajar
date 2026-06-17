@@ -30,12 +30,14 @@ export interface CalendarEvent {
   platform: "TikTok" | "Instagram" | "YouTube" | string;
   badgeBg: string;
   lineColor: string;
-  status?: "Draft" | "Schedule" | "Revision";
+  status?: "Draft" | "Scheduled" | "Revision";
 }
 
 interface ContentCalendarProps {
   events: CalendarEvent[];
   onEventClick?: (event: CalendarEvent) => void;
+  selectedDay?: Date | null;
+  onDaySelect?: (day: Date | null) => void;
 }
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -57,12 +59,23 @@ const MONTHS = [
 export function ContentCalendar({
   events,
   onEventClick,
+  selectedDay: propSelectedDay,
+  onDaySelect,
 }: ContentCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [tempMonth, setTempMonth] = useState(currentDate.getMonth());
   const [tempYear, setTempYear] = useState(currentDate.getFullYear());
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [internalSelectedDay, setInternalSelectedDay] = useState<Date | null>(null);
+
+  const selectedDay = propSelectedDay !== undefined ? propSelectedDay : internalSelectedDay;
+  const setSelectedDay = (day: Date | null) => {
+    if (onDaySelect) {
+      onDaySelect(day);
+    } else {
+      setInternalSelectedDay(day);
+    }
+  };
 
   const handlePickerOpen = (open: boolean) => {
     if (open) {
@@ -79,7 +92,11 @@ export function ContentCalendar({
     setIsPickerOpen(false);
   };
 
-  const handleToday = () => setCurrentDate(new Date());
+  const handleToday = () => {
+    const todayDate = new Date();
+    setCurrentDate(todayDate);
+    setSelectedDay(todayDate);
+  };
 
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));

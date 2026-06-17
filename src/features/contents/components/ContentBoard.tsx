@@ -1,18 +1,17 @@
 import {
   MoreHorizontal,
-  Video,
   Clock,
   Users,
   Plus,
-  Image,
   RefreshCw,
   Trash2,
   UserPlus,
   Pencil,
   ListTodo,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import { differenceInDays } from "date-fns";
 import {
   DropdownMenu,
@@ -22,6 +21,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 import { useNavigate } from "react-router-dom";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { PriorityCard } from "@/features/pillars/components/PriorityCard";
+import { FormatBadgeContent } from "@/features/pillars/components/FormatBadgeContent";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 
 interface ContentBoardProps {
   cards: ContentPlanCardItem[];
@@ -30,9 +33,10 @@ interface ContentBoardProps {
   openEditModal: (card: ContentPlanCardItem) => void;
   openAssignModal: (card: ContentPlanCardItem) => void;
   openRevisionModal: (card: ContentPlanCardItem) => void;
-  handleDeleteCard: (id: string) => void;
+  handleDeleteCard: (card: ContentPlanCardItem) => void;
   openAddModal: () => void;
   openTasksAddModal: (card: ContentPlanCardItem) => void;
+  handlePublishCard: (id: string) => void;
 }
 
 // Filtered statuses to display as columns
@@ -116,18 +120,7 @@ const getStatusStyle = (status: ContentPlanCardItem["status"]) => {
   }
 };
 
-const getPlatformStyle = (platform: string) => {
-  switch (platform.toLowerCase()) {
-    case "instagram":
-      return "bg-sky-50 text-sky-700 border-sky-100";
-    case "tiktok":
-      return "bg-slate-50 text-slate-700 border-slate-200";
-    case "youtube":
-      return "bg-red-50 text-red-700 border-red-100";
-    default:
-      return "bg-slate-50 text-slate-650 border-slate-150";
-  }
-};
+
 
 export function ContentBoard({
   cards,
@@ -139,6 +132,7 @@ export function ContentBoard({
   handleDeleteCard,
   openAddModal,
   openTasksAddModal,
+  handlePublishCard,
 }: ContentBoardProps) {
   const navigate = useNavigate();
 
@@ -271,14 +265,18 @@ export function ContentBoard({
                             }}
                           >
                             <RefreshCw className="h-4 w-4 text-slate-500 shrink-0" />
-                            <span>Request Revision</span>
+                            <span>
+                              {card.status === "Revision"
+                                ? "See Revision"
+                                : "Request Revision"}
+                            </span>
                           </DropdownMenuItem>
 
                           <DropdownMenuItem
                             className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:text-red-700 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 focus:text-red-700 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteCard(card.id);
+                              handleDeleteCard(card);
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-red-500 shrink-0" />
@@ -295,48 +293,24 @@ export function ContentBoard({
                       {/* Meta Tags Row */}
                       <div className="flex flex-wrap gap-1.5 items-center">
                         {/* Category Badge */}
-                        <Badge
-                          variant="outline"
-                          className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${card.categoryBg || "bg-slate-50 text-slate-700 border-slate-250"}`}
-                        >
-                          {card.category}
-                        </Badge>
+                        <PillarsCard category={card.category} />
                         {/* Platform Badge */}
-                        <Badge
-                          variant="outline"
-                          className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${getPlatformStyle(card.platform)}`}
-                        >
-                          {card.platform}
-                        </Badge>
+                        <PlatformBadge
+                          platform={card.platform}
+                          className="rounded-lg px-2 py-0.5 text-[10px]"
+                          showDot={false}
+                        />
+                        {/* Content Pillar Badge */}
+                        {card.pillar && (
+                          <PillarsCard category={card.pillar} />
+                        )}
                         {/* Format Badge */}
-                        <Badge
-                          variant="outline"
-                          className="bg-violet-55/10 text-violet-700 border border-violet-100 rounded-lg px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1"
-                        >
-                          {card.format.toLowerCase() === "image" ? (
-                            <Image className="h-2.5 w-2.5 shrink-0" />
-                          ) : (
-                            <Video className="h-2.5 w-2.5 shrink-0" />
-                          )}
-                          {card.format}
-                        </Badge>
+                        <FormatBadgeContent format={card.format} />
                       </div>
 
                       {/* Priority Badge */}
                       <div className="flex items-center">
-                        <Badge
-                          variant="outline"
-                          className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold border flex items-center gap-1 ${
-                            card.priority === "High"
-                              ? "bg-red-50 text-red-700 border-red-100"
-                              : card.priority === "Medium"
-                                ? "bg-amber-50 text-amber-700 border-amber-100"
-                                : "bg-blue-50 text-blue-700 border-blue-100"
-                          }`}
-                        >
-                          <span className="h-1 w-1 rounded-full bg-current shrink-0" />
-                          {card.priority}
-                        </Badge>
+                        <PriorityCard priority={card.priority} />
                       </div>
 
                       {/* Revision Feedback text */}
@@ -444,6 +418,19 @@ export function ContentBoard({
                               >
                                 <ListTodo className="h-3 w-3 shrink-0" />
                                 <span className="truncate">Review Tasks</span>
+                              </Button>
+                            )}
+                            {card.status === "Approved" && (
+                              <Button
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePublishCard(card.id);
+                                }}
+                                className="flex items-center justify-center gap-1 w-full py-1 border border-dashed border-slate-300 rounded-lg text-[9px] font-semibold text-slate-500 hover:bg-slate-50 hover:border-slate-500 cursor-pointer h-7 transition-colors duration-150"
+                              >
+                                <Send className="h-3 w-3 shrink-0" />
+                                <span className="truncate">Publish</span>
                               </Button>
                             )}
                           </div>

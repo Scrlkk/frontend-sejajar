@@ -9,22 +9,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Check } from "lucide-react";
 import type { UserData } from "@/features/users/data/usersData";
+
+export type UserRoleType = "Owner" | "Content Lead" | "Admin Social Media" | "Content Editor" | "Script Writer";
 
 export type UserFormValues = {
   fullName: string;
   email: string;
   password?: string;
-  role: "Owner" | "Content Lead" | "Admin Social Media" | "Content Editor" | "Script Writer" | "";
+  role: UserRoleType[];
   isActive: boolean;
 };
+
+const AVAILABLE_ROLES = [
+  { value: "Owner", label: "Owner", description: "View reports & analytics", color: "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100/40", activeCheck: "bg-amber-600 border-amber-600 text-white" },
+  { value: "Content Lead", label: "Content Lead", description: "Manage workflows & plans", color: "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100/40", activeCheck: "bg-blue-600 border-blue-600 text-white" },
+  { value: "Admin Social Media", label: "Admin Social Media", description: "Schedule posts & channels", color: "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100/40", activeCheck: "bg-emerald-600 border-emerald-600 text-white" },
+  { value: "Content Editor", label: "Content Editor", description: "Edit assets & uploads", color: "bg-pink-50 text-pink-600 border-pink-200 hover:bg-pink-100/40", activeCheck: "bg-pink-600 border-pink-600 text-white" },
+  { value: "Script Writer", label: "Script Writer", description: "Write & refine scripts", color: "bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100/40", activeCheck: "bg-purple-600 border-purple-600 text-white" }
+] as const;
+
 
 interface ModalUsersProps {
   isOpen: boolean;
@@ -39,9 +44,14 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
   const [fullName, setFullName] = React.useState(user ? (user.name || "") : "");
   const [email, setEmail] = React.useState(user ? (user.email || "") : "");
   const [password, setPassword] = React.useState("");
-  const [role, setRole] = React.useState<UserFormValues["role"]>(
-    user ? ((user.role === "Editor" ? "Content Editor" : user.role) as UserFormValues["role"]) : ""
-  );
+  const getInitialRoles = (): UserRoleType[] => {
+    if (!user || !user.role) return [];
+    return user.role.split(",").map((r) => {
+      const clean = r.trim();
+      return (clean === "Editor" ? "Content Editor" : clean) as UserRoleType;
+    });
+  };
+  const [role, setRole] = React.useState<UserFormValues["role"]>(getInitialRoles());
   const [isActive, setIsActive] = React.useState(user ? user.status === "active" : true);
   const [errors, setErrors] = React.useState<{ fullName?: string; email?: string; password?: string; role?: string }>({});
   const [isPasswordFocused, setIsPasswordFocused] = React.useState(false);
@@ -78,8 +88,8 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
       }
     }
 
-    if (!role) {
-      newErrors.role = "Please select a user role";
+    if (role.length === 0) {
+      newErrors.role = "Please select at least one user role";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -115,7 +125,7 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto space-y-5 py-3 pr-1 scrollbar-none">
+          <div className="flex-1 overflow-y-auto space-y-3 py-3 px-1.5 pr-2.5 scrollbar-none">
           {/* Full Name */}
           <div className="space-y-2">
             <Label htmlFor="fullName" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -221,86 +231,100 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
             )}
           </div>
 
-          {/* Role selection using Shadcn Select */}
-          <div className="space-y-2">
-            <Label htmlFor="role" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Assigned Role
+          {/* Role selection using dynamic grid checklist */}
+          <div className="space-y-2.5">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Assigned Roles (Pilih satu atau lebih)
             </Label>
-            <Select
-              value={role}
-              onValueChange={(val) => setRole(val as UserFormValues["role"])}
-            >
-              <SelectTrigger className="w-full rounded-xl border-gray-200 bg-gray-50/50 py-2.5 text-left focus:outline-none focus:border-red-800 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors">
-                <SelectValue placeholder="Pilih Role" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border border-gray-100 bg-white p-1 shadow-lg">
-                <SelectItem value="Owner" className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer">
-                  Owner
-                </SelectItem>
-                <SelectItem value="Content Lead" className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer">
-                  Content Lead
-                </SelectItem>
-                <SelectItem value="Admin Social Media" className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer">
-                  Admin Social Media
-                </SelectItem>
-                <SelectItem value="Content Editor" className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer">
-                  Content Editor
-                </SelectItem>
-                <SelectItem value="Script Writer" className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer">
-                  Script Writer
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {AVAILABLE_ROLES.map((item) => {
+                const isSelected = role.includes(item.value);
+                return (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setRole(role.filter((r) => r !== item.value));
+                      } else {
+                        setRole([...role, item.value]);
+                      }
+                    }}
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? `${item.color} ring-1 ring-offset-0`
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50/50"
+                    }`}
+                  >
+                    <div className={`flex items-center justify-center h-4.5 w-4.5 rounded border mt-0.5 shrink-0 transition-colors ${
+                      isSelected ? item.activeCheck : "border-gray-300 bg-white"
+                    }`}>
+                      {isSelected && <Check className="h-3 w-3" strokeWidth={3} />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs font-semibold text-gray-900">
+                        {item.label}
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-0.5 leading-normal">
+                        {item.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
             {errors.role && (
               <p className="text-xs text-red-500 font-medium">{errors.role}</p>
             )}
           </div>
 
           {/* Status (is_active) styled as an Action Card/Toggle */}
-          <div className="space-y-2.5 py-3 border-t border-gray-100">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Account Status
-            </Label>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Active Option */}
-              <button
-                type="button"
-                onClick={() => setIsActive(true)}
-                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                  isActive
-                    ? "border-emerald-500 bg-emerald-50/30 text-emerald-950 ring-1 ring-emerald-500/30"
-                    : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-1.5 font-semibold text-sm">
-                  <span className={`h-2.5 w-2.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-                  Active
-                </div>
-                <p className="text-[11px] text-gray-500 mt-1 leading-normal">
-                  User has full access and can log in normally.
-                </p>
-              </button>
+          {isEdit && (
+            <div className="space-y-2.5 py-3 border-t border-gray-100">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                Account Status
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Active Option */}
+                <button
+                  type="button"
+                  onClick={() => setIsActive(true)}
+                  className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    isActive
+                      ? "border-emerald-500 bg-emerald-50/30 text-emerald-950 ring-1 ring-emerald-500/30"
+                      : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <span className={`h-2.5 w-2.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                    Active
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1 leading-normal">
+                    User has full access and can log in normally.
+                  </p>
+                </button>
 
-              {/* Inactive Option (Soft Deleted) */}
-              <button
-                type="button"
-                onClick={() => setIsActive(false)}
-                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                  !isActive
-                    ? "border-red-500 bg-red-50/20 text-red-950 ring-1 ring-red-500/20"
-                    : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-1.5 font-semibold text-sm">
-                  <span className={`h-2.5 w-2.5 rounded-full ${!isActive ? 'bg-red-500' : 'bg-gray-400'}`} />
-                  Delete
-                </div>
-                <p className="text-[11px] text-gray-500 mt-1 leading-normal">
-                  Access is revoked. Account can be reactivated anytime.
-                </p>
-              </button>
+                {/* Inactive Option (Soft Deleted) */}
+                <button
+                  type="button"
+                  onClick={() => setIsActive(false)}
+                  className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    !isActive
+                      ? "border-red-500 bg-red-50/20 text-red-950 ring-1 ring-red-500/20"
+                      : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-semibold text-sm">
+                    <span className={`h-2.5 w-2.5 rounded-full ${!isActive ? 'bg-red-500' : 'bg-gray-400'}`} />
+                    Delete
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1 leading-normal">
+                    Access is revoked. Account can be reactivated anytime.
+                  </p>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
           {/* Footer buttons */}

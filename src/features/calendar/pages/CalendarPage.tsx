@@ -1,27 +1,51 @@
+import { useState } from "react";
+import { isSameDay } from "date-fns";
 import {
   ContentCalendar,
   type CalendarEvent,
 } from "@/features/calendar/components/Calendar";
 import {
   myEvents,
-  miniSchedules,
   calendarCards,
 } from "@/features/calendar/data/calendarData";
-import { CalendarSchedules } from "@/features/calendar/components/CalendarSchedules";
-import { CalendarPublish } from "@/features/calendar/components/CalendarPublish";
-import { publishItems } from "@/features/calendar/data/calendarData";
-import type { MiniPublishItem } from "@/features/calendar/components/CalendarPublish";
+import { CalendarSchedules, type MiniScheduleItem } from "@/features/calendar/components/CalendarSchedules";
 import { SchedulesContent } from "@/features/tasks/components/SchedulesContent";
 import { scheduledData } from "@/features/tasks/data/tasksData";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 
 export const CalendarPage = () => {
+  const [selectedDay, setSelectedDay] = useState<Date | null>(new Date(2026, 5, 18));
+
   const handleEventClick = (event: CalendarEvent) => {
     console.log("Event diklik:", event.title);
   };
 
-  const handlePublishClick = (item: MiniPublishItem) => {
-    console.log("Konten siap dipublikasikan:", item.title);
+  // Filter events for the selected day
+  const dailyEvents = selectedDay
+    ? myEvents.filter((event) => isSameDay(event.date, selectedDay))
+    : [];
+
+  // Map CalendarEvent to MiniScheduleItem
+  const dailySchedules: MiniScheduleItem[] = dailyEvents.map((event) => ({
+    id: event.id,
+    title: event.title,
+    category: event.platform,
+    categoryBg: "",
+    categoryDot: "",
+    status: event.status || "Scheduled",
+    statusBg: "",
+    statusDot: "",
+    platform: event.platform,
+    time: event.time,
+  }));
+
+  const formatSelectedDate = (date: Date | null) => {
+    if (!date) return "No Date Selected";
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return `${months[date.getMonth()]} ${date.getDate()}`;
   };
 
   return (
@@ -33,13 +57,17 @@ export const CalendarPage = () => {
       </div>
       <div className="w-full h-full flex space-x-4">
         <div className="w-full h-full">
-          <ContentCalendar events={myEvents} onEventClick={handleEventClick} />
+          <ContentCalendar 
+            events={myEvents} 
+            onEventClick={handleEventClick} 
+            selectedDay={selectedDay}
+            onDaySelect={setSelectedDay}
+          />
         </div>
         <div className="w-110 space-y-4">
-          <CalendarSchedules dateTitle="April 8" schedules={miniSchedules} />
-          <CalendarPublish
-            items={publishItems}
-            onPublishClick={handlePublishClick}
+          <CalendarSchedules 
+            dateTitle={formatSelectedDate(selectedDay)} 
+            schedules={dailySchedules} 
           />
         </div>
       </div>

@@ -24,10 +24,10 @@ interface TaskCalendarProps {
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const statusDotColors: Record<string, string> = {
-  todo: "text-gray-500",
-  onProgress: "text-amber-500",
+  to_do: "text-gray-500",
+  on_progress: "text-amber-500",
   revision: "text-red-500",
-  done: "text-emerald-500",
+  approved: "text-emerald-500",
 };
 
 const priorityStyles: Record<string, string> = {
@@ -179,7 +179,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <Circle
                     className={`h-2.5 w-2.5 fill-current shrink-0 ${
-                      task.status === "done"
+                      task.status === "approved"
                         ? "text-emerald-500"
                         : statusDotColors[task.status] || "text-gray-400"
                     }`}
@@ -187,7 +187,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
 
                   <span
                     className={`truncate line-clamp-1 ${
-                      task.status === "done"
+                      task.status === "approved"
                         ? "text-gray-400 line-through font-semibold"
                         : "text-gray-700 font-semibold"
                     }`}

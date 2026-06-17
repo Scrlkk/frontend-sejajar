@@ -12,10 +12,10 @@ interface TasksBoardProps {
 }
 
 const columnBgColors: Record<string, string> = {
-  todo: "bg-gray-300/50",
-  onProgress: "bg-yellow-100/50",
+  to_do: "bg-gray-300/50",
+  on_progress: "bg-yellow-100/50",
   revision: "bg-red-200/50",
-  done: "bg-emerald-100/50",
+  approved: "bg-emerald-100/50",
   pending: "bg-purple-200/50",
 };
 

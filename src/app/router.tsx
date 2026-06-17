@@ -6,6 +6,7 @@ import { ForgotPasswordPage } from "@/features/auth/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/features/auth/pages/ResetPasswordPage";
 import { SuperadminPage } from "@/features/dashboard/pages/SuperadminPage";
 import { UserRolePage } from "@/features/users/pages/UserRolePage";
+import { ProfilePage } from "@/features/users/pages/ProfilePage";
 import { SystemlogsPage } from "@/features/audit/pages/SystemlogsPage";
 import { PublishPage } from "@/features/tasks/pages/PublishPage";
 import { AdminSocialMediaPage } from "@/features/dashboard/pages/AdminSocialMediaPage";
@@ -106,6 +107,10 @@ export const router = createBrowserRouter([
       {
         path: "/user-roles",
         element: <UserRolePage />,
+      },
+      {
+        path: "/profile",
+        element: <ProfilePage />,
       },
       {
         path: "/system-logs",

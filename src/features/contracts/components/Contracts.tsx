@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -23,6 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { PillarsContract } from "@/features/pillars/components/PillarsContract";
 
 export interface ContractCardItem {
   id: string | number;
@@ -40,7 +41,7 @@ export interface ContractCardItem {
   statusBg: string;
   statusDot: string;
   year?: number;
-  contentLead?: string;
+  createdBy?: string;
 }
 
 interface ContractsProps {
@@ -75,12 +76,18 @@ export function Contracts({
       return matchesSearch && item.status === "Completed";
     if (activeTab === "overdue")
       return matchesSearch && item.status === "Overdue";
+    if (activeTab === "cancel")
+      return matchesSearch && (item.status === "Cancel" || item.status === "Canceled");
 
     return matchesSearch;
   });
 
-  const countStatus = (statusName: string) =>
-    contracts.filter((c) => c.status === statusName).length;
+  const countStatus = (statusName: string) => {
+    if (statusName === "Cancel") {
+      return contracts.filter((c) => c.status === "Cancel" || c.status === "Canceled").length;
+    }
+    return contracts.filter((c) => c.status === statusName).length;
+  };
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-6">
@@ -128,6 +135,12 @@ export function Contracts({
                 className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 Overdue ({countStatus("Overdue")})
+              </TabsTrigger>
+              <TabsTrigger
+                value="cancel"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Cancel ({countStatus("Cancel")})
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -203,10 +216,10 @@ export function Contracts({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
-                        onClick={() => onStatusChange?.(item.id, "Canceled")}
+                        onClick={() => onStatusChange?.(item.id, "Cancel")}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
-                        <span>Canceled</span>
+                        <span>Cancel</span>
                       </DropdownMenuItem>
 
                       <DropdownMenuSeparator className="border-gray-100 my-1" />
@@ -222,16 +235,10 @@ export function Contracts({
                   </DropdownMenu>
                 </div>
 
-                <div className="flex items-center gap-3 text-xs font-semibold">
-                  <span className="text-gray-400 py-0.5">{item.code}</span>
-                  <Badge
-                    className={`${item.statusBg} rounded-lg font-bold px-2.5 py-0.5 border-none shadow-none flex items-center gap-1.5`}
-                  >
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${item.statusDot}`}
-                    />
-                    {item.status}
-                  </Badge>
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-400">
+                  <span className="py-0.5">{item.code}</span>
+
+                  <PillarsContract status={item.status} />
                 </div>
 
                 <div className="space-y-0.5">
@@ -241,21 +248,19 @@ export function Contracts({
                   <p className="text-sm text-gray-400 font-medium">
                     {item.brand}
                   </p>
+                  <p className="text-sm pt-1 text-gray-400 font-normal leading-relaxed line-clamp-1">
+                    {item.description}
+                  </p>
                 </div>
-
-                <p className="text-sm text-gray-400 font-normal leading-relaxed line-clamp-1">
-                  {item.description}
-                </p>
 
                 <div className="flex items-center gap-2 pt-1">
                   {item.platforms.map((platform, idx) => (
-                    <Badge
+                    <PlatformBadge
                       key={idx}
-                      variant="outline"
-                      className="bg-gray-100 text-gray-500 font-medium rounded-lg px-2.5 py-0.5 text-xs shadow-none"
-                    >
-                      {platform}
-                    </Badge>
+                      platform={platform}
+                      showDot={false}
+                      className="text-xs font-semibold"
+                    />
                   ))}
                 </div>
 
@@ -306,23 +311,23 @@ export function Contracts({
             <div className="h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-800 shadow-sm border border-red-100 mb-4 animate-pulse">
               <FolderClosed className="h-7 w-7" />
             </div>
-            <h4 className="text-sm font-bold text-gray-900 mb-1">
+            <h4 className="text-sm font-semibold text-gray-700 mb-1">
               Belum Ada Kontrak
             </h4>
-            <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-5 font-semibold">
+            <p className="text-xs text-gray-400 max-w-xs leading-relaxed mb-5 font-semibold">
               Mulai dengan mendaftarkan kontrak baru untuk mengelola dan melacak
               progres produksi konten Anda.
             </p>
           </div>
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50/20 rounded-2xl border border-dashed border-gray-200 shadow-xs">
-            <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 shadow-sm border border-slate-100 mb-4">
-              <FileSearch className="h-7 w-7" />
+            <div className="h-14 w-14 rounded-2xl bg-red-100/80 flex items-center justify-center text-slate-500 shadow-sm border border-slate-100 mb-4">
+              <FileSearch className="h-7 w-7 text-red-logo animate-pulse" />
             </div>
-            <h4 className="text-sm font-bold text-gray-900 mb-1">
+            <h4 className="text-sm font-semibold text-gray-600 mb-1">
               Kontrak Tidak Ditemukan
             </h4>
-            <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-5 font-semibold">
+            <p className="text-xs text-gray-400 max-w-xs leading-relaxed mb-5 font-semibold">
               Tidak ada kontrak yang cocok dengan kata kunci pencarian atau
               filter tab saat ini.
             </p>
@@ -332,7 +337,7 @@ export function Contracts({
                 setSearchQuery("");
                 setActiveTab("all");
               }}
-              className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-755 text-xs font-bold cursor-pointer h-9 px-4"
+              className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-500 text-xs font-semibold cursor-pointer h-9 px-4"
             >
               Reset Filter
             </Button>

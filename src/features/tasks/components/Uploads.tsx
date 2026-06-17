@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Search, Upload, Play, Trash2, Image } from "lucide-react";
+import { Search, Upload, Play, Trash2, Image, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import type { AssignerInfo } from "@/features/tasks/data/tasksData";
 
@@ -21,6 +23,7 @@ export interface UploadedMediaItem {
   statusDot: string;
   revisionNote?: string;
   assigner?: AssignerInfo;
+  isOverdue?: boolean;
 }
 
 export type UploadedVideoItem = UploadedMediaItem;
@@ -54,6 +57,8 @@ export function Uploads({
       return matchesSearch && item.status === "Revision";
     if (activeTab === "approved")
       return matchesSearch && item.status === "Approved";
+    if (activeTab === "overdue")
+      return matchesSearch && item.isOverdue;
 
     return matchesSearch;
   });
@@ -86,7 +91,7 @@ export function Uploads({
               value="pending"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
-              Pending ({countStatus("Pending")})
+              Pending Review ({countStatus("Pending")})
             </TabsTrigger>
             <TabsTrigger
               value="revision"
@@ -99,6 +104,12 @@ export function Uploads({
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
               Approved ({countStatus("Approved")})
+            </TabsTrigger>
+            <TabsTrigger
+              value="overdue"
+              className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs text-red-600 data-[state=active]:text-red-700"
+            >
+              Overdue ({uploads.filter((u) => u.isOverdue).length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -130,15 +141,19 @@ export function Uploads({
           filteredUploads.map((item) => (
             <Card
               key={item.id}
-              className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg hover:border-red-logo p-4 space-y-4 flex flex-col justify-between"
+              className={cn(
+                "w-full rounded-xl border outline outline-gray-300/50 shadow-lg p-4 space-y-4 flex flex-col justify-between transition-colors hover:border-red-logo",
+                item.isOverdue
+                  ? "bg-red-50/20 border-red-300"
+                  : "bg-white border-gray-200"
+              )}
             >
               <div className="space-y-4">
                 <div className="w-full h-44 bg-[#1e2530] rounded-xl flex items-center justify-center relative shadow-inner group cursor-pointer">
-                  <Badge
-                    className={`absolute left-3 top-3 ${item.platformBg} rounded-md font-bold text-[10px] px-2 py-0.5 border-none shadow-none`}
-                  >
-                    {item.platform}
-                  </Badge>
+                  <PlatformBadge
+                    platform={item.platform}
+                    className="absolute left-3 top-3 text-[10px]"
+                  />
 
                   {item.type === "video" ? (
                     <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-xs flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
@@ -162,7 +177,7 @@ export function Uploads({
                     <h3 className="font-semibold text-gray-900 text-base md:text-lg leading-snug truncate">
                       {item.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-semibold text-gray-400 tracking-wide uppercase">
+                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-semibold text-gray-400 tracking-wide uppercase flex-wrap">
                       <span className="capitalize">{item.type}</span>
                       <span>•</span>
                       <span>{item.fileSizeText}</span>
@@ -170,17 +185,22 @@ export function Uploads({
                       <span className="normal-case font-medium">
                         {item.uploadedTimeText}
                       </span>
+                      {item.isOverdue && (
+                        <>
+                          <span>•</span>
+                          <span className="text-red-650 font-bold normal-case flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3 stroke-[2.5] text-red-600 shrink-0" />
+                            Overdue
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  <Badge
-                    className={`${item.statusBg} rounded-full font-bold px-2.5 py-0.5 text-xs border-none shadow-none flex items-center gap-1.5 shrink-0`}
-                  >
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${item.statusDot}`}
-                    />
-                    {item.status}
-                  </Badge>
+                  <StatusBadgeContent
+                    status={item.status}
+                    className="text-xs"
+                  />
                 </div>
 
                 {item.status === "Revision" && item.revisionNote && (

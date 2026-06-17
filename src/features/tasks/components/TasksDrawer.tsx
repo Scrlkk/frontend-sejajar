@@ -7,9 +7,14 @@ import {
   Video as VideoIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { FeedbackComment } from "@/features/reviews/components/FeedbackComment";
-import type { TaskBoardItem, TaskCommentItem } from "@/features/tasks/components/TasksContent";
+import type {
+  TaskBoardItem,
+  TaskCommentItem,
+} from "@/features/tasks/components/TasksContent";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { PriorityCard } from "@/features/pillars/components/PriorityCard";
+import { TypeTasks } from "@/features/pillars/components/TypeTasks";
 
 interface TasksDrawerProps {
   isOpen: boolean;
@@ -26,7 +31,7 @@ export function TasksDrawer({
 }: TasksDrawerProps) {
   // Local states to handle user edits in the drawer, initialized from task prop
   const [status, setStatus] = useState<TaskBoardItem["status"]>(
-    () => task?.status || "todo",
+    () => task?.status || "to_do",
   );
   const [deliverables, setDeliverables] = useState<string[]>(
     () => task?.deliverables || [],
@@ -61,7 +66,7 @@ export function TasksDrawer({
         status,
         deliverables,
         comments,
-        isOverdue: status === "done" ? false : task.isOverdue, // clear overdue state if done
+        isOverdue: status === "approved" ? false : task.isOverdue, // clear overdue state if approved
       });
     }
     onClose();
@@ -74,15 +79,15 @@ export function TasksDrawer({
   ) => {
     if (from === to) return true; // Can always stay in current state
     switch (from) {
-      case "todo":
-        return to === "onProgress";
-      case "onProgress":
+      case "to_do":
+        return to === "on_progress";
+      case "on_progress":
         return to === "pending";
       case "pending":
-        return to === "revision" || to === "done";
+        return to === "revision" || to === "approved";
       case "revision":
         return to === "pending";
-      case "done":
+      case "approved":
       default:
         return false;
     }
@@ -96,14 +101,14 @@ export function TasksDrawer({
     activeClass: string;
   }[] = [
     {
-      key: "todo",
+      key: "to_do",
       label: "To Do",
       dotBg: "bg-slate-400",
       activeClass:
         "bg-slate-50 border-slate-400 text-slate-800 ring-1 ring-slate-400/50 shadow-sm",
     },
     {
-      key: "onProgress",
+      key: "on_progress",
       label: "On Progress",
       dotBg: "bg-amber-500",
       activeClass:
@@ -124,8 +129,8 @@ export function TasksDrawer({
         "bg-red-50 border-red-400 text-red-800 ring-1 ring-red-400/50 shadow-sm",
     },
     {
-      key: "done",
-      label: "Done",
+      key: "approved",
+      label: "Approved",
       dotBg: "bg-emerald-500",
       activeClass:
         "bg-emerald-50 border-emerald-500 text-emerald-800 ring-1 ring-emerald-500/50 shadow-sm",
@@ -165,27 +170,9 @@ export function TasksDrawer({
 
           {/* Badges Section */}
           <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="outline"
-              className="rounded-lg bg-indigo-50 border-indigo-150 text-indigo-700 text-[10px] font-semibold py-0.5 px-2 flex items-center gap-1.5 shadow-sm"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 shrink-0" />
-              {task.pillar || "Behind the Scenes"}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="rounded-lg bg-emerald-50 border-emerald-150 text-emerald-700 text-[10px] font-semibold py-0.5 px-2 flex items-center gap-1.5 shadow-sm"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-              {task.type}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="rounded-lg bg-slate-100 border-slate-200 text-slate-700 text-[10px] font-semibold py-0.5 px-2 flex items-center gap-1.5 shadow-sm"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
-              {task.role || "Creator"}
-            </Badge>
+            <PillarsCard category={task.pillar || "Behind the Scenes"} />
+            <TypeTasks type={task.type} />
+            <PriorityCard priority={task.priority} />
           </div>
 
           {/* Task Status Selector */}
@@ -252,9 +239,11 @@ export function TasksDrawer({
                   const isSelected = status === st.key;
                   const isAllowed = isTransitionAllowed(task.status, st.key);
                   return (
-                    <div className="w-full flex items-center justify-center">
+                    <div
+                      key={st.key}
+                      className="w-full flex items-center justify-center"
+                    >
                       <button
-                        key={st.key}
                         type="button"
                         onClick={() => setStatus(st.key)}
                         disabled={!isAllowed}
@@ -281,7 +270,7 @@ export function TasksDrawer({
             {/* Deadline */}
             <div
               className={`p-3.5 rounded-xl border flex flex-col justify-between h-20 transition-colors shadow-sm ${
-                task.isOverdue && status !== "done"
+                task.isOverdue && status !== "approved"
                   ? "bg-red-50 border-red-200 text-red-800"
                   : "bg-slate-50/30 border-gray-200 text-gray-700"
               }`}
@@ -289,11 +278,11 @@ export function TasksDrawer({
               <div className="flex items-center justify-between gap-1 w-full">
                 <div className="flex items-center gap-1.5">
                   <Calendar
-                    className={`h-3.5 w-3.5 shrink-0 ${task.isOverdue && status !== "done" ? "text-red-500" : "text-gray-400"}`}
+                    className={`h-3.5 w-3.5 shrink-0 ${task.isOverdue && status !== "approved" ? "text-red-500" : "text-gray-400"}`}
                   />
                   <span
                     className={`text-[9px] font-bold uppercase tracking-wider ${
-                      task.isOverdue && status !== "done"
+                      task.isOverdue && status !== "approved"
                         ? "text-red-800"
                         : "text-gray-400"
                     }`}
@@ -301,7 +290,7 @@ export function TasksDrawer({
                     Deadline
                   </span>
                 </div>
-                {task.isOverdue && status !== "done" && (
+                {task.isOverdue && status !== "approved" && (
                   <span className="text-[8px] font-extrabold tracking-wider bg-red-100 text-red-700 px-1 py-0.5 rounded-md uppercase shrink-0 border border-red-200/50 animate-pulse">
                     Overdue
                   </span>

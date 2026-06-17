@@ -23,7 +23,7 @@ export const ContractPage = () => {
       const end = new Date(c.endDate);
       end.setHours(0, 0, 0, 0);
 
-      if (c.status !== "Completed" && c.status !== "Canceled" && end < today) {
+      if (c.status !== "Completed" && c.status !== "Cancel" && end < today) {
         return {
           ...c,
           status: "Overdue",
@@ -88,7 +88,7 @@ export const ContractPage = () => {
           if (newStatus === "Completed") {
             statusBg = "bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100";
             statusDot = "bg-blue-500";
-          } else if (newStatus === "Canceled") {
+          } else if (newStatus === "Cancel") {
             statusBg = "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200";
             statusDot = "bg-gray-400";
           } else if (newStatus === "Overdue") {

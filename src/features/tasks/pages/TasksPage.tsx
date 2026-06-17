@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
@@ -23,7 +23,7 @@ export const TasksPage = () => {
         task.role ||
         (task.type === "Script"
           ? "Scriptwriter"
-          : task.type === "Production"
+          : task.type === "Editor"
             ? "Video Editor"
             : "Caption Specialist"),
       deliverables:
@@ -59,17 +59,24 @@ export const TasksPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const taskIdParam = searchParams.get("id");
 
+  const lastProcessedIdRef = useRef<string | null>(null);
+
   // Intercept the 'id' parameter to auto-open the drawer on route navigation
   useEffect(() => {
     if (taskIdParam) {
-      const task = tasks.find((t) => String(t.id) === String(taskIdParam));
-      if (task) {
-        const timer = setTimeout(() => {
-          setSelectedTask(task);
-          setIsDrawerOpen(true);
-        }, 0);
-        return () => clearTimeout(timer);
+      if (lastProcessedIdRef.current !== taskIdParam) {
+        const task = tasks.find((t) => String(t.id) === String(taskIdParam));
+        if (task) {
+          const timer = setTimeout(() => {
+            lastProcessedIdRef.current = taskIdParam;
+            setSelectedTask(task);
+            setIsDrawerOpen(true);
+          }, 0);
+          return () => clearTimeout(timer);
+        }
       }
+    } else {
+      lastProcessedIdRef.current = null;
     }
   }, [taskIdParam, tasks]);
 

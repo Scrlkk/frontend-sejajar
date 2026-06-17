@@ -46,12 +46,12 @@ export function CalendarPublish({
               key={item.id}
               className="w-full bg-emerald-50/20 border border-emerald-500/20 rounded-2xl p-4 space-y-3"
             >
-              <h4 className="font-bold text-gray-900 text-sm md:text-base leading-snug truncate">
+              <h4 className="font-semibold text-gray-900 text-sm leading-snug truncate">
                 {item.title}
               </h4>
 
               <div className="flex items-center justify-between gap-4">
-                <span className="text-xs md:text-sm font-medium text-gray-400">
+                <span className="text-xs font-medium text-gray-400">
                   {item.dateText}
                 </span>
 

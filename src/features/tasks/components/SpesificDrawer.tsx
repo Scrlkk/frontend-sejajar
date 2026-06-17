@@ -11,7 +11,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import { FeedbackComment } from "@/features/reviews/components/FeedbackComment";
 import type { UploadedMediaItem } from "@/features/tasks/components/Uploads";
 import type { DraftsItem } from "@/features/tasks/data/tasksData";
@@ -285,21 +287,9 @@ export function SpesificDrawer({
 
           {/* Badges Section */}
           <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="outline"
-              className="rounded-lg bg-indigo-50 border-indigo-150 text-indigo-700 text-[10px] font-semibold py-0.5 px-2 flex items-center gap-1.5 shadow-sm"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 shrink-0" />
-              {itemCategory}
-            </Badge>
+            <PillarsCard category={itemCategory} />
             {itemType === "upload" && (
-              <Badge
-                variant="outline"
-                className="rounded-lg bg-slate-100 border-slate-200 text-slate-700 text-[10px] font-semibold py-0.5 px-2 flex items-center gap-1.5 shadow-sm"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
-                {(item as UploadedMediaItem).platform}
-              </Badge>
+              <PlatformBadge platform={(item as UploadedMediaItem).platform} />
             )}
           </div>
 
@@ -519,9 +509,10 @@ export function SpesificDrawer({
                         </p>
                       </div>
                     </div>
-                    <Badge className="bg-red-50 text-red-650 hover:bg-red-50 border-none font-bold text-[9px] px-2 py-0.5 rounded-full shadow-none shrink-0">
-                      {hist.status}
-                    </Badge>
+                    <StatusBadgeContent
+                      status={hist.status}
+                      className="font-bold text-[9px] px-2 py-0.5 rounded-full shrink-0"
+                    />
                   </div>
                 ))}
               </div>

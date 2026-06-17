@@ -121,20 +121,20 @@ function ContractModalForm({
   const [brand, setBrand] = React.useState(initialData?.brand ?? "");
   const [isClientListOpen, setIsClientListOpen] = React.useState(false);
 
-  // Content Lead autocomplete state (starts empty on create)
-  const [contentLead, _setContentLead] = React.useState(
-    initialData?.contentLead ?? "",
+  // Creator / Owner autocomplete state (starts empty on create)
+  const [createdBy, _setCreatedBy] = React.useState(
+    initialData?.createdBy ?? "",
   );
   const [searchLeadText, _setSearchLeadText] = React.useState(
-    initialData?.contentLead ?? "",
+    initialData?.createdBy ?? "",
   );
 
-  const contentLeadRef = React.useRef(initialData?.contentLead ?? "");
-  const searchLeadTextRef = React.useRef(initialData?.contentLead ?? "");
+  const createdByRef = React.useRef(initialData?.createdBy ?? "");
+  const searchLeadTextRef = React.useRef(initialData?.createdBy ?? "");
 
-  const setContentLead = (val: string) => {
-    contentLeadRef.current = val;
-    _setContentLead(val);
+  const setCreatedBy = (val: string) => {
+    createdByRef.current = val;
+    _setCreatedBy(val);
   };
 
   const setSearchLeadText = (val: string) => {
@@ -144,7 +144,7 @@ function ContractModalForm({
 
   const [isLeadListOpen, setIsLeadListOpen] = React.useState(false);
 
-  // Status (Active / Canceled)
+  // Status (Active / Cancel)
   const [status, setStatus] = React.useState<string>(
     initialData?.status ?? "Active",
   );
@@ -171,8 +171,8 @@ function ContractModalForm({
   const getActiveContractsCount = (leadName: string) => {
     return contractsList.filter(
       (c) =>
-        (c.contentLead === leadName ||
-          (!c.contentLead && leadName === "Sarah Mitchell")) &&
+        (c.createdBy === leadName ||
+          (!c.createdBy && leadName === "Sarah Mitchell")) &&
         c.status === "Active",
     ).length;
   };
@@ -188,7 +188,7 @@ function ContractModalForm({
     if (!valueAmount.trim())
       newErrors.valueAmount = "Revenue / contract value is required";
     if (!brand.trim()) newErrors.brand = "Client is required";
-    if (!contentLead) newErrors.contentLead = "Content lead is required";
+    if (!createdBy) newErrors.createdBy = "Created by/Owner name is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -205,7 +205,7 @@ function ContractModalForm({
 
     if (currentProgress >= targetProgress && targetProgress > 0) {
       finalStatus = "Completed";
-    } else if (finalStatus !== "Canceled") {
+    } else if (finalStatus !== "Cancel") {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const end = new Date(endDate);
@@ -224,7 +224,7 @@ function ContractModalForm({
     if (finalStatus === "Completed") {
       statusBg = "bg-blue-50 text-blue-600 border border-blue-100";
       statusDot = "bg-blue-500";
-    } else if (finalStatus === "Canceled") {
+    } else if (finalStatus === "Cancel") {
       statusBg = "bg-gray-50 text-gray-500 border border-gray-200";
       statusDot = "bg-gray-400";
     } else if (finalStatus === "Overdue") {
@@ -241,7 +241,7 @@ function ContractModalForm({
       endDate: formatDateToDisplay(endDate),
       valueAmount,
       brand,
-      contentLead,
+      createdBy,
       status: finalStatus,
       statusBg,
       statusDot,
@@ -251,7 +251,7 @@ function ContractModalForm({
     onClose();
   };
 
-  const selectedLeadObj = sampleTeamMembers.find((m) => m.name === contentLead);
+  const selectedLeadObj = sampleTeamMembers.find((m) => m.name === createdBy);
 
   return (
     <form
@@ -335,13 +335,13 @@ function ContractModalForm({
             )}
           </div>
 
-          {/* Content Lead Selection (Autocomplete/Search field) */}
+          {/* Creator / Owner Selection (Autocomplete/Search field) */}
           <div className="space-y-1.5 flex flex-col relative">
             <Label
-              htmlFor="contentLead"
+              htmlFor="createdBy"
               className="text-xs font-semibold uppercase tracking-wider text-gray-500"
             >
-              Content Lead <span className="text-red-500">*</span>
+              Created By / Owner <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
               <div className="relative flex items-center">
@@ -357,8 +357,8 @@ function ContractModalForm({
                   </div>
                 )}
                 <Input
-                  id="contentLead"
-                  placeholder="Search Content Lead..."
+                  id="createdBy"
+                  placeholder="Search Creator/Owner..."
                   value={searchLeadText}
                   onChange={(e) => {
                     setSearchLeadText(e.target.value);
@@ -369,10 +369,10 @@ function ContractModalForm({
                     setTimeout(() => {
                       setIsLeadListOpen(false);
                       const currentSearchText = searchLeadTextRef.current;
-                      const currentLead = contentLeadRef.current;
+                      const currentLead = createdByRef.current;
 
                       if (!currentSearchText.trim()) {
-                        setContentLead("");
+                        setCreatedBy("");
                       } else {
                         const match = contentLeads.find(
                           (m) =>
@@ -380,7 +380,7 @@ function ContractModalForm({
                             currentSearchText.toLowerCase(),
                         );
                         if (match) {
-                          setContentLead(match.name);
+                          setCreatedBy(match.name);
                           setSearchLeadText(match.name);
                         } else {
                           setSearchLeadText(currentLead);
@@ -389,7 +389,7 @@ function ContractModalForm({
                     }, 200);
                   }}
                   className={`rounded-lg border-gray-200 bg-gray-50/50 py-2.5 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors w-full pl-10 ${
-                    errors.contentLead
+                    errors.createdBy
                       ? "border-red-500 focus:border-red-500"
                       : ""
                   }`}
@@ -400,7 +400,7 @@ function ContractModalForm({
                 <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1 flex flex-col gap-1">
                   {filteredContentLeads.map((m) => {
                     const activeCount = getActiveContractsCount(m.name);
-                    const isSelected = contentLead === m.name;
+                    const isSelected = createdBy === m.name;
                     const selectedClasses = getLeadSelectedClasses(m.name);
 
                     return (
@@ -408,7 +408,7 @@ function ContractModalForm({
                         key={m.name}
                         type="button"
                         onClick={() => {
-                          setContentLead(m.name);
+                          setCreatedBy(m.name);
                           setSearchLeadText(m.name);
                           setIsLeadListOpen(false);
                         }}
@@ -438,9 +438,9 @@ function ContractModalForm({
                 </div>
               )}
             </div>
-            {errors.contentLead && (
+            {errors.createdBy && (
               <p className="text-[11px] text-red-500 font-medium">
-                {errors.contentLead}
+                {errors.createdBy}
               </p>
             )}
           </div>
@@ -541,9 +541,9 @@ function ContractModalForm({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStatus("Canceled")}
+                  onClick={() => setStatus("Cancel")}
                   className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer outline-none ${
-                    status === "Canceled"
+                    status === "Cancel"
                       ? "border-slate-500 bg-slate-100 text-slate-700 ring-2 ring-slate-500/20"
                       : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50 focus:border-slate-300 focus:ring-2 focus:ring-slate-500/10"
                   }`}

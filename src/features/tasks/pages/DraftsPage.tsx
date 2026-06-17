@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { RevisionBanner } from "@/features/reviews/components/RevisionBanner";
@@ -26,16 +26,23 @@ export const DraftsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const draftIdParam = searchParams.get("id");
 
+  const lastProcessedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (draftIdParam) {
-      const draft = drafts.find((d) => String(d.id) === String(draftIdParam));
-      if (draft) {
-        const timer = setTimeout(() => {
-          setSelectedDraft(draft);
-          setIsDrawerOpen(true);
-        }, 0);
-        return () => clearTimeout(timer);
+      if (lastProcessedIdRef.current !== draftIdParam) {
+        const draft = drafts.find((d) => String(d.id) === String(draftIdParam));
+        if (draft) {
+          const timer = setTimeout(() => {
+            lastProcessedIdRef.current = draftIdParam;
+            setSelectedDraft(draft);
+            setIsDrawerOpen(true);
+          }, 0);
+          return () => clearTimeout(timer);
+        }
       }
+    } else {
+      lastProcessedIdRef.current = null;
     }
   }, [draftIdParam, drafts]);
 
@@ -81,11 +88,13 @@ export const DraftsPage = () => {
       plan.category.toLowerCase() === "beauty"
         ? "bg-pink-50 text-pink-600 hover:bg-pink-50 border-none"
         : plan.category.toLowerCase() === "lifestyle"
-        ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50 border-none"
-        : "bg-indigo-50 text-indigo-600 hover:bg-indigo-50 border-none";
+          ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50 border-none"
+          : "bg-indigo-50 text-indigo-600 hover:bg-indigo-50 border-none";
 
     const newId =
-      drafts.length > 0 ? Math.max(...drafts.map((d) => Number(d.id) || 0)) + 1 : 1;
+      drafts.length > 0
+        ? Math.max(...drafts.map((d) => Number(d.id) || 0)) + 1
+        : 1;
     const newDraft: DraftsItem = {
       id: newId,
       title: plan.title,
@@ -120,19 +129,19 @@ export const DraftsPage = () => {
                 updatedItem.status === "Approved"
                   ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50"
                   : updatedItem.status === "Pending"
-                  ? "bg-amber-50 text-amber-600 hover:bg-amber-50"
-                  : updatedItem.status === "Revision"
-                  ? "bg-red-50 text-red-650 hover:bg-red-50"
-                  : "bg-gray-50 text-gray-600",
+                    ? "bg-amber-50 text-amber-600 hover:bg-amber-50"
+                    : updatedItem.status === "Revision"
+                      ? "bg-red-50 text-red-650 hover:bg-red-50"
+                      : "bg-gray-50 text-gray-600",
               statusDot:
                 updatedItem.status === "Approved"
                   ? "bg-emerald-500"
                   : updatedItem.status === "Pending"
-                  ? "bg-amber-500"
-                  : "bg-red-500",
+                    ? "bg-amber-500"
+                    : "bg-red-500",
             }
-          : d
-      )
+          : d,
+      ),
     );
   };
 

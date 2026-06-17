@@ -7,12 +7,16 @@ import {
   AlertCircle,
   Clock,
   PenLine,
+  Eye,
 } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import toast from "react-hot-toast";
-import { DeleteModal } from "./DeleteModal";
+import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { ModalPreviewPublish, type PreviewPublishItem } from "@/features/tasks/components/ModalPreviewPublish";
 
 export interface QueueItem {
   id: string | number;
@@ -22,7 +26,7 @@ export interface QueueItem {
   category: string;
   categoryBg: string;
   dateText: string;
-  status: "Draft" | "Schedule" | "Revision" | "Waiting Approval";
+  status: "Draft" | "Scheduled" | "Revision" | "Waiting Approval" | "Pending" | "Published";
   caption?: string;
   isPublishable: boolean;
 }
@@ -73,7 +77,7 @@ export function PublishContent({
       prev.map((it) => {
         if (it.id === id) {
           const newCaption = editingText.trim() || undefined;
-          const isPublishable = it.status === "Schedule" && !!newCaption;
+          const isPublishable = it.status === "Scheduled" && !!newCaption;
           const updatedItem = {
             ...it,
             caption: newCaption,
@@ -90,9 +94,42 @@ export function PublishContent({
     toast.success("Caption berhasil disimpan!");
   };
 
-  const handlePublishClick = (item: QueueItem) => {
-    onPublish?.(item);
-    setLocalItems((prev) => prev.filter((it) => it.id !== item.id));
+  // Publish preview modal states
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [itemToPublish, setItemToPublish] = useState<QueueItem | null>(null);
+  const [publishModalMode, setPublishModalMode] = useState<"preview" | "publish">("publish");
+
+  const handleOpenPublishModal = (item: QueueItem, mode: "preview" | "publish" = "publish") => {
+    setItemToPublish(item);
+    setPublishModalMode(mode);
+    setIsPublishModalOpen(true);
+  };
+
+  const handlePublishConfirm = (
+    previewItem: PreviewPublishItem,
+    date?: string,
+    time?: string,
+    hashtags?: string,
+  ) => {
+    const originalItem = localItems.find((it) => it.id === previewItem.id);
+    if (!originalItem) return;
+
+    const formattedDateText = date && time ? `${date} • ${time}` : originalItem.dateText;
+    const updatedCaption = hashtags ? `${originalItem.caption || ""} ${hashtags}`.trim() : originalItem.caption;
+
+    const updated: QueueItem = {
+      ...originalItem,
+      status: "Published",
+      dateText: formattedDateText,
+      caption: updatedCaption,
+      isPublishable: false,
+    };
+    onPublish?.(updated);
+    setLocalItems((prev) =>
+      prev.map((it) => (it.id === originalItem.id ? updated : it)),
+    );
+    setIsPublishModalOpen(false);
+    setItemToPublish(null);
     toast.success("Konten berhasil dipublikasikan!");
   };
 
@@ -113,13 +150,16 @@ export function PublishContent({
 
   const draftCount = localItems.filter((i) => i.status === "Draft").length;
   const scheduledCount = localItems.filter(
-    (i) => i.status === "Schedule",
+    (i) => i.status === "Scheduled",
   ).length;
-  const waitingApprovalCount = localItems.filter(
-    (i) => i.status === "Waiting Approval",
+  const pendingCount = localItems.filter(
+    (i) => i.status === "Pending" || i.status === "Waiting Approval",
   ).length;
   const revisionCount = localItems.filter(
     (i) => i.status === "Revision",
+  ).length;
+  const publishedCount = localItems.filter(
+    (i) => i.status === "Published",
   ).length;
 
   const filteredItems = localItems.filter((item) => {
@@ -129,39 +169,18 @@ export function PublishContent({
 
     if (activeTab === "draft") return matchesSearch && item.status === "Draft";
     if (activeTab === "scheduled")
-      return matchesSearch && item.status === "Schedule";
-    if (activeTab === "waiting-approval")
-      return matchesSearch && item.status === "Waiting Approval";
+      return matchesSearch && item.status === "Scheduled";
+    if (activeTab === "waiting-approval" || activeTab === "pending")
+      return matchesSearch && (item.status === "Pending" || item.status === "Waiting Approval");
     if (activeTab === "revision")
       return matchesSearch && item.status === "Revision";
+    if (activeTab === "published")
+      return matchesSearch && item.status === "Published";
 
     return matchesSearch;
   });
 
-  const statusBadgeStyle = (status: QueueItem["status"]) => {
-    switch (status) {
-      case "Schedule":
-        return {
-          bg: "bg-blue-100 text-blue-600 hover:bg-blue-100",
-          dot: "bg-blue-500",
-        };
-      case "Waiting Approval":
-        return {
-          bg: "bg-amber-100 text-amber-600 hover:bg-amber-100",
-          dot: "bg-amber-500",
-        };
-      case "Revision":
-        return {
-          bg: "bg-red-100 text-red-600 hover:bg-red-100",
-          dot: "bg-red-500",
-        };
-      default:
-        return {
-          bg: "bg-gray-200 text-gray-500 hover:bg-gray-200",
-          dot: "bg-gray-400",
-        };
-    }
-  };
+
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg">
@@ -186,16 +205,22 @@ export function PublishContent({
             </TabsTrigger>
 
             <TabsTrigger
-              value="waiting-approval"
+              value="pending"
               className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
-              Waiting Approval ({waitingApprovalCount})
+              Pending ({pendingCount})
             </TabsTrigger>
             <TabsTrigger
               value="scheduled"
               className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               Ready to Publish ({scheduledCount})
+            </TabsTrigger>
+            <TabsTrigger
+              value="published"
+              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              Published ({publishedCount})
             </TabsTrigger>
             <TabsTrigger
               value="revision"
@@ -235,30 +260,24 @@ export function PublishContent({
                     <h3 className="font-bold text-gray-900 text-base truncate">
                       {item.title}
                     </h3>
-                    <Badge
-                      className={`${item.platformBg} text-[10px] font-bold px-2 py-0.5 rounded-md border-none shadow-none`}
-                    >
-                      {item.platform}
-                    </Badge>
-                    <Badge
-                      className={`${item.categoryBg} text-[10px] font-medium px-2 py-0.5 rounded-md border-none shadow-none`}
-                    >
-                      {item.category}
-                    </Badge>
+                    <PlatformBadge
+                      platform={item.platform}
+                      className="text-[10px]"
+                    />
+                    <PillarsCard
+                      category={item.category}
+                      className="text-[10px]"
+                    />
                   </div>
 
                   <div className="flex items-center gap-3 text-xs text-gray-400 font-medium">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" /> {item.dateText}
                     </span>
-                    <Badge
-                      className={`${statusBadgeStyle(item.status).bg} rounded-lg font-semibold text-[10px] px-2 py-0.5 border-none shadow-none flex items-center gap-1.5`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${statusBadgeStyle(item.status).dot}`}
-                      />
-                      {item.status}
-                    </Badge>
+                    <StatusBadgeContent
+                      status={item.status}
+                      className="text-[10px]"
+                    />
 
                     {!item.caption && (
                       <span className="text-red-500 font-semibold flex items-center gap-1">
@@ -316,39 +335,73 @@ export function PublishContent({
               </div>
 
               <div className="flex flex-row md:flex-col items-center justify-end md:items-stretch gap-2 w-full md:w-28 shrink-0 self-end md:self-center border-t md:border-t-0 pt-3 md:pt-0 border-gray-100">
-                <Button
-                  size="sm"
-                  disabled={!item.isPublishable}
-                  onClick={() => handlePublishClick(item)}
-                  className={`h-9 text-xs font-semibold rounded-lg gap-1.5 justify-center md:w-full border-none shadow-none transition-colors cursor-pointer ${
-                    item.isPublishable
-                      ? "bg-red-800 hover:bg-red-logo text-white"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  <Send className="h-3.5 w-3.5 rotate-45" />
-                  Publish
-                </Button>
+                {item.status === "Published" ? (
+                  <>
+                    <Button
+                      size="sm"
+                      disabled
+                      className="h-9 text-xs font-semibold rounded-lg gap-1.5 justify-center md:w-full border-none shadow-none bg-emerald-50 text-emerald-600 cursor-not-allowed"
+                    >
+                      Published
+                    </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleStartEdit(item)}
-                  className="h-9 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
-                >
-                  <PenLine className="h-3.5 w-3.5" />
-                  Caption
-                </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenPublishModal(item, "preview")}
+                      className="h-9 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      Preview
+                    </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveClick(item)}
-                  className="h-9 text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Remove
-                </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveClick(item)}
+                      className="h-9 text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remove
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      size="sm"
+                      disabled={!item.isPublishable}
+                      onClick={() => handleOpenPublishModal(item)}
+                      className={`h-9 text-xs font-semibold rounded-lg gap-1.5 justify-center md:w-full border-none shadow-none transition-colors cursor-pointer ${
+                        item.isPublishable
+                          ? "bg-red-800 hover:bg-red-logo text-white"
+                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      <Send className="h-3.5 w-3.5 rotate-45" />
+                      Publish
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleStartEdit(item)}
+                      className="h-9 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
+                    >
+                      <PenLine className="h-3.5 w-3.5" />
+                      Caption
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveClick(item)}
+                      className="h-9 text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remove
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           ))
@@ -378,6 +431,28 @@ export function PublishContent({
             ""
           )
         }
+      />
+
+      <ModalPreviewPublish
+        isOpen={isPublishModalOpen}
+        onClose={() => {
+          setIsPublishModalOpen(false);
+          setItemToPublish(null);
+        }}
+        item={
+          itemToPublish
+            ? {
+                id: itemToPublish.id,
+                title: itemToPublish.title,
+                platform: itemToPublish.platform,
+                platformBg: itemToPublish.platformBg,
+                postDate: itemToPublish.dateText.split(" • ")[0] || itemToPublish.dateText,
+                time: itemToPublish.dateText.split(" • ")[1] || "",
+              }
+            : null
+        }
+        onPublish={handlePublishConfirm}
+        mode={publishModalMode}
       />
     </div>
   );

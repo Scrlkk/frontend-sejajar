@@ -1,7 +1,8 @@
 import { AlertTriangle, Clock, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 
 export interface DeadlineItem {
   id: string | number;
@@ -75,25 +76,15 @@ export function UpcomingDeadlines({
 
                   <div className="flex items-center gap-2 flex-wrap">
                     
-                    <Badge
-                      variant="outline"
-                      className={`${item.categoryBg} rounded-full font-medium px-2.5 py-0.5 text-xs flex items-center gap-1.5 shadow-none border`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${item.categoryDot}`}
-                      />
-                      {item.category}
-                    </Badge>
+                    <PillarsCard
+                      category={item.category}
+                      className="font-medium px-2.5 py-0.5 text-xs rounded-full"
+                    />
 
-                    
-                    <Badge
-                      className={`${item.statusBg} rounded-full font-medium px-2.5 py-0.5 text-xs border-none shadow-none flex items-center gap-1.5`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${item.statusDot}`}
-                      />
-                      {item.status}
-                    </Badge>
+                    <StatusBadgeContent
+                      status={item.status}
+                      className="font-medium px-2.5 py-0.5 text-xs rounded-full"
+                    />
                   </div>
                 </div>
 

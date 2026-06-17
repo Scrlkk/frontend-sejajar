@@ -41,17 +41,15 @@ export const contractDataCards: CardDashboardProps[] = [
 
 export const plansDataCards: CardDashboardProps[] = [
   {
-    title: "Total Plans",
+    title: "All Plans",
     value: "5",
-    description: "Total Plans",
     icon: FileText,
     iconColor: "text-slate-600",
     iconBgColor: "bg-slate-600/10",
   },
   {
-    title: "On Progress",
+    title: "Progress",
     value: "2",
-    description: "Plans On Going",
     icon: FileText,
     iconColor: "text-yellow-600",
     iconBgColor: "bg-yellow-600/10",
@@ -59,7 +57,6 @@ export const plansDataCards: CardDashboardProps[] = [
   {
     title: "Review",
     value: "1",
-    description: "Review Plans",
     icon: FileText,
     iconColor: "text-purple-600",
     iconBgColor: "bg-purple-600/10",
@@ -67,7 +64,6 @@ export const plansDataCards: CardDashboardProps[] = [
   {
     title: "Approved",
     value: "1",
-    description: "Approved Plans",
     icon: FileText,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
@@ -75,7 +71,6 @@ export const plansDataCards: CardDashboardProps[] = [
   {
     title: "Published",
     value: "1",
-    description: "Published Plans",
     icon: FileText,
     iconColor: "text-blue-600",
     iconBgColor: "bg-blue-600/10",
@@ -83,7 +78,6 @@ export const plansDataCards: CardDashboardProps[] = [
   {
     title: "Days Left",
     value: "1",
-    description: "Days Left",
     icon: Calendar,
     iconColor: "text-red-600",
     iconBgColor: "bg-red-600/10",
@@ -153,6 +147,7 @@ export const sampleContractsData: ContractCardItem[] = [
     statusBg: "bg-blue-100 text-blue-600 hover:bg-blue-100",
     statusDot: "bg-blue-500",
     year: 2024,
+    createdBy: "Sarah Mitchell",
   },
   {
     id: 2,
@@ -171,6 +166,7 @@ export const sampleContractsData: ContractCardItem[] = [
     statusBg: "bg-green-100 text-green-600 hover:bg-green-100",
     statusDot: "bg-green-500",
     year: 2026,
+    createdBy: "Alisha Khan",
   },
   {
     id: 3,
@@ -189,6 +185,7 @@ export const sampleContractsData: ContractCardItem[] = [
     statusBg: "bg-red-100 text-red-600 hover:bg-red-100",
     statusDot: "bg-red-500",
     year: 2026,
+    createdBy: "Michael Brown",
   },
   {
     id: 4,
@@ -207,6 +204,7 @@ export const sampleContractsData: ContractCardItem[] = [
     statusBg: "bg-blue-100 text-blue-600 hover:bg-blue-100",
     statusDot: "bg-blue-500",
     year: 2026,
+    createdBy: "Sarah Mitchell",
   },
 
   {
@@ -226,6 +224,7 @@ export const sampleContractsData: ContractCardItem[] = [
     statusBg: "bg-blue-100 text-blue-600 hover:bg-blue-100",
     statusDot: "bg-blue-500",
     year: 2025,
+    createdBy: "Alisha Khan",
   },
   {
     id: 6,
@@ -244,6 +243,7 @@ export const sampleContractsData: ContractCardItem[] = [
     statusBg: "bg-blue-100 text-blue-600 hover:bg-blue-100",
     statusDot: "bg-blue-500",
     year: 2025,
+    createdBy: "Michael Brown",
   },
 ];
 
@@ -262,26 +262,95 @@ export const sampleProductionProgress = {
   current: 24,
   target: 24,
   items: [
-    { label: "Draft", value: 1, dotColor: "bg-slate-500", textColor: "text-slate-500" },
-    { label: "Assigned", value: 1, dotColor: "bg-blue-600", textColor: "text-blue-600" },
-    { label: "On Progress", value: 1, dotColor: "bg-amber-600", textColor: "text-amber-600" },
-    { label: "Review", value: 1, dotColor: "bg-purple-600", textColor: "text-purple-600" },
-    { label: "Revision", value: 1, dotColor: "bg-red-600", textColor: "text-red-600" },
-    { label: "Approved", value: 1, dotColor: "bg-emerald-600", textColor: "text-emerald-600" },
+    {
+      label: "Draft",
+      value: 1,
+      dotColor: "bg-slate-500",
+      textColor: "text-slate-500",
+    },
+    {
+      label: "Assigned",
+      value: 1,
+      dotColor: "bg-blue-600",
+      textColor: "text-blue-600",
+    },
+    {
+      label: "On Progress",
+      value: 1,
+      dotColor: "bg-amber-600",
+      textColor: "text-amber-600",
+    },
+    {
+      label: "Review",
+      value: 1,
+      dotColor: "bg-purple-600",
+      textColor: "text-purple-600",
+    },
+    {
+      label: "Revision",
+      value: 1,
+      dotColor: "bg-red-600",
+      textColor: "text-red-600",
+    },
+    {
+      label: "Approved",
+      value: 1,
+      dotColor: "bg-emerald-600",
+      textColor: "text-emerald-600",
+    },
   ],
 };
 
 export const sampleTeamMembers = [
-  { name: "Sarah Mitchell", role: "Content Lead", initials: "SM", avatarBg: "bg-indigo-50 text-indigo-600" },
-  { name: "Alisha Khan", role: "Content Lead", initials: "AK", avatarBg: "bg-amber-50 text-amber-600" },
-  { name: "Michael Brown", role: "Content Lead", initials: "MB", avatarBg: "bg-emerald-50 text-emerald-600" },
-  { name: "James Rivera", role: "Script Writer", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
-  { name: "Mia Chen", role: "Script Writer", initials: "MC", avatarBg: "bg-purple-50 text-purple-600" },
-  { name: "Lucas Hoffmann", role: "Editor", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
-  { name: "Aria Thompson", role: "Editor", initials: "AT", avatarBg: "bg-rose-50 text-rose-600" },
-  { name: "Diego Santos", role: "Admin Social Media", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+  {
+    name: "Sarah Mitchell",
+    role: "Content Lead",
+    initials: "SM",
+    avatarBg: "bg-indigo-50 text-indigo-600",
+  },
+  {
+    name: "Alisha Khan",
+    role: "Content Lead",
+    initials: "AK",
+    avatarBg: "bg-amber-50 text-amber-600",
+  },
+  {
+    name: "Michael Brown",
+    role: "Content Lead",
+    initials: "MB",
+    avatarBg: "bg-emerald-50 text-emerald-600",
+  },
+  {
+    name: "James Rivera",
+    role: "Script Writer",
+    initials: "JR",
+    avatarBg: "bg-purple-50 text-purple-600",
+  },
+  {
+    name: "Mia Chen",
+    role: "Script Writer",
+    initials: "MC",
+    avatarBg: "bg-purple-50 text-purple-600",
+  },
+  {
+    name: "Lucas Hoffmann",
+    role: "Editor",
+    initials: "LH",
+    avatarBg: "bg-rose-50 text-rose-600",
+  },
+  {
+    name: "Aria Thompson",
+    role: "Editor",
+    initials: "AT",
+    avatarBg: "bg-rose-50 text-rose-600",
+  },
+  {
+    name: "Diego Santos",
+    role: "Admin Social Media",
+    initials: "DS",
+    avatarBg: "bg-teal-50 text-teal-600",
+  },
 ];
-
 
 export const sampleContentPlans: ContentPlanCardItem[] = [
   {
@@ -311,8 +380,16 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: true,
     status: "Assigned",
     assignedTeam: [
-      { name: "Mia Chen", initials: "MC", avatarBg: "bg-purple-50 text-purple-600" },
-      { name: "Aria Thompson", initials: "AT", avatarBg: "bg-rose-50 text-rose-600" },
+      {
+        name: "Mia Chen",
+        initials: "MC",
+        avatarBg: "bg-purple-50 text-purple-600",
+      },
+      {
+        name: "Aria Thompson",
+        initials: "AT",
+        avatarBg: "bg-rose-50 text-rose-600",
+      },
     ],
   },
   {
@@ -328,9 +405,21 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: false,
     status: "On Progress",
     assignedTeam: [
-      { name: "James Rivera", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
-      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
-      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+      {
+        name: "James Rivera",
+        initials: "JR",
+        avatarBg: "bg-purple-50 text-purple-600",
+      },
+      {
+        name: "Lucas Hoffmann",
+        initials: "LH",
+        avatarBg: "bg-rose-50 text-rose-600",
+      },
+      {
+        name: "Diego Santos",
+        initials: "DS",
+        avatarBg: "bg-teal-50 text-teal-600",
+      },
     ],
   },
   {
@@ -347,9 +436,21 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     status: "Revision",
     feedback: "Tolong dipercepat deadlinenya maju.",
     assignedTeam: [
-      { name: "James Rivera", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
-      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
-      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+      {
+        name: "James Rivera",
+        initials: "JR",
+        avatarBg: "bg-purple-50 text-purple-600",
+      },
+      {
+        name: "Lucas Hoffmann",
+        initials: "LH",
+        avatarBg: "bg-rose-50 text-rose-600",
+      },
+      {
+        name: "Diego Santos",
+        initials: "DS",
+        avatarBg: "bg-teal-50 text-teal-600",
+      },
     ],
   },
   {
@@ -365,8 +466,41 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: false,
     status: "Review",
     assignedTeam: [
-      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
-      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+      {
+        name: "Lucas Hoffmann",
+        initials: "LH",
+        avatarBg: "bg-rose-50 text-rose-600",
+      },
+      {
+        name: "Diego Santos",
+        initials: "DS",
+        avatarBg: "bg-teal-50 text-teal-600",
+      },
+    ],
+  },
+  {
+    id: "cp-6",
+    contractId: 1,
+    title: "List Video",
+    category: "Product Review",
+    categoryBg: "bg-amber-50 text-amber-700 border-amber-100",
+    platform: "Instagram",
+    format: "Video",
+    priority: "Medium",
+    dueDate: "June 28, 2026",
+    overdue: false,
+    status: "Approved",
+    assignedTeam: [
+      {
+        name: "Lucas Hoffmann",
+        initials: "LH",
+        avatarBg: "bg-rose-50 text-rose-600",
+      },
+      {
+        name: "Diego Santos",
+        initials: "DS",
+        avatarBg: "bg-teal-50 text-teal-600",
+      },
     ],
   },
   // Contract ID 2: Summer Lifestyle Series
@@ -397,7 +531,11 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: false,
     status: "Assigned",
     assignedTeam: [
-      { name: "Mia Chen", initials: "MC", avatarBg: "bg-purple-50 text-purple-600" },
+      {
+        name: "Mia Chen",
+        initials: "MC",
+        avatarBg: "bg-purple-50 text-purple-600",
+      },
     ],
   },
   {
@@ -414,7 +552,11 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     status: "Revision",
     feedback: "Warna teks kuning kurang terbaca di background putih.",
     assignedTeam: [
-      { name: "James Rivera", initials: "JR", avatarBg: "bg-purple-50 text-purple-600" },
+      {
+        name: "James Rivera",
+        initials: "JR",
+        avatarBg: "bg-purple-50 text-purple-600",
+      },
     ],
   },
   // Contract ID 3: Spring Product Launch
@@ -431,7 +573,11 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: false,
     status: "Approved",
     assignedTeam: [
-      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+      {
+        name: "Lucas Hoffmann",
+        initials: "LH",
+        avatarBg: "bg-rose-50 text-rose-600",
+      },
     ],
   },
   {
@@ -447,7 +593,11 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: false,
     status: "Review",
     assignedTeam: [
-      { name: "Diego Santos", initials: "DS", avatarBg: "bg-teal-50 text-teal-600" },
+      {
+        name: "Diego Santos",
+        initials: "DS",
+        avatarBg: "bg-teal-50 text-teal-600",
+      },
     ],
   },
   // Contract ID 4: Winter Campaign 2026
@@ -464,7 +614,11 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: false,
     status: "Published",
     assignedTeam: [
-      { name: "Sarah Mitchell", initials: "SM", avatarBg: "bg-indigo-50 text-indigo-600" },
+      {
+        name: "Sarah Mitchell",
+        initials: "SM",
+        avatarBg: "bg-indigo-50 text-indigo-600",
+      },
     ],
   },
   {
@@ -480,9 +634,11 @@ export const sampleContentPlans: ContentPlanCardItem[] = [
     overdue: false,
     status: "Published",
     assignedTeam: [
-      { name: "Lucas Hoffmann", initials: "LH", avatarBg: "bg-rose-50 text-rose-600" },
+      {
+        name: "Lucas Hoffmann",
+        initials: "LH",
+        avatarBg: "bg-rose-50 text-rose-600",
+      },
     ],
   },
 ];
-
-

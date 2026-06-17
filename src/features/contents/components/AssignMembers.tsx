@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Check } from "lucide-react";
 import type { TeamMemberItem } from "@/features/contracts/components/TeamsMember";
+import { AvatarUser } from "@/features/users/components/AvatarUser";
 
 interface AssignMembersProps {
   isOpen: boolean;
@@ -191,11 +192,11 @@ export function AssignMembers({
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       {/* Avatar */}
-                      <div
-                        className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm shrink-0 ${candidate.avatarBg}`}
-                      >
-                        {candidate.initials}
-                      </div>
+                      <AvatarUser
+                        initials={candidate.initials}
+                        avatarBg={candidate.avatarBg}
+                        size="lg"
+                      />
                       {/* Details */}
                       <div className="min-w-0">
                         <h5 className="text-xs font-semibold text-slate-800 truncate leading-snug">

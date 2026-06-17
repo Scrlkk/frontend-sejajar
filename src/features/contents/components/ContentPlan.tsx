@@ -7,6 +7,7 @@ import { AssignTeams } from "@/features/contents/components/AssignTeams";
 import { RequestRevision } from "@/features/reviews/components/RequestRevision";
 import { TasksModalAdd } from "@/features/tasks/components/TasksModalAdd";
 import { ContentBoard } from "@/features/contents/components/ContentBoard";
+import { DeleteModal } from "@/features/tasks/components/DeleteModal";
 
 export interface TeamMember {
   name: string;
@@ -101,6 +102,11 @@ export function ContentPlan({
 
   const [isTasksAddModalOpen, setIsTasksAddModalOpen] = useState(false);
   const [tasksAddCard, setTasksAddCard] = useState<ContentPlanCardItem | null>(
+    null,
+  );
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<ContentPlanCardItem | null>(
     null,
   );
 
@@ -214,8 +220,19 @@ export function ContentPlan({
     setIsModalOpen(false);
   };
 
-  const handleDeleteCard = (id: string) => {
-    setCards((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteCard = (card: ContentPlanCardItem) => {
+    setCardToDelete(card);
+    setTimeout(() => {
+      setIsDeleteModalOpen(true);
+    }, 100);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (cardToDelete) {
+      setCards((prev) => prev.filter((c) => c.id !== cardToDelete.id));
+    }
+    setIsDeleteModalOpen(false);
+    setCardToDelete(null);
   };
 
   const openAssignModal = (card: ContentPlanCardItem) => {
@@ -253,8 +270,6 @@ export function ContentPlan({
 
   const openRevisionModal = (card: ContentPlanCardItem) => {
     setRevisingCard(card);
-    // Open in next tick to allow DropdownMenu to fully close first,
-    // avoiding Radix overlay pointer-events locking issue.
     setTimeout(() => {
       setIsRevisionModalOpen(true);
     }, 100);
@@ -264,13 +279,14 @@ export function ContentPlan({
     cardId: string,
     feedback: string,
     priority: ContentPlanCardItem["priority"],
+    status?: ContentPlanCardItem["status"],
   ) => {
     setCards((prev) =>
       prev.map((c) =>
         c.id === cardId
           ? {
               ...c,
-              status: "Revision",
+              status: status || "Revision",
               feedback,
               priority,
             }
@@ -306,6 +322,12 @@ export function ContentPlan({
     );
     setIsTasksAddModalOpen(false);
     setTasksAddCard(null);
+  };
+
+  const handlePublishCard = (cardId: string) => {
+    setCards((prev) =>
+      prev.map((c) => (c.id === cardId ? { ...c, status: "Published" } : c))
+    );
   };
 
   // Get count of cards for each status dynamically
@@ -369,6 +391,26 @@ export function ContentPlan({
         card={tasksAddCard}
         onSave={handleTasksAddSave}
       />
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Hapus Rencana Konten?"
+        description={
+          cardToDelete ? (
+            <>
+              Apakah Anda yakin ingin menghapus rencana konten{" "}
+              <span className="font-semibold text-gray-800">
+                "{cardToDelete.title}"
+              </span>
+              ? Tindakan ini tidak dapat dibatalkan.
+            </>
+          ) : (
+            ""
+          )
+        }
+        onConfirm={handleDeleteConfirm}
+      />
       {/* Loopable Filter Bar */}
       <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-sm p-4 flex flex-wrap gap-2 items-center justify-between">
         <div className="flex flex-wrap gap-2 items-center w-full">
@@ -418,6 +460,7 @@ export function ContentPlan({
         handleDeleteCard={handleDeleteCard}
         openAddModal={openAddModal}
         openTasksAddModal={openTasksAddModal}
+        handlePublishCard={handlePublishCard}
       />
     </div>
   );

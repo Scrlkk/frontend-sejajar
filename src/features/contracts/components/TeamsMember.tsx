@@ -39,7 +39,7 @@ export function TeamsMember({
           <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400 mb-1.5 shrink-0">
             <Users className="h-5 w-5" />
           </div>
-          <span className="text-xs font-bold text-gray-900">
+          <span className="text-xs font-semibold text-gray-700">
             Belum Ada Anggota
           </span>
           <span className="text-[11px] text-gray-500 font-medium max-w-44 leading-relaxed mt-0.5">

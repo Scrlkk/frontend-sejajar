@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CalendarDays } from "lucide-react";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 
 export interface MiniScheduleItem {
   id: string | number;
@@ -32,7 +33,7 @@ export function CalendarSchedules({
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="p-0 space-y-3">
+      <CardContent className="p-0 space-y-3 max-h-156.75 overflow-y-auto pr-1 scrollbar-none">
         {schedules.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-4 text-center">
             <CalendarDays className="h-10 w-10 text-gray-300 mb-3" />
@@ -42,39 +43,27 @@ export function CalendarSchedules({
           </div>
         ) : (
           schedules.map((item) => (
-          <div
-            key={item.id}
-            className="w-full border border-gray-200 bg-gray-50 rounded-2xl p-4 space-y-3"
-          >
-            <h4 className="font-semibold text-gray-900 text-xs md:text-sm leading-snug">
-              {item.title}
-            </h4>
+            <div
+              key={item.id}
+              className="w-full border border-gray-200 bg-gray-50 rounded-2xl p-4 space-y-3"
+            >
+              <h4 className="font-semibold text-gray-900 text-xs md:text-sm leading-snug">
+                {item.title}
+              </h4>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge
-                variant="outline"
-                className={`${item.categoryBg} rounded-full font-medium px-2.5 py-0.5 text-xs flex items-center gap-1.5 shadow-none`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${item.categoryDot}`}
+              <div className="flex items-center gap-2 flex-wrap">
+                <PlatformBadge platform={item.category} />
+
+                <StatusBadgeContent
+                  status={item.status}
+                  className="text-xs font-medium"
                 />
-                {item.category}
-              </Badge>
+              </div>
 
-              <Badge
-                className={`${item.statusBg} rounded-full font-medium px-2.5 py-0.5 text-xs border-none shadow-none flex items-center gap-1.5`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${item.statusDot}`}
-                />
-                {item.status}
-              </Badge>
+              <div className="text-xs font-medium text-gray-400">
+                {item.platform} • {item.time}
+              </div>
             </div>
-
-            <div className="text-xs font-medium text-gray-400">
-              {item.platform} • {item.time}
-            </div>
-          </div>
           ))
         )}
       </CardContent>

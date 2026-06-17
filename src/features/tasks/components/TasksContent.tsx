@@ -1,6 +1,7 @@
 import { Calendar, TriangleAlert, type LucideIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { TypeTasks } from "@/features/pillars/components/TypeTasks";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 
 export type TaskCommentItem = {
   id: string;
@@ -15,9 +16,9 @@ export type TaskCommentItem = {
 export type TaskBoardItem = {
   id: string | number;
   title: string;
-  type: "Script" | "Production" | "Caption";
-  typeBg: string;
-  typeIcon: LucideIcon;
+  type: "Script" | "Production" | "Editor" | "Caption";
+  typeBg?: string;
+  typeIcon?: LucideIcon;
   category: string;
   categoryDot: string;
   categoryBg?: string;
@@ -25,7 +26,7 @@ export type TaskBoardItem = {
   assignee: string;
   assigneeInitials: string;
   assigneeBg: string;
-  status: "todo" | "onProgress" | "revision" | "done" | "pending";
+  status: "to_do" | "on_progress" | "revision" | "approved" | "pending";
   isOverdue: boolean;
   date: Date;
   priority: "low" | "medium" | "high" | "critical";
@@ -42,20 +43,13 @@ interface TasksContentProps {
 }
 
 export function TasksContent({ task, onSelect }: TasksContentProps) {
-  const TypeIcon = task.typeIcon;
-
   return (
     <Card 
       onClick={() => onSelect?.(task)}
       className="w-full bg-white rounded-xl p-4 space-y-2.5 hover:border-red-logo hover:shadow-md transition-all cursor-pointer group"
     >
       <div className="flex items-center justify-between">
-        <Badge
-          className={`${task.typeBg} rounded-md font-medium text-[10px] px-2 py-0.5 border-none shadow-none flex items-center gap-1`}
-        >
-          <TypeIcon className="h-3 w-3" />
-          {task.type}
-        </Badge>
+        <TypeTasks type={task.type} />
         {task.isOverdue && <TriangleAlert className="h-4 w-4 text-red-500" />}
       </div>
 
@@ -63,13 +57,7 @@ export function TasksContent({ task, onSelect }: TasksContentProps) {
         {task.title}
       </h4>
 
-      <Badge
-        variant="outline"
-        className={`w-full flex justify-start gap-1.5 rounded-xl font-medium text-xs text-gray-500 shadow-none ${task.categoryBorder || "border-gray-300"} ${task.categoryBg || "bg-transparent"}`}
-      >
-        <span className={`h-2 w-2 rounded-full ${task.categoryDot}`} />
-        {task.category}
-      </Badge>
+      {task.pillar && <PillarsCard category={task.pillar} />}
 
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-2">

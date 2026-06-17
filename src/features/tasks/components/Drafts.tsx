@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import type { DraftsItem } from "@/features/tasks/data/tasksData";
 
 interface DraftsProps {
@@ -148,20 +149,14 @@ export function Drafts({ drafts, onNewDraft, onOpen, onDelete }: DraftsProps) {
                         {item.title}
                       </h3>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge
-                          variant="outline"
-                          className={`${item.categoryBg} rounded-md font-bold text-[10px] px-2 py-0.5`}
-                        >
-                          {item.category}
-                        </Badge>
-                        <Badge
-                          className={`${item.statusBg} rounded-full font-bold px-2.5 py-0.5 text-[10px] border-none shadow-none flex items-center gap-1.5`}
-                        >
-                          <span
-                            className={`h-1 w-1 rounded-full ${item.statusDot}`}
-                          />
-                          {item.status}
-                        </Badge>
+                        <PillarsCard
+                          category={item.category}
+                          className="font-bold text-[10px]"
+                        />
+                        <StatusBadgeContent
+                          status={item.status}
+                          className="font-bold text-[10px]"
+                        />
                       </div>
                     </div>
                   </div>

@@ -2,11 +2,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, FileText } from "lucide-react";
+import { FileText, Send } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { SchedulesModal } from "./SchedulesModal";
-import type { ScheduledContentItem } from "./SchedulesContent";
 import toast from "react-hot-toast";
+import { ModalPreviewPublish, type PreviewPublishItem } from "@/features/tasks/components/ModalPreviewPublish";
 
 export interface PublishItem {
   id: string | number;
@@ -43,75 +42,52 @@ export function ReadyPublish({
     setLocalItems(items);
   }
 
-  // Schedule modal states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [editingItem, setEditingItem] = useState<ScheduledContentItem | null>(
-    null,
-  );
+  if (onScheduleNew) {
+    // Deprecated: Schedule New button has been removed from the header
+  }
 
-  const handleScheduleNewClick = () => {
-    setModalMode("create");
-    setEditingItem(null);
-    setIsModalOpen(true);
-    onScheduleNew?.();
+  // Publish modal states & actions
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [itemToPublish, setItemToPublish] = useState<PublishItem | null>(null);
+
+  const handleOpenPublishModal = (item: PublishItem) => {
+    setItemToPublish(item);
+    setIsPublishModalOpen(true);
   };
 
-  const handleRowScheduleClick = (item: PublishItem) => {
-    const mappedItem: ScheduledContentItem = {
-      id: item.id,
-      title: item.title,
-      campaign: "Spring Product Launch", // default
-      platform: "Instagram", // default
-      platformBg: "bg-pink-50 text-pink-600 hover:bg-pink-50",
-      pillar: item.category,
-      pillarBg: item.categoryBg,
-      pillarDot: item.categoryDot,
-      postDate: item.postDate.replace("Post: ", ""),
-      time: "09:00",
-      status: item.status,
-      statusBg: item.statusBg,
-      statusDot: item.statusDot,
-      hasPublishButton: true,
-    };
-    setModalMode("create");
-    setEditingItem(mappedItem);
-    setIsModalOpen(true);
-    onRowSchedule?.(item);
-  };
-
-  const handleModalSave = (data: {
-    title: string;
-    campaign: string;
-    platform: string;
-    platformBg: string;
-    pillar: string;
-    pillarBg: string;
-    pillarDot: string;
-    postDate: string;
-    time: string;
-    status?: string;
-    statusBg?: string;
-    statusDot?: string;
-  }) => {
-    if (editingItem) {
-      setLocalItems((prev) =>
-        prev.map((it) => {
-          if (it.id === editingItem.id) {
-            return {
-              ...it,
-              status: "Scheduled",
-              statusBg: "bg-blue-500/20 text-blue-600 hover:bg-blue-600/20",
-              statusDot: "bg-blue-600",
-              postDate: `Post: ${data.postDate}`,
-            };
-          }
-          return it;
-        }),
-      );
+  const handlePublishConfirm = (
+    previewItem: PreviewPublishItem,
+    date?: string,
+    time?: string,
+  ) => {
+    if (date) {
+      // date is not needed for daily updates
     }
-    setIsModalOpen(false);
-    toast.success("Jadwal postingan berhasil disimpan!");
+    setLocalItems((prev) =>
+      prev.map((it) => {
+        if (it.id === previewItem.id) {
+          return {
+            ...it,
+            status: "Published",
+            statusBg: "bg-emerald-500/20 text-emerald-600 hover:bg-emerald-600/20",
+            statusDot: "bg-emerald-600",
+            postDate: time ? `${it.postDate.split(" • ")[0]} • ${time}` : it.postDate,
+          };
+        }
+        return it;
+      }),
+    );
+    setIsPublishModalOpen(false);
+    setItemToPublish(null);
+    toast.success("Konten berhasil dipublikasikan!");
+
+    const foundItem = localItems.find((it) => it.id === previewItem.id);
+    if (foundItem) {
+      onRowSchedule?.({
+        ...foundItem,
+        status: "Published",
+      });
+    }
   };
 
   return (
@@ -120,14 +96,6 @@ export function ReadyPublish({
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}
         </CardTitle>
-        <Button
-          size="sm"
-          onClick={handleScheduleNewClick}
-          className="bg-red-700 hover:bg-red-logo text-white rounded-sm px-4 flex items-center gap-2 border-none font-medium h-10 cursor-pointer"
-        >
-          <CalendarPlus className="h-4 w-4" />
-          Schedule New
-        </Button>
       </CardHeader>
       <CardContent className="p-0 space-y-3 flex-1 overflow-y-auto">
         {localItems.length === 0 ? (
@@ -145,9 +113,6 @@ export function ReadyPublish({
         ) : (
           localItems.map((item) => {
             const SelectedIcon = item.iconName;
-            const isScheduled =
-              item.status.toLowerCase() === "scheduled" ||
-              item.status.toLowerCase() === "schedule";
 
             return (
               <div
@@ -192,14 +157,14 @@ export function ReadyPublish({
                     {item.status}
                   </Badge>
 
-                  {!isScheduled && (
+                  {item.status === "Scheduled" && (
                     <Button
-                      variant="outline"
                       size="sm"
-                      onClick={() => handleRowScheduleClick(item)}
-                      className="bg-red-50/50 hover:bg-red-100 hover:text-red-600 hover:border-red-logo/30 text-red-800 font-bold rounded-xl px-4 h-8 text-xs shadow-none cursor-pointer"
+                      onClick={() => handleOpenPublishModal(item)}
+                      className="bg-red-700 hover:bg-red-logo text-white font-semibold rounded-sm px-3 h-8 text-xs flex items-center gap-1.5 border-none cursor-pointer"
                     >
-                      Schedule
+                      <Send className="h-3.5 w-3.5 rotate-45" />
+                      Publish
                     </Button>
                   )}
                 </div>
@@ -209,13 +174,26 @@ export function ReadyPublish({
         )}
       </CardContent>
 
-      <SchedulesModal
-        key={editingItem ? `schedule-${editingItem.id}` : "new"}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        mode={modalMode}
-        editingItem={editingItem}
-        onSave={handleModalSave}
+      <ModalPreviewPublish
+        isOpen={isPublishModalOpen}
+        onClose={() => {
+          setIsPublishModalOpen(false);
+          setItemToPublish(null);
+        }}
+        item={
+          itemToPublish
+            ? {
+                id: itemToPublish.id,
+                title: itemToPublish.title,
+                platform: "Instagram",
+                platformBg: "bg-pink-50 text-pink-600 hover:bg-pink-50",
+                postDate: itemToPublish.postDate,
+                time: "09:00",
+              }
+            : null
+        }
+        onPublish={handlePublishConfirm}
+        mode="publish"
       />
     </Card>
   );

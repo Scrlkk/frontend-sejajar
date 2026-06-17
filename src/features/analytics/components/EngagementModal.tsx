@@ -7,6 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 import type { ManualEngagementEntry } from "@/features/analytics/data/analyticsData";
@@ -188,11 +195,11 @@ export function EngagementModal({
   const [selectedTitle, setSelectedTitle] = useState(
     editingItem ? editingItem.contentTitle : "",
   );
-  const [platform, setPlatform] = useState<ManualEngagementEntry["platform"]>(
-    editingItem ? editingItem.platform : "Instagram",
+  const [platform, setPlatform] = useState<ManualEngagementEntry["platform"] | "">(
+    editingItem ? editingItem.platform : "",
   );
   const [date, setDate] = useState(
-    editingItem ? editingItem.date : new Date().toISOString().split("T")[0],
+    editingItem ? editingItem.date : "",
   );
   const [views, setViews] = useState<string | number>(
     editingItem ? editingItem.views : "",
@@ -207,8 +214,29 @@ export function EngagementModal({
     editingItem ? editingItem.shares : "",
   );
 
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [prevIsOpen, setPrevIsOpen] = useState(false);
+  const [prevEditingItem, setPrevEditingItem] = useState<ManualEngagementEntry | null>(null);
+
+  if (isOpen !== prevIsOpen || editingItem !== prevEditingItem) {
+    setPrevIsOpen(isOpen);
+    setPrevEditingItem(editingItem);
+    
+    if (isOpen) {
+      setSelectedTitle(editingItem ? editingItem.contentTitle : "");
+      setPlatform(editingItem ? editingItem.platform : "");
+      setDate(editingItem ? editingItem.date : "");
+      setViews(editingItem ? editingItem.views : "");
+      setLikes(editingItem ? editingItem.likes : "");
+      setComments(editingItem ? editingItem.comments : "");
+      setShares(editingItem ? editingItem.shares : "");
+      setSearchQuery("");
+      setIsDropdownOpen(false);
+    }
+  }
 
   const filteredOptions = useMemo(() => {
     return contentOptions.filter((c) =>
@@ -233,11 +261,11 @@ export function EngagementModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTitle) return;
+    if (!selectedTitle || !platform) return;
 
     onSave({
       contentTitle: selectedTitle,
-      platform,
+      platform: platform as ManualEngagementEntry["platform"],
       date,
       views: Number(views),
       likes: Number(likes),
@@ -397,22 +425,43 @@ export function EngagementModal({
               <label className="text-xs font-bold text-gray-700 block">
                 Platform <span className="text-red-500">*</span>
               </label>
-              <select
-                required
+              <Select
                 disabled={!!editingItem}
                 value={platform}
-                onChange={(e) =>
-                  setPlatform(
-                    e.target.value as ManualEngagementEntry["platform"],
-                  )
+                onValueChange={(val) =>
+                  setPlatform(val as ManualEngagementEntry["platform"])
                 }
-                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-250 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 disabled:bg-gray-50 disabled:cursor-not-allowed"
               >
-                <option value="Instagram">Instagram</option>
-                <option value="TikTok">TikTok</option>
-                <option value="YouTube">YouTube</option>
-                <option value="Twitter">Twitter</option>
-              </select>
+                <SelectTrigger className="w-full px-3 bg-gray-55/50 border border-gray-250 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 disabled:bg-gray-50 disabled:cursor-not-allowed text-left">
+                  <SelectValue placeholder="Pilih Platform" />
+                </SelectTrigger>
+                <SelectContent className="rounded-md border border-gray-100 bg-white p-1 shadow-lg">
+                  <SelectItem
+                    value="Instagram"
+                    className="rounded-md py-2 text-xs font-semibold text-gray-700 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+                  >
+                    Instagram
+                  </SelectItem>
+                  <SelectItem
+                    value="TikTok"
+                    className="rounded-md py-2 text-xs font-semibold text-gray-700 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+                  >
+                    TikTok
+                  </SelectItem>
+                  <SelectItem
+                    value="YouTube"
+                    className="rounded-md py-2 text-xs font-semibold text-gray-700 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+                  >
+                    YouTube
+                  </SelectItem>
+                  <SelectItem
+                    value="Twitter"
+                    className="rounded-md py-2 text-xs font-semibold text-gray-700 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+                  >
+                    Twitter
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700 block">
@@ -508,7 +557,7 @@ export function EngagementModal({
             </Button>
             <Button
               type="submit"
-              disabled={!selectedTitle}
+              disabled={!selectedTitle || !platform}
               className="rounded-md bg-red-800 hover:bg-red-900 text-white font-semibold px-5 transition-all text-xs cursor-pointer shadow-sm flex items-center gap-1.5 h-9 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {mode === "create" ? "Tambah" : "Simpan Perubahan"}

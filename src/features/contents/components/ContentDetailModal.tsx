@@ -6,15 +6,62 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { PriorityCard } from "@/features/pillars/components/PriorityCard";
+import { FormatBadgeContent } from "@/features/pillars/components/FormatBadgeContent";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 
 interface ContentDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   card: ContentPlanCardItem | null;
 }
+
+const getStatusBadgeStyle = (status: ContentPlanCardItem["status"]) => {
+  switch (status) {
+    case "Draft":
+      return {
+        dot: "bg-slate-500",
+        bg: "bg-slate-50 text-slate-600 border-slate-200",
+      };
+    case "Assigned":
+      return {
+        dot: "bg-blue-600",
+        bg: "bg-blue-50 text-blue-600 border-blue-200",
+      };
+    case "On Progress":
+      return {
+        dot: "bg-amber-600",
+        bg: "bg-amber-50 text-amber-700 border-amber-200",
+      };
+    case "Review":
+      return {
+        dot: "bg-purple-600",
+        bg: "bg-purple-50 text-purple-600 border-purple-200",
+      };
+    case "Revision":
+      return { dot: "bg-red-600", bg: "bg-red-50 text-red-600 border-red-200" };
+    case "Approved":
+      return {
+        dot: "bg-emerald-600",
+        bg: "bg-emerald-50 text-emerald-600 border-emerald-200",
+      };
+    case "Published":
+      return {
+        dot: "bg-cyan-600",
+        bg: "bg-cyan-50 text-cyan-600 border-cyan-200",
+      };
+    default:
+      return {
+        dot: "bg-slate-500",
+        bg: "bg-slate-50 text-slate-600 border-slate-200",
+      };
+  }
+};
 
 export function ContentDetailModal({
   isOpen,
@@ -50,20 +97,10 @@ export function ContentDetailModal({
               </h3>
               <div className="flex flex-wrap gap-2 items-center">
                 {card.platform && (
-                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100">
-                    {card.platform}
-                  </span>
+                  <PlatformBadge platform={card.platform} showDot={false} />
                 )}
-                {card.category && (
-                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                    {card.category}
-                  </span>
-                )}
-                {card.format && (
-                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-violet-100 text-violet-700">
-                    {card.format}
-                  </span>
-                )}
+                {card.category && <PillarsCard category={card.category} />}
+                {card.format && <FormatBadgeContent format={card.format} />}
               </div>
             </div>
 
@@ -71,7 +108,7 @@ export function ContentDetailModal({
 
             {/* Overdue Alert Banner */}
             {isOverdue && (
-              <div className="bg-red-50 border border-red-100 rounded-xl p-3.5 flex items-start gap-3 mt-1">
+              <div className="bg-red-50 border border-red-100 rounded-xl p-3.5 flex items-start gap-3 mt-1 animate-pulse">
                 <Clock className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-red-800 uppercase tracking-wider">
@@ -79,8 +116,8 @@ export function ContentDetailModal({
                   </h4>
                   <p className="text-xs text-red-700 font-semibold leading-relaxed">
                     This content plan is {overdueDays}{" "}
-                    {overdueDays === 1 ? "day" : "days"} overdue! The deadline was{" "}
-                    {card.dueDate}.
+                    {overdueDays === 1 ? "day" : "days"} overdue! The deadline
+                    was {card.dueDate}.
                   </p>
                 </div>
               </div>
@@ -112,9 +149,7 @@ export function ContentDetailModal({
                 </span>
                 <div>
                   {card.pillar ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold bg-gray-50 text-gray-800">
-                      {card.pillar}
-                    </span>
+                    <PillarsCard category={card.pillar} />
                   ) : (
                     <p className="text-xs text-gray-400 font-medium">None</p>
                   )}
@@ -127,43 +162,55 @@ export function ContentDetailModal({
                   Priority
                 </span>
                 <div>
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${
-                      card.priority === "High"
-                        ? "bg-red-50 text-red-700 border-red-100"
-                        : card.priority === "Medium"
-                          ? "bg-amber-50 text-amber-700 border-amber-100"
-                          : "bg-blue-50 text-blue-700 border-blue-100"
-                    }`}
-                  >
-                    <span className="h-1 w-1 rounded-full bg-current shrink-0" />
-                    {card.priority}
-                  </span>
+                  <PriorityCard priority={card.priority} />
                 </div>
               </div>
-            </div>
 
-            <div
-              className={`space-y-1 p-2 rounded-lg transition-all col-span-2 ${
-                isOverdue ? "bg-red-50/50 border border-red-105 text-red-850" : ""
-              }`}
-            >
-              <span
-                className={`text-[10px] font-bold uppercase tracking-wider ${
-                  isOverdue ? "text-red-800" : "text-gray-400"
+              <div>
+                {/* Status */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Status
+                  </span>
+                  <div>
+                    <Badge
+                      variant="outline"
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold flex items-center gap-1.5 border shadow-none w-fit ${getStatusBadgeStyle(card.status).bg}`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${getStatusBadgeStyle(card.status).dot}`}
+                      />
+                      {card.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className={`space-y-1 p-2.5 rounded-xl border transition-all ${
+                  isOverdue
+                    ? "bg-red-50/50 border-red-105 text-red-850"
+                    : "bg-slate-50/20 border-slate-100/70"
                 }`}
               >
-                Deadline
-              </span>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                {isOverdue && (
-                  <Clock className="h-3.5 w-3.5 text-red-700 shrink-0" />
-                )}
-                <p
-                  className={`text-xs font-semibold ${isOverdue ? "text-red-700" : "text-gray-700"}`}
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider ${
+                    isOverdue ? "text-red-800" : "text-gray-450"
+                  }`}
                 >
-                  {card.dueDate || "-"} {isOverdue && `(${overdueDays}d overdue)`}
-                </p>
+                  Deadline
+                </span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {isOverdue && (
+                    <Clock className="h-3.5 w-3.5 text-red-700 shrink-0" />
+                  )}
+                  <p
+                    className={`text-xs font-semibold ${isOverdue ? "text-red-700" : "text-gray-700"}`}
+                  >
+                    {card.dueDate || "-"}{" "}
+                    {isOverdue && `(${overdueDays}d overdue)`}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -190,7 +237,9 @@ export function ContentDetailModal({
               >
                 <div
                   className={`flex items-center gap-1.5 font-semibold text-[10px] uppercase tracking-wider ${
-                    card.status === "Revision" ? "text-red-800" : "text-slate-655"
+                    card.status === "Revision"
+                      ? "text-red-800"
+                      : "text-slate-655"
                   }`}
                 >
                   <span
@@ -206,7 +255,9 @@ export function ContentDetailModal({
                 </div>
                 <p
                   className={`text-xs font-semibold leading-relaxed ${
-                    card.status === "Revision" ? "text-red-750" : "text-slate-600"
+                    card.status === "Revision"
+                      ? "text-red-750"
+                      : "text-slate-600"
                   }`}
                 >
                   {card.feedback}

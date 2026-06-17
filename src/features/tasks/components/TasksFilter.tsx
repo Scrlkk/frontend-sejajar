@@ -12,7 +12,7 @@ interface TasksFilterProps {
 const typeFilters = [
   { key: "all", label: "All Types", icon: null },
   { key: "Script", label: "Script", icon: PenLine },
-  { key: "Production", label: "Production", icon: Clapperboard },
+  { key: "Editor", label: "Editor", icon: Clapperboard },
   { key: "Caption", label: "Caption", icon: Hash },
 ];
 

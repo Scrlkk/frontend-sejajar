@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
@@ -17,32 +17,45 @@ import { DeleteModal } from "@/features/tasks/components/DeleteModal";
 import { ContentPickerModal } from "@/features/tasks/components/ContentPickerModal";
 
 export const UploadsPage = () => {
-  const [uploads, setUploads] = useState<UploadedVideoItem[]>(sampleUploadsData);
-  const [selectedUpload, setSelectedUpload] = useState<UploadedVideoItem | null>(null);
+  const [uploads, setUploads] =
+    useState<UploadedVideoItem[]>(sampleUploadsData);
+  const [selectedUpload, setSelectedUpload] =
+    useState<UploadedVideoItem | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [uploadToDelete, setUploadToDelete] = useState<UploadedVideoItem | null>(null);
+  const [uploadToDelete, setUploadToDelete] =
+    useState<UploadedVideoItem | null>(null);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const uploadIdParam = searchParams.get("id");
 
+  const lastProcessedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (uploadIdParam) {
-      const upload = uploads.find((u) => String(u.id) === String(uploadIdParam));
-      if (upload) {
-        const timer = setTimeout(() => {
-          setSelectedUpload(upload);
-          setIsDrawerOpen(true);
-        }, 0);
-        return () => clearTimeout(timer);
+      if (lastProcessedIdRef.current !== uploadIdParam) {
+        const upload = uploads.find(
+          (u) => String(u.id) === String(uploadIdParam),
+        );
+        if (upload) {
+          const timer = setTimeout(() => {
+            lastProcessedIdRef.current = uploadIdParam;
+            setSelectedUpload(upload);
+            setIsDrawerOpen(true);
+          }, 0);
+          return () => clearTimeout(timer);
+        }
       }
+    } else {
+      lastProcessedIdRef.current = null;
     }
   }, [uploadIdParam, uploads]);
 
   const handleReUploadClick = () => {
-    const revisionItem = uploads.find((u) => u.status === "Revision") || uploads[0];
+    const revisionItem =
+      uploads.find((u) => u.status === "Revision") || uploads[0];
     setSelectedUpload(revisionItem);
     setIsDrawerOpen(true);
     if (revisionItem) {
@@ -70,14 +83,19 @@ export const UploadsPage = () => {
 
   const handleDeleteConfirm = () => {
     if (uploadToDelete) {
-      setUploads((prev) => prev.filter((item) => item.id !== uploadToDelete.id));
+      setUploads((prev) =>
+        prev.filter((item) => item.id !== uploadToDelete.id),
+      );
       setIsDeleteModalOpen(false);
       setUploadToDelete(null);
     }
   };
 
   const handleSelectContentPlan = (plan: AssignedContentPlan) => {
-    const newId = uploads.length > 0 ? Math.max(...uploads.map((u) => Number(u.id) || 0)) + 1 : 1;
+    const newId =
+      uploads.length > 0
+        ? Math.max(...uploads.map((u) => Number(u.id) || 0)) + 1
+        : 1;
     const newUpload: UploadedVideoItem = {
       id: newId,
       title: plan.title,
@@ -87,8 +105,8 @@ export const UploadsPage = () => {
         plan.platform.toLowerCase() === "tiktok"
           ? "bg-[#252f41] text-white"
           : plan.platform.toLowerCase() === "youtube"
-          ? "bg-red-600 text-white"
-          : "bg-pink-600 text-white",
+            ? "bg-red-600 text-white"
+            : "bg-pink-600 text-white",
       fileSizeText: "12.5 MB",
       uploadedTimeText: "Uploaded just now",
       status: "Uploading",
@@ -116,21 +134,21 @@ export const UploadsPage = () => {
                 updatedItem.status === "Approved"
                   ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50"
                   : updatedItem.status === "Pending"
-                  ? "bg-amber-50 text-amber-600 hover:bg-amber-50"
-                  : updatedItem.status === "Revision"
-                  ? "bg-red-50 text-red-500 hover:bg-red-50"
-                  : "bg-blue-50 text-blue-800",
+                    ? "bg-amber-50 text-amber-600 hover:bg-amber-50"
+                    : updatedItem.status === "Revision"
+                      ? "bg-red-50 text-red-500 hover:bg-red-50"
+                      : "bg-blue-50 text-blue-800",
               statusDot:
                 updatedItem.status === "Approved"
                   ? "bg-emerald-500"
                   : updatedItem.status === "Pending"
-                  ? "bg-amber-500"
-                  : updatedItem.status === "Revision"
-                  ? "bg-red-500"
-                  : "bg-blue-500",
+                    ? "bg-amber-500"
+                    : updatedItem.status === "Revision"
+                      ? "bg-red-500"
+                      : "bg-blue-500",
             }
-          : u
-      )
+          : u,
+      ),
     );
   };
 

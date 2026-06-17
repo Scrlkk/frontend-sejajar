@@ -5,11 +5,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   sampleAssignedContentPlans,
   type AssignedContentPlan,
 } from "@/features/tasks/data/tasksData";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 
 interface ContentPickerModalProps {
   isOpen: boolean;
@@ -24,32 +25,6 @@ export function ContentPickerModal({
   onSelect,
   itemType,
 }: ContentPickerModalProps) {
-  const getPlatformBg = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case "tiktok":
-        return "bg-[#252f41] text-white";
-      case "instagram":
-        return "bg-pink-600 text-white";
-      case "youtube":
-        return "bg-red-600 text-white";
-      default:
-        return "bg-slate-200 text-slate-800";
-    }
-  };
-
-  const getCategoryBg = (category: string) => {
-    switch (category.toLowerCase()) {
-      case "beauty":
-        return "bg-pink-50 text-pink-600 border-none hover:bg-pink-50";
-      case "lifestyle":
-        return "bg-emerald-50 text-emerald-600 border-none hover:bg-emerald-50";
-      case "education":
-        return "bg-blue-50 text-blue-600 border-none hover:bg-blue-50";
-      default:
-        return "bg-indigo-50 text-indigo-600 border-none hover:bg-indigo-50";
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl outline-none">
@@ -81,12 +56,11 @@ export function ContentPickerModal({
                   {plan.title}
                 </h4>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className={`${getCategoryBg(plan.category)} text-[10px] font-bold py-0 px-2 rounded-md`}>
-                    {plan.category}
-                  </Badge>
-                  <Badge variant="outline" className={`${getPlatformBg(plan.platform)} border-none text-[10px] font-bold py-0 px-2 rounded-md`}>
-                    {plan.platform}
-                  </Badge>
+                  <PillarsCard category={plan.category} />
+                  <PlatformBadge
+                    platform={plan.platform}
+                    className="text-[10px] font-bold py-0.5 px-2 rounded-md"
+                  />
                 </div>
               </div>
 

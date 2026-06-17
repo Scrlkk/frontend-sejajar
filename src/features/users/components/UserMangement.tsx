@@ -8,6 +8,7 @@ import {
   ChevronRight,
   UserRoundPen,
   UserCheck,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,14 +23,7 @@ import {
 } from "@/components/ui/table";
 import { ModalUsers } from "@/features/users/components/ModalUsers";
 import type { UserFormValues } from "@/features/users/components/ModalUsers";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { DeleteModal } from "@/features/tasks/components/DeleteModal";
 import {
   Select,
   SelectContent,
@@ -65,8 +59,17 @@ export function UserManagement({
   >("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
-  const roles = Array.from(new Set(usersList.map((user) => user.role))).filter(
-    (role) => role !== "Super Admin" && role !== "Superadmin",
+  const roles = Array.from(
+    new Set(
+      usersList.flatMap((user) =>
+        user.role ? user.role.split(",").map((r) => r.trim()) : [],
+      ),
+    ),
+  ).filter(
+    (role) =>
+      role !== "Super Admin" &&
+      role !== "Superadmin" &&
+      role !== "",
   );
 
   // Modal states
@@ -87,7 +90,13 @@ export function UserManagement({
       .includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || user.status === statusFilter;
-    const matchesRoleFilter = roleFilter === "all" || user.role === roleFilter;
+    const matchesRoleFilter =
+      roleFilter === "all" ||
+      (user.role &&
+        user.role
+          .split(",")
+          .map((r) => r.trim())
+          .includes(roleFilter));
     return (
       (matchesName || matchesEmail || matchesRole) &&
       matchesStatus &&
@@ -210,8 +219,10 @@ export function UserManagement({
   };
 
   const handleSaveUser = (data: UserFormValues & { id?: number }) => {
-    const visuals = getRoleVisuals(data.role);
+    const primaryRole = data.role[0] || "";
+    const visuals = getRoleVisuals(primaryRole);
     const initials = getInitials(data.fullName);
+    const rolesString = data.role.join(", ");
 
     if (data.id) {
       // Edit mode
@@ -222,7 +233,7 @@ export function UserManagement({
                 ...u,
                 name: data.fullName,
                 email: data.email,
-                role: data.role,
+                role: rolesString,
                 status: data.isActive ? "active" : "inactive",
                 initials,
                 ...visuals,
@@ -244,7 +255,7 @@ export function UserManagement({
         id: newId,
         name: data.fullName,
         email: data.email,
-        role: data.role,
+        role: rolesString,
         initials,
         tasks: 0,
         joined: formattedDate,
@@ -384,12 +395,21 @@ export function UserManagement({
                   </TableCell>
 
                   <TableCell className="py-3.5">
-                    <Badge
-                      variant="secondary"
-                      className={`${user.roleBg} shadow-none rounded-lg px-2.5 py-1 font-medium text-xs border-none`}
-                    >
-                      {user.role}
-                    </Badge>
+                    <div className="flex flex-wrap gap-1 max-w-55">
+                      {user.role ? user.role.split(",").map((r) => {
+                        const cleanRole = r.trim();
+                        const visuals = getRoleVisuals(cleanRole);
+                        return (
+                          <Badge
+                            key={cleanRole}
+                            variant="secondary"
+                            className={`${visuals.roleBg} shadow-none rounded-lg px-2.5 py-1 font-medium text-xs border-none`}
+                          >
+                            {cleanRole}
+                          </Badge>
+                        );
+                      }) : null}
+                    </div>
                   </TableCell>
 
                   <TableCell className="py-3.5 text-gray-500">
@@ -580,79 +600,49 @@ export function UserManagement({
       )}
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className="sm:max-w-100 rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl outline-none">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Deactivate Account (Soft Delete)
-            </DialogTitle>
-            <DialogDescription className="text-xs text-gray-500 mt-2 leading-relaxed">
-              Are you sure you want to deactivate{" "}
-              <span className="font-semibold text-gray-950">
-                {userToDelete?.name}
-              </span>
-              ? Their access will be suspended, but you can reactivate this
-              account at any time from the edit settings.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsDeleteModalOpen(false)}
-              className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-700 px-5 cursor-pointer"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={confirmDeleteUser}
-              className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium px-5 transition-all cursor-pointer"
-            >
-              Deactivate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteUser}
+        title="Deactivate Account (Soft Delete)"
+        description={
+          <>
+            Are you sure you want to deactivate{" "}
+            <span className="font-semibold text-gray-950">
+              {userToDelete?.name}
+            </span>
+            ? Their access will be suspended, but you can reactivate this
+            account at any time from the edit settings.
+          </>
+        }
+        cancelText="Cancel"
+        confirmText="Deactivate"
+      />
 
       {/* Reactivate Confirmation Dialog */}
-      <Dialog
-        open={isReactivateModalOpen}
-        onOpenChange={setIsReactivateModalOpen}
-      >
-        <DialogContent className="sm:max-w-100 rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl outline-none">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Reactivate Account
-            </DialogTitle>
-            <DialogDescription className="text-xs text-gray-500 mt-2 leading-relaxed">
-              Are you sure you want to reactivate{" "}
-              <span className="font-semibold text-gray-950">
-                {userToReactivate?.name}
-              </span>
-              ? Their access will be restored, and they will be able to log in
-              and use the system again.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsReactivateModalOpen(false)}
-              className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-700 px-5 cursor-pointer"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={confirmReactivateUser}
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 transition-all cursor-pointer"
-            >
-              Reactivate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteModal
+        isOpen={isReactivateModalOpen}
+        onClose={() => setIsReactivateModalOpen(false)}
+        onConfirm={confirmReactivateUser}
+        title="Reactivate Account"
+        description={
+          <>
+            Are you sure you want to reactivate{" "}
+            <span className="font-semibold text-gray-950">
+              {userToReactivate?.name}
+            </span>
+            ? Their access will be restored, and they will be able to log in
+            and use the system again.
+          </>
+        }
+        icon={<User className="h-6 w-6" />}
+        iconBgColor="bg-emerald-50"
+        iconBorderColor="border-emerald-200"
+        iconTextColor="text-emerald-800"
+        cancelText="Cancel"
+        confirmText="Reactivate"
+        confirmBtnClassName="bg-emerald-600 hover:bg-emerald-700 text-white"
+      />
     </div>
   );
 }

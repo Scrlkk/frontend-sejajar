@@ -3,6 +3,7 @@ import { ArrowRight, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 
 export interface ContractItem {
   id: string | number;
@@ -90,13 +91,12 @@ export function ActiveContracts({
 
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {contract.platforms.map((platform, idx) => (
-                      <Badge
+                      <PlatformBadge
                         key={idx}
-                        variant="secondary"
-                        className="bg-gray-100 text-gray-500 rounded-lg font-medium px-2.5 py-0.5 text-xs border-none shadow-none"
-                      >
-                        {platform}
-                      </Badge>
+                        platform={platform}
+                        showDot={false}
+                        className="text-xs font-semibold"
+                      />
                     ))}
                   </div>
 

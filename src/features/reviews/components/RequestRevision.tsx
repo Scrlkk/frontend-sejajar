@@ -9,6 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ChevronDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
 
@@ -21,6 +28,7 @@ interface RequestRevisionProps {
     cardId: string,
     feedback: string,
     priority: ContentPlanCardItem["priority"],
+    status?: ContentPlanCardItem["status"],
   ) => void;
 }
 
@@ -39,8 +47,14 @@ export function RequestRevision({
     () => card?.priority || "Medium",
   );
 
+  const [selectedStatus, setSelectedStatus] = useState<ContentPlanCardItem["status"]>(
+    () => "Review",
+  );
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const isViewingRevision = selectedCard?.status === "Revision";
 
   const filteredCards = useMemo(() => {
     return cardsList.filter((c) =>
@@ -53,12 +67,20 @@ export function RequestRevision({
     setSelectedCard(found);
     setNotes(found?.feedback || "");
     setPriority(found?.priority || "Medium");
+    if (found && found.status !== "Revision") {
+      setSelectedStatus("Review");
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!notes.trim() || !selectedCard) return;
-    onSave(selectedCard.id, notes, priority);
+    if (!selectedCard) return;
+    if (isViewingRevision) {
+      onSave(selectedCard.id, notes, priority, selectedStatus);
+    } else {
+      if (!notes.trim()) return;
+      onSave(selectedCard.id, notes, priority);
+    }
   };
 
   const getPriorityStyle = (prio: ContentPlanCardItem["priority"]) => {
@@ -67,15 +89,15 @@ export function RequestRevision({
       case "High":
         return isSelected
           ? "border-red-650 bg-red-50/20 text-red-700 ring-1 ring-red-500/20 shadow-sm"
-          : "border-gray-200 bg-white text-gray-650 hover:bg-gray-50";
+          : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50";
       case "Medium":
         return isSelected
           ? "border-amber-600 bg-amber-50/20 text-amber-700 ring-1 ring-amber-500/20 shadow-sm"
-          : "border-gray-200 bg-white text-gray-650 hover:bg-gray-50";
+          : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50";
       case "Low":
         return isSelected
           ? "border-blue-500 bg-blue-50/20 text-blue-700 ring-1 ring-blue-500/20 shadow-sm"
-          : "border-gray-200 bg-white text-gray-650 hover:bg-gray-50";
+          : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50";
     }
   };
 
@@ -87,7 +109,7 @@ export function RequestRevision({
       >
         <DialogHeader className="shrink-0 flex flex-row items-center justify-between">
           <DialogTitle className="text-xl font-semibold text-gray-900 leading-none">
-            Request Revision
+            {isViewingRevision ? "See Revision" : "Request Revision"}
           </DialogTitle>
         </DialogHeader>
 
@@ -225,10 +247,11 @@ export function RequestRevision({
               <textarea
                 id="notes"
                 required
+                disabled={isViewingRevision}
                 placeholder="Explain the changes or revision details needed for the team..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="flex min-h-24 w-full rounded-xl border border-gray-200 bg-gray-50/30 px-3.5 py-2.5 text-xs ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:border-red-800 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors resize-none leading-relaxed"
+                className="flex min-h-24 w-full rounded-xl border border-gray-200 bg-gray-50/30 px-3.5 py-2.5 text-xs ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:border-red-800 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors resize-none leading-relaxed disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -242,16 +265,50 @@ export function RequestRevision({
                   <button
                     key={prio}
                     type="button"
-                    onClick={() => setPriority(prio)}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer select-none ${getPriorityStyle(
-                      prio,
-                    )}`}
+                    onClick={() => !isViewingRevision && setPriority(prio)}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition-all select-none ${
+                      isViewingRevision ? "cursor-default pointer-events-none" : "cursor-pointer"
+                    } ${getPriorityStyle(prio)}`}
                   >
                     {prio}
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* Change Status Selector (Only when viewing revision) */}
+            {isViewingRevision && (
+              <div className="space-y-1.5 flex flex-col">
+                <Label
+                  htmlFor="change-status"
+                  className="text-xs font-semibold uppercase tracking-wider text-gray-500"
+                >
+                  Change Status <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={selectedStatus}
+                  onValueChange={(val) => setSelectedStatus(val as ContentPlanCardItem["status"])}
+                >
+                  <SelectTrigger
+                    id="change-status"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 text-left focus:outline-none focus:border-red-800 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors text-xs font-semibold cursor-pointer"
+                  >
+                    <SelectValue placeholder="Select New Status" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-gray-100 bg-white p-1 shadow-lg z-50">
+                    {(["Draft", "Assigned", "On Progress", "Review", "Approved"] as const).map((statusOpt) => (
+                      <SelectItem
+                        key={statusOpt}
+                        value={statusOpt}
+                        className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer text-xs font-semibold"
+                      >
+                        {statusOpt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {/* Footer actions */}
@@ -266,10 +323,10 @@ export function RequestRevision({
             </Button>
             <Button
               type="submit"
-              disabled={!notes.trim() || !selectedCard}
+              disabled={(!isViewingRevision && !notes.trim()) || !selectedCard}
               className="rounded-xl bg-red-800 hover:bg-red-900 text-white font-semibold px-5 text-xs h-9 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Request Revision
+              {isViewingRevision ? "Confirm" : "Request Revision"}
             </Button>
           </DialogFooter>
         </form>

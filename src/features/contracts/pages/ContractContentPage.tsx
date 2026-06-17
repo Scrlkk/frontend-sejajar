@@ -1,7 +1,6 @@
 import { useRef, useCallback, useState } from "react";
 import { ArrowLeft, Users, Plus, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router-dom";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
@@ -18,6 +17,7 @@ import { TeamsMember } from "@/features/contracts/components/TeamsMember";
 import { ContentPlan } from "@/features/contents/components/ContentPlan";
 import { RevisionContract } from "@/features/reviews/components/RevisionContract";
 import { AssignMembers } from "@/features/contents/components/AssignMembers";
+import { PillarsContract } from "@/features/pillars/components/PillarsContract";
 
 export function ContractContentPage() {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export function ContractContentPage() {
   }, []);
 
   const client = sampleClients.find(
-    (c) => c.company_name.toLowerCase() === contract.brand.toLowerCase()
+    (c) => c.company_name.toLowerCase() === contract.brand.toLowerCase(),
   );
 
   const contractInfoItems = [
@@ -85,19 +85,14 @@ export function ContractContentPage() {
                 <h1 className="text-xl font-bold text-gray-900 leading-tight">
                   {contract.title}
                 </h1>
-                <Badge
-                  variant="secondary"
-                  className={`${contract.statusBg} shadow-none rounded-full px-3 py-0.5 text-xs font-semibold flex items-center gap-1.5 border-none`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${contract.statusDot} shrink-0`}
-                  />
-                  {contract.status}
-                </Badge>
+                <PillarsContract
+                  status={contract.status}
+                  className="rounded-full px-3 shadow-none border-none py-0.5 text-xs font-semibold"
+                />
               </div>
               <p className="text-xs sm:text-sm text-gray-500 font-medium">
                 {contract.code} <span className="text-gray-300 mx-1">•</span>{" "}
-                {contract.brand} <span className="text-gray-300 mx-1">•</span>{" "}
+                {contract.createdBy || "-"} <span className="text-gray-300 mx-1">•</span>{" "}
                 {contract.startDate} – {contract.endDate}
               </p>
             </div>
@@ -139,12 +134,12 @@ export function ContractContentPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <ContractInfo items={contractInfoItems} />
+        <TeamsMember members={teamMembers} />
         <ProductionProgress
           {...sampleProductionProgress}
           current={contract.currentProgress}
           target={contract.targetProgress}
         />
-        <TeamsMember members={teamMembers} />
         <RevisionContract
           items={activeContentPlans
             .filter((plan) => plan.status === "Revision")

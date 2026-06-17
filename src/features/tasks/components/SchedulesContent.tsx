@@ -1,16 +1,14 @@
 import { useState } from "react";
 import {
   Search,
-  Plus,
   Eye,
-  Pencil,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
+import { PillarsCard } from "@/features/pillars/components/PillarsCard";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import {
   Table,
   TableBody,
@@ -19,15 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { SchedulesModal } from "./SchedulesModal";
-import { DeleteModal } from "./DeleteModal";
-import { ModalPreviewPublish } from "./ModalPreviewPublish";
+import { ModalPreviewPublish } from "@/features/tasks/components/ModalPreviewPublish";
 
 export interface ScheduledContentItem {
   id: string | number;
@@ -58,12 +48,9 @@ interface SchedulesContentProps {
 
 export function SchedulesContent({
   contents,
-  title = "All Scheduled Content",
+  title = "List All Content",
   itemsPerPage = 6,
-  onScheduleNew,
   onPreview,
-  onEdit,
-  onCancel,
 }: SchedulesContentProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,18 +64,7 @@ export function SchedulesContent({
     setItems(contents);
   }
 
-  // Modal visibility & mode states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [editingItemId, setEditingItemId] = useState<string | number | null>(
-    null,
-  );
 
-  // Delete modal confirmation states
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<ScheduledContentItem | null>(
-    null,
-  );
 
   // Preview modal states & actions
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -121,105 +97,8 @@ export function SchedulesContent({
     setIsPreviewModalOpen(false);
   };
 
-  const openCreateModal = () => {
-    setModalMode("create");
-    setEditingItemId(null);
-    setIsModalOpen(true);
-    onScheduleNew?.();
-  };
 
-  const openEditModal = (item: ScheduledContentItem) => {
-    setModalMode("edit");
-    setEditingItemId(item.id);
-    setTimeout(() => {
-      setIsModalOpen(true);
-    }, 100);
-    onEdit?.(item);
-  };
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setTimeout(() => {
-      setEditingItemId(null);
-    }, 300);
-  };
-
-  const handleModalSave = (data: {
-    title: string;
-    campaign: string;
-    platform: string;
-    platformBg: string;
-    pillar: string;
-    pillarBg: string;
-    pillarDot: string;
-    postDate: string;
-    time: string;
-    status?: string;
-    statusBg?: string;
-    statusDot?: string;
-  }) => {
-    if (modalMode === "create") {
-      const newItem: ScheduledContentItem = {
-        id: `schedule-${Date.now()}`,
-        title: data.title,
-        campaign: data.campaign,
-        platform: data.platform,
-        platformBg: data.platformBg,
-        pillar: data.pillar,
-        pillarBg: data.pillarBg,
-        pillarDot: data.pillarDot,
-        postDate: data.postDate,
-        time: data.time,
-        status: data.status || "Approved",
-        statusBg: data.statusBg || "bg-emerald-50 text-emerald-600",
-        statusDot: data.statusDot || "bg-emerald-500",
-        hasPublishButton: true,
-      };
-      setItems((prev) => [newItem, ...prev]);
-    } else {
-      setItems((prev) =>
-        prev.map((it) => {
-          if (it.id === editingItemId) {
-            return {
-              ...it,
-              title: data.title,
-              campaign: data.campaign,
-              platform: data.platform,
-              platformBg: data.platformBg,
-              pillar: data.pillar,
-              pillarBg: data.pillarBg,
-              pillarDot: data.pillarDot,
-              postDate: data.postDate,
-              time: data.time,
-            };
-          }
-          return it;
-        }),
-      );
-    }
-    setIsModalOpen(false);
-    setTimeout(() => {
-      setEditingItemId(null);
-    }, 300);
-  };
-
-  const openDeleteModal = (item: ScheduledContentItem) => {
-    setItemToDelete(item);
-    // Open in next tick to allow DropdownMenu to fully close first,
-    // avoiding Radix overlay pointer-events locking issue.
-    setTimeout(() => {
-      setIsDeleteModalOpen(true);
-    }, 100);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (itemToDelete) {
-      setItems((prev) => prev.filter((it) => it.id !== itemToDelete.id));
-      onCancel?.(itemToDelete);
-    }
-    setIsDeleteModalOpen(false);
-    setItemToDelete(null);
-  };
 
   const filteredItems = items.filter((item) => {
     return (
@@ -244,8 +123,8 @@ export function SchedulesContent({
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-        <div className="flex gap-4 w-full sm:w-1/2">
-          <div className="w-full relative">
+        <div className="w-full sm:w-1/2">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
@@ -255,13 +134,6 @@ export function SchedulesContent({
               className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/20 focus:border-red-800 transition-colors"
             />
           </div>
-          <Button
-            onClick={openCreateModal}
-            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
-          >
-            <Plus className="h-4 w-4" />
-            Schedule New
-          </Button>
         </div>
       </div>
 
@@ -312,23 +184,16 @@ export function SchedulesContent({
                   </TableCell>
 
                   <TableCell className="py-4">
-                    <Badge
-                      variant="secondary"
-                      className={`${item.platformBg} shadow-none rounded-lg px-2.5 py-1 font-medium text-xs border-none`}
-                    >
-                      {item.platform}
-                    </Badge>
+                    <PlatformBadge
+                      platform={item.platform}
+                      className="text-xs font-medium"
+                    />
                   </TableCell>
 
                   <TableCell className="py-4">
-                    <Badge
-                      className={`${item.pillarBg} shadow-none rounded-full px-2.5 py-0.5 font-medium text-xs border-none flex items-center gap-1.5 w-fit`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${item.pillarDot}`}
-                      />
-                      {item.pillar}
-                    </Badge>
+                    <PillarsCard
+                      category={item.pillar}
+                    />
                   </TableCell>
 
                   <TableCell className="py-4 text-gray-500 font-medium text-sm">
@@ -340,56 +205,23 @@ export function SchedulesContent({
                   </TableCell>
 
                   <TableCell className="py-4">
-                    <Badge
-                      className={`${item.statusBg} shadow-none rounded-full px-2.5 py-0.5 font-bold text-xs border-none flex items-center gap-1.5 w-fit`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${item.statusDot}`}
-                      />
-                      {item.status}
-                    </Badge>
+                    <StatusBadgeContent
+                      status={item.status}
+                      className="text-xs font-bold"
+                    />
                   </TableCell>
 
                   <TableCell className="py-4">
                     <div className="flex items-center justify-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="bg-gray-50/50 hover:bg-gray-100 text-gray-600 border-gray-200/80 rounded-xl px-3 h-8 text-xs flex items-center gap-1.5 shadow-none"
-                          >
-                            Manage
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-40 rounded-xl"
-                        >
-                          <DropdownMenuItem
-                            onClick={() => openPreviewModal(item)}
-                            className="cursor-pointer text-xs gap-2 rounded-lg"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                            Preview
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openEditModal(item)}
-                            className="cursor-pointer text-xs gap-2 rounded-lg"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openDeleteModal(item)}
-                            className="cursor-pointer text-xs gap-2 rounded-lg text-red-600 focus:text-red-600"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        onClick={() => openPreviewModal(item)}
+                        variant="outline"
+                        size="sm"
+                        className="bg-gray-50/50 hover:bg-gray-100 text-gray-600 border-gray-200/80 rounded-xl px-3 h-8 text-xs flex items-center gap-1.5 shadow-none cursor-pointer"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        Preview
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -505,36 +337,7 @@ export function SchedulesContent({
         </div>
       </div>
 
-      {/* Separated Schedule Create/Edit Dialog Modal */}
-      <SchedulesModal
-        key={editingItemId || "new"}
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        mode={modalMode}
-        editingItem={items.find((it) => it.id === editingItemId) || null}
-        onSave={handleModalSave}
-      />
 
-      {/* Separated Custom Delete Confirmation Modal */}
-      <DeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="Hapus Jadwal Konten?"
-        description={
-          itemToDelete ? (
-            <>
-              Apakah Anda yakin ingin menghapus jadwal konten{" "}
-              <span className="font-semibold text-gray-800">
-                "{itemToDelete.title}"
-              </span>
-              ? Tindakan ini tidak dapat dibatalkan.
-            </>
-          ) : (
-            ""
-          )
-        }
-        onConfirm={handleDeleteConfirm}
-      />
 
       {/* Separated Preview Publish Modal */}
       <ModalPreviewPublish
@@ -542,6 +345,7 @@ export function SchedulesContent({
         onClose={() => setIsPreviewModalOpen(false)}
         item={itemToPreview}
         onPublish={handlePublish}
+        mode="preview"
       />
     </div>
   );

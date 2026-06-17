@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Calendar, Eye, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
+import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import toast from "react-hot-toast";
-import { ModalPreviewPublish } from "./ModalPreviewPublish";
+import { ModalPreviewPublish, type PreviewPublishItem } from "@/features/tasks/components/ModalPreviewPublish";
 
 export interface ScheduleItem {
   id: string | number;
@@ -41,9 +42,11 @@ export function PostSchedule({
   // Preview modal states & actions
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [itemToPreview, setItemToPreview] = useState<ScheduleItem | null>(null);
+  const [modalMode, setModalMode] = useState<"preview" | "publish">("preview");
 
   const openPreviewModal = (item: ScheduleItem) => {
     setItemToPreview(item);
+    setModalMode("preview");
     // Open in next tick to allow any click triggers to complete cleanly
     setTimeout(() => {
       setIsPreviewModalOpen(true);
@@ -51,13 +54,29 @@ export function PostSchedule({
     onPreview?.(item);
   };
 
-  const handlePublish = (item: ScheduleItem) => {
+  const openPublishModal = (item: ScheduleItem) => {
+    setItemToPreview(item);
+    setModalMode("publish");
+    setTimeout(() => {
+      setIsPreviewModalOpen(true);
+    }, 100);
+  };
+
+  const handlePublish = (
+    item: PreviewPublishItem,
+    date?: string,
+    time?: string,
+  ) => {
+    if (date) {
+      // date is not used for local item updates
+    }
     setItems((prev) =>
       prev.map((it) => {
         if (it.id === item.id) {
           return {
             ...it,
             status: "Published",
+            time: time || it.time,
             hasPublishButton: false,
           };
         }
@@ -66,7 +85,16 @@ export function PostSchedule({
     );
     setIsPreviewModalOpen(false);
     toast.success("Konten berhasil dipublikasikan!");
-    onPublish?.(item);
+    
+    const foundItem = schedules.find((it) => it.id === item.id);
+    if (foundItem) {
+      onPublish?.({
+        ...foundItem,
+        status: "Published",
+        time: time || foundItem.time,
+        hasPublishButton: false,
+      });
+    }
   };
 
   return (
@@ -96,10 +124,6 @@ export function PostSchedule({
           const borderColor = isPublished
             ? "border-emerald-600"
             : "border-blue-600";
-          const statusColor = isPublished
-            ? "bg-emerald-600/20 text-emerald-600 hover:bg-emerald-600/20"
-            : "bg-blue-600/20 text-blue-600 hover:bg-blue-600/20";
-          const statusDotColor = isPublished ? "bg-emerald-600" : "bg-blue-600";
 
           return (
             <div
@@ -118,21 +142,15 @@ export function PostSchedule({
                     {item.title}
                   </h4>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      variant="secondary"
-                      className="bg-gray-100 text-gray-500 hover:bg-gray-100 rounded-lg font-normal px-2 py-0.5 text-xs border-none shadow-none"
-                    >
-                      {item.platform}
-                    </Badge>
+                    <PlatformBadge
+                      platform={item.platform}
+                      className="text-xs"
+                    />
 
-                    <Badge
-                      className={`${statusColor} rounded-lg font-medium px-2 py-0.5 text-xs flex items-center gap-1.5 border shadow-none`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${statusDotColor}`}
-                      />
-                      {item.status}
-                    </Badge>
+                    <StatusBadgeContent
+                      status={item.status}
+                      className="text-xs"
+                    />
                   </div>
                 </div>
               </div>
@@ -151,7 +169,7 @@ export function PostSchedule({
                 {item.hasPublishButton && (
                   <Button
                     size="sm"
-                    onClick={() => handlePublish(item)}
+                    onClick={() => openPublishModal(item)}
                     className="bg-red-700 hover:bg-red-logo text-white rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 border-none cursor-pointer"
                   >
                     <Send className="h-3.5 w-3.5 rotate-45" />
@@ -170,6 +188,7 @@ export function PostSchedule({
         onClose={() => setIsPreviewModalOpen(false)}
         item={itemToPreview}
         onPublish={handlePublish}
+        mode={modalMode}
       />
     </Card>
   );
