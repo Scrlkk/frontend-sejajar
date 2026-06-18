@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
-import type { DraftsItem } from "@/features/tasks/data/tasksData";
+import type { DraftsItem } from "@/data/mockData";
 
 interface DraftsProps {
   drafts: DraftsItem[];

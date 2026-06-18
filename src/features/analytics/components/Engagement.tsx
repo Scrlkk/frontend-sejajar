@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ManualEngagementEntry } from "@/features/analytics/data/analyticsData";
+import type { ManualEngagementEntry } from "@/data/mockData";
 import toast from "react-hot-toast";
 import { EngagementModal } from "@/features/analytics/components/EngagementModal";
 import { DeleteModal } from "@/features/tasks/components/DeleteModal";

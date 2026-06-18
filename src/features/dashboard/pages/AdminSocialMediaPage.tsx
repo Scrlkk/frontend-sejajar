@@ -1,12 +1,12 @@
 import {
+  sampleSchedules,
+  readyToPublishData,
   adminSocialMediaCards,
   sampleContentStatus,
-} from "@/features/dashboard/data/adminsocialmediaData";
+} from "@/data/mockData";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { PostSchedule } from "@/features/tasks/components/PostSchedules";
-import { sampleSchedules } from "@/features/tasks/data/tasksData";
 import { ReadyPublish } from "@/features/tasks/components/ReadyPublish";
-import { readyToPublishData } from "@/features/tasks/data/tasksData";
 import { GraphicDonut } from "@/features/dashboard/components/GraphicDonut";
 import type { PublishItem } from "@/features/tasks/components/ReadyPublish";
 

@@ -5,7 +5,7 @@ import {
   uploadsCardData,
   sampleUploadsData,
   type AssignedContentPlan,
-} from "@/features/tasks/data/tasksData";
+} from "@/data/mockData";
 import { RevisionBanner } from "@/features/reviews/components/RevisionBanner";
 import {
   Uploads,
@@ -161,7 +161,7 @@ export const UploadsPage = () => {
       </div>
       <RevisionBanner
         title="Skincare Reel – Raw Cut"
-        description="Colour grading is off — re-export with warmer tone."
+        description="Colour grading is off re-export with warmer tone."
         onReUpload={handleReUploadClick}
         buttonText="Re-upload"
         buttonIcon={<Upload className="h-4 w-4 stroke-[2.5]" />}

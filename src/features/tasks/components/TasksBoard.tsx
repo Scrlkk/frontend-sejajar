@@ -4,7 +4,7 @@ import {
   TasksContent,
   type TaskBoardItem,
 } from "@/features/tasks/components/TasksContent";
-import { taskBoardColumns } from "@/features/tasks/data/tasksData";
+import { taskBoardColumns } from "@/data/mockData";
 
 interface TasksBoardProps {
   tasks: TaskBoardItem[];

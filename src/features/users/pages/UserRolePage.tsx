@@ -1,9 +1,11 @@
+import {
+  usersData,
+  usersCards,
+  rolePermissionsData,
+} from "@/data/mockData";
 import { UserManagement } from "@/features/users/components/UserMangement";
-import { usersData } from "@/features/users/data/usersData";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
-import { usersCards } from "@/features/users/data/usersData";
 import { RolePermissions } from "@/features/users/components/RolePermissions";
-import { rolePermissionsData } from "@/features/users/data/usersData";
 
 export const UserRolePage = () => {
   return (

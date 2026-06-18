@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
-import type { ManualEngagementEntry } from "@/features/analytics/data/analyticsData";
+import { type ManualEngagementEntry, engagementInitialContents as initialContents } from "@/data/mockData";
 
 interface EngagementModalProps {
   isOpen: boolean;
@@ -33,129 +33,6 @@ interface EngagementModalProps {
     shares: number;
   }) => void;
 }
-
-const initialContents = [
-  {
-    title: "Behind the Glam - Product Shoot BTS",
-    campaign: "Spring Product Launch",
-    platform: "Instagram" as const,
-    platformBg: "bg-pink-50 text-pink-600 hover:bg-pink-50",
-    pillar: "Behind the Scenes",
-    pillarBg: "bg-purple-50 text-purple-600",
-    pillarDot: "bg-purple-500",
-    status: "Published",
-    statusBg: "bg-blue-50 text-blue-600",
-    statusDot: "bg-blue-500",
-  },
-  {
-    title: "Foundation Tutorial - Spring Collection",
-    campaign: "Spring Product Launch",
-    platform: "Instagram" as const,
-    platformBg: "bg-pink-50 text-pink-600 hover:bg-pink-50",
-    pillar: "Product Review",
-    pillarBg: "bg-amber-50 text-amber-700",
-    pillarDot: "bg-amber-500",
-    status: "Approved",
-    statusBg: "bg-emerald-50 text-emerald-600",
-    statusDot: "bg-emerald-500",
-  },
-  {
-    title: "Skincare Morning Routine Reel",
-    campaign: "Spring Product Launch",
-    platform: "Instagram" as const,
-    platformBg: "bg-pink-50 text-pink-600 hover:bg-pink-50",
-    pillar: "Lifestyle",
-    pillarBg: "bg-emerald-50 text-emerald-600",
-    pillarDot: "bg-emerald-500",
-    status: "On Progress",
-    statusBg: "bg-amber-50 text-amber-600",
-    statusDot: "bg-amber-500",
-  },
-  {
-    title: "Aesthetic Morning Coffee Routine",
-    campaign: "Summer Lifestyle Series",
-    platform: "TikTok" as const,
-    platformBg: "bg-gray-100 text-gray-800 hover:bg-gray-100",
-    pillar: "Lifestyle",
-    pillarBg: "bg-emerald-50 text-emerald-600",
-    pillarDot: "bg-emerald-500",
-    status: "Draft",
-    statusBg: "bg-gray-100 text-gray-500",
-    statusDot: "bg-gray-400",
-  },
-  {
-    title: "Live Q&A – Career Consultation",
-    campaign: "Summer Lifestyle Series",
-    platform: "Instagram" as const,
-    platformBg: "bg-pink-50 text-pink-600 hover:bg-pink-50",
-    pillar: "Education",
-    pillarBg: "bg-blue-50 text-blue-600",
-    pillarDot: "bg-blue-500",
-    status: "Draft",
-    statusBg: "bg-gray-100 text-gray-500",
-    statusDot: "bg-gray-400",
-  },
-  {
-    title: "5 Tips Belajar Cepat & Efektif",
-    campaign: "Education Series",
-    platform: "TikTok" as const,
-    platformBg: "bg-gray-100 text-gray-800 hover:bg-gray-100",
-    pillar: "Education",
-    pillarBg: "bg-blue-50 text-blue-600",
-    pillarDot: "bg-blue-500",
-    status: "Draft",
-    statusBg: "bg-gray-100 text-gray-500",
-    statusDot: "bg-gray-400",
-  },
-  {
-    title: "Morning Coffee Routine",
-    campaign: "Summer Lifestyle Series",
-    platform: "TikTok" as const,
-    platformBg: "bg-gray-100 text-gray-800 hover:bg-gray-100",
-    pillar: "Lifestyle",
-    pillarBg: "bg-emerald-50 text-emerald-600",
-    pillarDot: "bg-emerald-500",
-    status: "Published",
-    statusBg: "bg-cyan-50 text-cyan-700",
-    statusDot: "bg-cyan-550",
-  },
-  {
-    title: "Behind the Glam - BTS Shoot",
-    campaign: "Spring Product Launch",
-    platform: "Instagram" as const,
-    platformBg: "bg-pink-50 text-pink-600 hover:bg-pink-50",
-    pillar: "Behind the Scenes",
-    pillarBg: "bg-purple-50 text-purple-600",
-    pillarDot: "bg-purple-500",
-    status: "Published",
-    statusBg: "bg-cyan-50 text-cyan-700",
-    statusDot: "bg-cyan-550",
-  },
-  {
-    title: "Iced Coffee DIY Tutorial",
-    campaign: "Summer Lifestyle Series",
-    platform: "TikTok" as const,
-    platformBg: "bg-gray-100 text-gray-800 hover:bg-gray-100",
-    pillar: "Lifestyle",
-    pillarBg: "bg-emerald-50 text-emerald-600",
-    pillarDot: "bg-emerald-500",
-    status: "Published",
-    statusBg: "bg-cyan-50 text-cyan-700",
-    statusDot: "bg-cyan-550",
-  },
-  {
-    title: "Product Review - Summer Palette",
-    campaign: "Summer Lifestyle Series",
-    platform: "YouTube" as const,
-    platformBg: "bg-red-50 text-red-700 hover:bg-red-50",
-    pillar: "Product Review",
-    pillarBg: "bg-amber-50 text-amber-700",
-    pillarDot: "bg-amber-500",
-    status: "Published",
-    statusBg: "bg-cyan-50 text-cyan-700",
-    statusDot: "bg-cyan-550",
-  },
-];
 
 export function EngagementModal({
   isOpen,

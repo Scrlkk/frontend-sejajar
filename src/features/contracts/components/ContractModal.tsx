@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from "lucide-react";
 import type { ContractCardItem } from "@/features/contracts/components/Contracts";
-import { sampleTeamMembers } from "@/features/contracts/data/contractsData";
+import { sampleTeamMembers } from "@/data/mockData";
 
 // Only filter members with role "Content Lead"
 const contentLeads = sampleTeamMembers.filter((m) => m.role === "Content Lead");

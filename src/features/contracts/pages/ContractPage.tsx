@@ -4,7 +4,7 @@ import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
   contractDataCards,
   sampleContractsData,
-} from "@/features/contracts/data/contractsData";
+} from "@/data/mockData";
 import {
   Contracts,
   type ContractCardItem,

@@ -1,14 +1,14 @@
-import { TaskCalendar } from "@/features/calendar/components/TasksCalendar";
-import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
+  sampleComments,
+  sampleTaskBoardData,
   contentEditorCards,
   sampleDeadlines,
-} from "@/features/dashboard/data/contenteditor";
+} from "@/data/mockData";
+import { TaskCalendar } from "@/features/calendar/components/TasksCalendar";
+import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { RecentComments } from "@/features/reviews/components/RecentComments";
-import { sampleComments } from "@/features/reviews/data/reviewsData";
 import { TaskDashboard } from "@/features/tasks/components/TasksDashboard";
 import { UpcomingDeadlines } from "@/features/tasks/components/UpcomingDeadlines";
-import { sampleTaskBoardData } from "@/features/tasks/data/tasksData";
 import { useNavigate } from "react-router-dom";
 
 export const ContentEditorPage = () => {

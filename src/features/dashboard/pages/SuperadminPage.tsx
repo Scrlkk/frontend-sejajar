@@ -1,17 +1,17 @@
+import {
+  usersData,
+  activityLogs,
+  superadminCards,
+  systemMetrics,
+  sampleRoles,
+} from "@/data/mockData";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { SystemLog } from "@/features/audit/components/SystemLog";
 import { UserManagement } from "@/features/users/components/UserMangement";
 import { GraphicDonut } from "@/features/dashboard/components/GraphicDonut";
 import { SystemHealth } from "@/features/dashboard/components/SystemHealth";
-import { usersData } from "@/features/users/data/usersData";
-import { activityLogs } from "@/features/audit/data/systemLogData";
-import {
-  superadminCards,
-  systemMetrics,
-  sampleRoles,
-} from "@/features/dashboard/data/superadminData";
 
-export type { UserData } from "@/features/users/data/usersData";
+export type { UserData } from "@/data/mockData";
 
 export const SuperadminPage = () => {
   return (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { UserData } from "@/features/users/data/usersData";
+import type { UserData } from "@/data/mockData";
 import {
   Plus,
   Trash2,

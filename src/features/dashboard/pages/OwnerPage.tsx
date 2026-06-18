@@ -1,13 +1,14 @@
-import { PlatformEngagement } from "@/features/analytics/components/PlatformEngagement";
-import { trendData } from "@/features/analytics/data/analyticsData";
-import { ContractPerformance } from "@/features/contracts/components/ContractPerformance";
-import { EmployeePerformance } from "@/features/contracts/components/EmployeePerformance";
-import { sampleContractsData } from "@/features/contracts/data/contractsData";
-import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
+  trendData,
+  sampleContractsData,
+  activityLogs,
   ownerCards,
   employeePerformanceData,
-} from "@/features/dashboard/data/ownerData";
+} from "@/data/mockData";
+import { PlatformEngagement } from "@/features/analytics/components/PlatformEngagement";
+import { ContractPerformance } from "@/features/contracts/components/ContractPerformance";
+import { EmployeePerformance } from "@/features/contracts/components/EmployeePerformance";
+import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
   Select,
   SelectContent,
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { useMemo, useState } from "react";
 import { SystemLog } from "@/features/audit/components/SystemLog";
-import { activityLogs } from "@/features/audit/data/systemLogData";
 
 export const OwnerPage = () => {
   const availableYears = useMemo(() => {

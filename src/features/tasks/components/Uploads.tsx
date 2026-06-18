@@ -7,7 +7,7 @@ import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeCon
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import type { AssignerInfo } from "@/features/tasks/data/tasksData";
+import type { AssignerInfo } from "@/data/mockData";
 
 export interface UploadedMediaItem {
   id: string | number;

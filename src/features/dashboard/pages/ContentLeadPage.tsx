@@ -1,7 +1,13 @@
+import {
+  activeContractsData,
+  contentLeadCards,
+  outputData,
+  pillarData,
+  sampleComments,
+  sampleFeedbacks,
+} from "@/data/mockData";
 import { ActiveContracts } from "@/features/contracts/components/ActiveContracts";
-import { activeContractsData } from "@/features/contracts/data/contractsData";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
-import { contentLeadCards } from "@/features/dashboard/data/contentleadData";
 import { GraphicDonutHorizontal } from "@/features/dashboard/components/GraphicDonutHorizontal";
 import { ContentOutput } from "@/features/contents/components/ContentOutput";
 import {
@@ -12,12 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMemo, useState } from "react";
-import { outputData, pillarData } from "@/features/contents/data/contentData";
 import { Feedback } from "@/features/reviews/components/Feedback";
-import {
-  sampleComments,
-  sampleFeedbacks,
-} from "@/features/reviews/data/reviewsData";
 import { RecentComments } from "@/features/reviews/components/RecentComments";
 
 export const ContentLeadPage = () => {

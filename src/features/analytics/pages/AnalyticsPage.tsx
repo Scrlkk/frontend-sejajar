@@ -3,7 +3,10 @@ import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
   analyticsDataCards,
   trendData,
-} from "@/features/analytics/data/analyticsData";
+  topContentData,
+  outputData,
+  pillarData,
+} from "@/data/mockData";
 import { ContentOutput } from "@/features/contents/components/ContentOutput";
 import { PlatformEngagement } from "@/features/analytics/components/PlatformEngagement";
 import { GraphicDonutHorizontal } from "@/features/dashboard/components/GraphicDonutHorizontal";
@@ -15,8 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PerformingContent } from "@/features/analytics/components/PerformingContent";
-import { topContentData } from "@/features/analytics/data/analyticsData";
-import { outputData, pillarData } from "@/features/contents/data/contentData";
 
 export const AnalyticsPage = () => {
   const availableYears = useMemo(() => {

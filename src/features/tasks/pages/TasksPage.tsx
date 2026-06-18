@@ -4,7 +4,7 @@ import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
   tasksCardData,
   sampleTaskBoardData,
-} from "@/features/tasks/data/tasksData";
+} from "@/data/mockData";
 import { TaskBoard } from "@/features/tasks/components/TasksBoard";
 import { TasksFilter } from "@/features/tasks/components/TasksFilter";
 import { TasksDrawer } from "@/features/tasks/components/TasksDrawer";

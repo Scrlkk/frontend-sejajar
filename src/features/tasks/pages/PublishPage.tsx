@@ -1,5 +1,5 @@
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
-import { publishCardData, publishData } from "@/features/tasks/data/tasksData";
+import { publishCardData, publishData } from "@/data/mockData";
 import {
   PublishContent,
   type QueueItem,

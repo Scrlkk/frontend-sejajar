@@ -1,17 +1,17 @@
-import { useRef, useCallback, useState } from "react";
-import { ArrowLeft, Users, Plus, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate, useParams } from "react-router-dom";
-import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
+  sampleClients,
   plansDataCards,
   sampleProductionProgress,
   sampleTeamMembers,
   sampleContentPlans,
   sampleContractsData,
-} from "@/features/contracts/data/contractsData";
+} from "@/data/mockData";
+import { useRef, useCallback, useState } from "react";
+import { ArrowLeft, Users, Plus, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate, useParams } from "react-router-dom";
+import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { ContractInfo } from "@/features/contracts/components/ContractInfo";
-import { sampleClients } from "@/features/clients/data/clientsData";
 import { ProductionProgress } from "@/features/contracts/components/ProductionProgress";
 import { TeamsMember } from "@/features/contracts/components/TeamsMember";
 import { ContentPlan } from "@/features/contents/components/ContentPlan";

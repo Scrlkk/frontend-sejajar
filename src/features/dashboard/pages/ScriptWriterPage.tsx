@@ -1,11 +1,13 @@
-import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
+  pillarData,
+  sampleDeadlines,
+  sampleComments,
   scriptWriterCards,
   scriptOutputData,
-} from "@/features/dashboard/data/scriptwriterCard";
+} from "@/data/mockData";
+import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { RevisionDashboard } from "@/features/reviews/components/RevisionDashboard";
 import { GraphicDonutHorizontal } from "@/features/dashboard/components/GraphicDonutHorizontal";
-import { pillarData } from "@/features/contents/data/contentData";
 import {
   Select,
   SelectContent,
@@ -16,9 +18,7 @@ import {
 import { ContentOutput } from "@/features/contents/components/ContentOutput";
 import { useMemo, useState } from "react";
 import { UpcomingDeadlines } from "@/features/tasks/components/UpcomingDeadlines";
-import { sampleDeadlines } from "@/features/dashboard/data/contenteditor";
 import { RecentComments } from "@/features/reviews/components/RecentComments";
-import { sampleComments } from "@/features/reviews/data/reviewsData";
 
 import { useNavigate } from "react-router-dom";
 

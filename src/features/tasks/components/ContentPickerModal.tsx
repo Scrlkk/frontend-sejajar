@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   sampleAssignedContentPlans,
   type AssignedContentPlan,
-} from "@/features/tasks/data/tasksData";
+} from "@/data/mockData";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 

@@ -41,27 +41,27 @@ export const router = createBrowserRouter([
     errorElement: <InternalError />,
     children: [
       {
-        path: "/dashboard",
+        path: "/dashboard/superadmin",
         element: <SuperadminPage />,
       },
       {
-        path: "/social-media",
+        path: "/dashboard/social-media",
         element: <AdminSocialMediaPage />,
       },
       {
-        path: "/content-lead",
+        path: "/dashboard/content-lead",
         element: <ContentLeadPage />,
       },
       {
-        path: "/owner",
+        path: "/dashboard/owner",
         element: <OwnerPage />,
       },
       {
-        path: "/script-writer",
+        path: "/dashboard/script-writer",
         element: <ScriptWriterPage />,
       },
       {
-        path: "/content-editor",
+        path: "/dashboard/content-editor",
         element: <ContentEditorPage />,
       },
       {

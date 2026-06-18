@@ -1,16 +1,16 @@
+import {
+  scheduledData,
+  myEvents,
+  calendarCards,
+} from "@/data/mockData";
 import { useState } from "react";
 import { isSameDay } from "date-fns";
 import {
   ContentCalendar,
   type CalendarEvent,
 } from "@/features/calendar/components/Calendar";
-import {
-  myEvents,
-  calendarCards,
-} from "@/features/calendar/data/calendarData";
 import { CalendarSchedules, type MiniScheduleItem } from "@/features/calendar/components/CalendarSchedules";
 import { SchedulesContent } from "@/features/tasks/components/SchedulesContent";
-import { scheduledData } from "@/features/tasks/data/tasksData";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 
 export const CalendarPage = () => {

@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, User as UserIcon, Shield } from "lucide-react";
-import { usersData } from "@/features/users/data/usersData";
+import { usersData } from "@/data/mockData";
 import toast from "react-hot-toast";
 import { LoginLogo } from "@/components/shared/LoginLogo";
 

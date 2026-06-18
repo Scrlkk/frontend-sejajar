@@ -7,7 +7,7 @@ import {
   sampleDraftsData,
   type DraftsItem,
   type AssignedContentPlan,
-} from "@/features/tasks/data/tasksData";
+} from "@/data/mockData";
 import { FilePen } from "lucide-react";
 import { Drafts } from "@/features/tasks/components/Drafts";
 import { SpesificDrawer } from "@/features/tasks/components/SpesificDrawer";
@@ -148,13 +148,13 @@ export const DraftsPage = () => {
   const bannerData = [
     {
       id: 1,
-      title: "Skincare Reel – Raw Cut",
-      description: "Colour grading is off — re-export with warmer tone.",
+      title: "Skincare Reel  Raw Cut",
+      description: "Colour grading is off re-export with warmer tone.",
     },
     {
       id: 2,
       title: "Aesthetic Morning Coffee Routine",
-      description: "Colour grading is off — re-export with warmer tone.",
+      description: "Colour grading is off re-export with warmer tone.",
     },
   ];
 

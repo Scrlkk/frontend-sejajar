@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
-import { clientsCards, sampleClients, type ClientData } from "@/features/clients/data/clientsData";
+import { clientsCards, sampleClients, type ClientData } from "@/data/mockData";
 import { ClientsManagement } from "@/features/clients/components/ClientsManagement";
 
 export const ClientsPage = () => {

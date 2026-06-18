@@ -16,7 +16,7 @@ import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import { FeedbackComment } from "@/features/reviews/components/FeedbackComment";
 import type { UploadedMediaItem } from "@/features/tasks/components/Uploads";
-import type { DraftsItem } from "@/features/tasks/data/tasksData";
+import type { DraftsItem } from "@/data/mockData";
 import type { TaskCommentItem } from "@/features/tasks/components/TasksContent";
 
 export interface SubmissionFile {

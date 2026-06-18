@@ -1,5 +1,5 @@
 import { Engagement } from "@/features/analytics/components/Engagement";
-import { analyticsDataCards, engagementEntries } from "@/features/analytics/data/analyticsData";
+import { analyticsDataCards, engagementEntries } from "@/data/mockData";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 
 export const EngagementPage = () => {

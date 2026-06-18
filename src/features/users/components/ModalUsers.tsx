@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check } from "lucide-react";
-import type { UserData } from "@/features/users/data/usersData";
+import type { UserData } from "@/data/mockData";
 
 export type UserRoleType = "Owner" | "Content Lead" | "Admin Social Media" | "Content Editor" | "Script Writer";
 

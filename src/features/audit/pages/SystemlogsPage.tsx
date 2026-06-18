@@ -1,7 +1,9 @@
+import {
+  activityLogs,
+  logsCards,
+} from "@/data/mockData";
 import { SystemLog } from "@/features/audit/components/SystemLog";
-import { activityLogs } from "@/features/audit/data/systemLogData";
 import {CardDashboard} from "@/features/dashboard/components/CardDashboard";
-import {logsCards} from "@/features/audit/data/systemLogData";
 
 export const SystemlogsPage = () => {
   return (

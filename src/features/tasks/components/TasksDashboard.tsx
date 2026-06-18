@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   taskBoardColumns,
   sampleTaskBoardData,
-} from "@/features/tasks/data/tasksData";
+} from "@/data/mockData";
 import { TaskDashboardContent } from "@/features/tasks/components/TasksDashboardContent";
 
 interface TaskDashboardProps {
