@@ -9,6 +9,7 @@ import {
   Pencil,
   ListTodo,
   Send,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -271,6 +272,20 @@ export function ContentBoard({
                                 : "Request Revision"}
                             </span>
                           </DropdownMenuItem>
+
+                          {/* View Published URL — only for Published cards with a URL */}
+                          {card.status === "Published" && card.fileUrl && (
+                            <DropdownMenuItem
+                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-cyan-700 rounded-lg cursor-pointer hover:bg-cyan-50 focus:bg-cyan-50 focus:text-cyan-800 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(card.fileUrl, "_blank", "noopener,noreferrer");
+                              }}
+                            >
+                              <ExternalLink className="h-4 w-4 text-cyan-500 shrink-0" />
+                              <span>View Published URL</span>
+                            </DropdownMenuItem>
+                          )}
 
                           <DropdownMenuItem
                             className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:text-red-700 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 focus:text-red-700 transition-colors"

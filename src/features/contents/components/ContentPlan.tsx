@@ -41,6 +41,7 @@ export interface ContentPlanCardItem {
   pillar?: string;
   notes?: string;
   tasks?: Record<number, { title: string; description: string }>;
+  fileUrl?: string; // Optional published content URL
 }
 
 export interface ContentPlanProps {
@@ -161,6 +162,7 @@ export function ContentPlan({
       objective: card.objective || "",
       targetAudience: card.targetAudience || "",
       notes: card.notes || "",
+      fileUrl: card.fileUrl || "",
     });
     setTimeout(() => {
       setIsModalOpen(true);
@@ -194,6 +196,7 @@ export function ContentPlan({
               targetAudience: data.targetAudience,
               pillar: data.pillar,
               notes: data.notes,
+              fileUrl: data.fileUrl,
             };
           }
           return c;

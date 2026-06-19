@@ -67,7 +67,7 @@ export function LoginForm() {
               </FieldLabel>
             </Field>
           </FieldGroup>
-          <Link to="/dashboard" className="w-full">
+          <Link to="/dashboard/superadmin" className="w-full">
             <Button type="submit" className="w-full hover:bg-red-logo">
               Login
             </Button>

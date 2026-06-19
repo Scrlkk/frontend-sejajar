@@ -43,6 +43,11 @@ export const OwnerPage = () => {
     [selectedYear],
   );
 
+  const filteredTrendData = useMemo(
+    () => trendData.filter((d) => d.year === selectedYear),
+    [selectedYear],
+  );
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -51,7 +56,26 @@ export const OwnerPage = () => {
         ))}
       </div>
       <div className="w-full max-w-7xl mx-auto">
-        <PlatformEngagement data={trendData} timeframe="Last 6 weeks" />
+        <PlatformEngagement
+          data={filteredTrendData}
+          headerAction={
+            <Select
+              value={String(selectedYear)}
+              onValueChange={(v) => setSelectedYear(Number(v))}
+            >
+              <SelectTrigger className="w-28 h-8 text-sm font-medium border-gray-200 bg-gray-50 rounded-lg">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((year) => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ContractPerformance

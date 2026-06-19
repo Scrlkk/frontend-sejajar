@@ -36,8 +36,7 @@ import {
   FileText, UserRound, UsersRound, Send, Video,
   CheckCircle, Clock, SquareDashedText,
   CircleCheckBig, FileClock, TriangleAlert,
-  PenLine, ChartNoAxesColumn,
-  ShieldCogCorner, UserRoundCog,
+  PenLine, ChartNoAxesColumn, UserRoundCog,
   CalendarCheck, Image,
   Hourglass, FileWarning, Clapperboard, Hash, FileUp, FilePen, ClipboardPen,
   Calendar,
@@ -83,12 +82,32 @@ export const analyticsDataCards: CardDashboardProps[] = [
 ];
 
 export const trendData: EngagementData[] = [
-  { name: "Week 1", TikTok: 4200, Instagram: 3800, YouTube: 1200 },
-  { name: "Week 2", TikTok: 5800, Instagram: 4200, YouTube: 1800 },
-  { name: "Week 3", TikTok: 4900, Instagram: 5100, YouTube: 2100 },
-  { name: "Week 4", TikTok: 7200, Instagram: 6300, YouTube: 2800 },
-  { name: "Week 5", TikTok: 6800, Instagram: 5900, YouTube: 3200 },
-  { name: "Week 6", TikTok: 9000, Instagram: 7400, YouTube: 3800 },
+  // 2025
+  { name: "Jan", TikTok: 15000, Instagram: 12000, YouTube: 4500, year: 2025 },
+  { name: "Feb", TikTok: 18500, Instagram: 14200, YouTube: 5800, year: 2025 },
+  { name: "Mar", TikTok: 17000, Instagram: 16500, YouTube: 6100, year: 2025 },
+  { name: "Apr", TikTok: 22000, Instagram: 18300, YouTube: 7800, year: 2025 },
+  { name: "May", TikTok: 21800, Instagram: 17900, YouTube: 8200, year: 2025 },
+  { name: "Jun", TikTok: 26000, Instagram: 21400, YouTube: 9800, year: 2025 },
+  { name: "Jul", TikTok: 28000, Instagram: 23000, YouTube: 11000, year: 2025 },
+  { name: "Aug", TikTok: 31000, Instagram: 25000, YouTube: 12500, year: 2025 },
+  { name: "Sep", TikTok: 29500, Instagram: 24200, YouTube: 11800, year: 2025 },
+  { name: "Oct", TikTok: 34000, Instagram: 28000, YouTube: 13200, year: 2025 },
+  { name: "Nov", TikTok: 38000, Instagram: 31000, YouTube: 14500, year: 2025 },
+  { name: "Dec", TikTok: 42000, Instagram: 35000, YouTube: 16000, year: 2025 },
+  // 2026
+  { name: "Jan", TikTok: 32000, Instagram: 27000, YouTube: 12500, year: 2026 },
+  { name: "Feb", TikTok: 35500, Instagram: 29200, YouTube: 13800, year: 2026 },
+  { name: "Mar", TikTok: 39000, Instagram: 32500, YouTube: 15100, year: 2026 },
+  { name: "Apr", TikTok: 44000, Instagram: 36300, YouTube: 17800, year: 2026 },
+  { name: "May", TikTok: 46800, Instagram: 38900, YouTube: 19200, year: 2026 },
+  { name: "Jun", TikTok: 52000, Instagram: 43400, YouTube: 22800, year: 2026 },
+  { name: "Jul", TikTok: 55000, Instagram: 45000, YouTube: 23500, year: 2026 },
+  { name: "Aug", TikTok: 58000, Instagram: 48000, YouTube: 25000, year: 2026 },
+  { name: "Sep", TikTok: 61000, Instagram: 51000, YouTube: 27000, year: 2026 },
+  { name: "Oct", TikTok: 65000, Instagram: 54000, YouTube: 29000, year: 2026 },
+  { name: "Nov", TikTok: 70000, Instagram: 59000, YouTube: 32000, year: 2026 },
+  { name: "Dec", TikTok: 75000, Instagram: 63000, YouTube: 35000, year: 2026 },
 ];
 
 export type ManualEngagementEntry = {
@@ -677,6 +696,7 @@ export interface ClientData {
   contact_email: string;
   contact_phone: string;
   joinedDate?: string;
+  status?: "active" | "inactive";
 }
 
 export const sampleClients: ClientData[] = [
@@ -687,6 +707,7 @@ export const sampleClients: ClientData[] = [
     contact_email: "john@techvision.com",
     contact_phone: "+62 812-3456-7890",
     joinedDate: "Jan 12, 2024",
+    status: "active",
   },
   {
     client_id: 2,
@@ -695,6 +716,7 @@ export const sampleClients: ClientData[] = [
     contact_email: "sarah@freshbrew.co",
     contact_phone: "+62 899-8877-6655",
     joinedDate: "Mar 1, 2024",
+    status: "active",
   },
   {
     client_id: 3,
@@ -703,6 +725,7 @@ export const sampleClients: ClientData[] = [
     contact_email: "elena@beautyglow.com",
     contact_phone: "+62 821-4455-6677",
     joinedDate: "Apr 15, 2024",
+    status: "inactive",
   },
   {
     client_id: 4,
@@ -711,6 +734,7 @@ export const sampleClients: ClientData[] = [
     contact_email: "david@fitlife.co.id",
     contact_phone: "+62 811-2233-4455",
     joinedDate: "May 1, 2024",
+    status: "active",
   },
   {
     client_id: 5,
@@ -719,6 +743,7 @@ export const sampleClients: ClientData[] = [
     contact_email: "michael@zara.studio",
     contact_phone: "+62 813-1122-3344",
     joinedDate: "Jun 10, 2024",
+    status: "active",
   },
 ];
 
@@ -1453,7 +1478,7 @@ export const adminSocialMediaCards: CardDashboardProps[] = [
     iconBgColor: "bg-green-600/10",
   },
   {
-    title: "Scheduled Posts",
+    title: "On Progress",
     value: 24,
     description: "Upcoming Posts",
     icon: Clock,
@@ -1469,10 +1494,10 @@ export const adminSocialMediaCards: CardDashboardProps[] = [
     iconBgColor: "bg-blue-600/10",
   },
   {
-    title: "In Draft",
+    title: "Revision",
     value: 6,
-    description: "Awaiting Content",
-    icon: SquareDashedText,
+    description: "Needs Attention",
+    icon: TriangleAlert,
     iconColor: "text-red-600",
     iconBgColor: "bg-red-600/10",
   },
@@ -1516,9 +1541,9 @@ export const contentEditorCards: CardDashboardProps[] = [
     iconBgColor: "bg-red-600/10",
   },
   {
-    title: "Completed",
+    title: "Approved",
     value: 12,
-    description: "Finalized",
+    description: "Completed",
     icon: CircleCheckBig,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
@@ -1827,9 +1852,9 @@ export const scriptWriterCards: CardDashboardProps[] = [
     iconBgColor: "bg-yellow-600/10",
   },
   {
-    title: "Completed",
+    title: "Approved",
     value: 12,
-    description: "Finalized",
+    description: "Completed",
     icon: CircleCheckBig,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
@@ -1893,7 +1918,7 @@ export const superadminCards: CardDashboardProps[] = [
     title: "Active Users",
     value: 24,
     description: "All Online Users",
-    icon: Activity,
+    icon: UsersRound,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
   },
@@ -1906,10 +1931,10 @@ export const superadminCards: CardDashboardProps[] = [
     iconBgColor: "bg-yellow-600/10",
   },
   {
-    title: "System Event",
+    title: "Active Session",
     value: "12",
-    description: "Last 7 days",
-    icon: ShieldCogCorner,
+    description: "All Online Sessions",
+    icon: Activity,
     iconColor: "text-blue-600",
     iconBgColor: "bg-blue-600/10",
   },
@@ -2700,7 +2725,7 @@ export const publishCardData: CardDashboardProps[] = [
     iconBgColor: "bg-green-600/10",
   },
   {
-    title: "Scheduled Posts",
+    title: "On Progress",
     value: 24,
     description: "Ready to Post",
     icon: Clock,

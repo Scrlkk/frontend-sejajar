@@ -30,6 +30,9 @@ export function ClientsModal({
   const [companyName, setCompanyName] = React.useState(client?.company_name ?? "");
   const [contactEmail, setContactEmail] = React.useState(client?.contact_email ?? "");
   const [contactPhone, setContactPhone] = React.useState(client?.contact_phone ?? "");
+  const [isActive, setIsActive] = React.useState(
+    client ? (client.status ?? "active") === "active" : true
+  );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   const validate = () => {
@@ -62,6 +65,7 @@ export function ClientsModal({
       company_name: companyName.trim(),
       contact_email: contactEmail.trim(),
       contact_phone: contactPhone.trim(),
+      status: isActive ? "active" : "inactive",
       joinedDate: client?.joinedDate, // preserve joined date if editing
     });
     onClose();
@@ -160,6 +164,54 @@ export function ClientsModal({
                 )}
               </div>
             </div>
+
+            {/* Status — only shown in edit mode, new client is always active */}
+            {isEdit && (
+              <div className="space-y-2.5 py-3 border-t border-gray-100">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Client Status
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Active Option */}
+                  <button
+                    type="button"
+                    onClick={() => setIsActive(true)}
+                    className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      isActive
+                        ? "border-emerald-500 bg-emerald-50/30 text-emerald-950 ring-1 ring-emerald-500/30"
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-semibold text-sm">
+                      <span className={`h-2.5 w-2.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                      Active
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-1 leading-normal">
+                      Client is active and accessible.
+                    </p>
+                  </button>
+
+                  {/* Inactive Option */}
+                  <button
+                    type="button"
+                    onClick={() => setIsActive(false)}
+                    className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      !isActive
+                        ? "border-red-500 bg-red-50/20 text-red-950 ring-1 ring-red-500/20"
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-semibold text-sm">
+                      <span className={`h-2.5 w-2.5 rounded-full ${!isActive ? 'bg-red-500' : 'bg-gray-400'}`} />
+                      Inactive
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-1 leading-normal">
+                      Access suspended. Can be reactivated anytime.
+                    </p>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 shrink-0 mt-2 pb-1">

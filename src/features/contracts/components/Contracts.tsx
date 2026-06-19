@@ -9,6 +9,7 @@ import {
   Trash2,
   FolderClosed,
   FileSearch,
+  RotateCcw,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +43,7 @@ export interface ContractCardItem {
   statusDot: string;
   year?: number;
   createdBy?: string;
+  deletedAt?: string | null;
 }
 
 interface ContractsProps {
@@ -50,6 +52,7 @@ interface ContractsProps {
   onAddClick?: () => void;
   onEditClick?: (item: ContractCardItem) => void;
   onDeleteClick?: (id: string | number) => void;
+  onRestoreClick?: (id: string | number) => void;
   onStatusChange?: (id: string | number, newStatus: string) => void;
 }
 
@@ -59,16 +62,24 @@ export function Contracts({
   onAddClick,
   onEditClick,
   onDeleteClick,
+  onRestoreClick,
   onStatusChange,
 }: ContractsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
   const filteredContracts = contracts.filter((item) => {
+    const isDeleted = !!item.deletedAt;
+
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.code.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (activeTab === "deleted") return matchesSearch && isDeleted;
+
+    // Semua tab selain "deleted" hanya tampilkan yang belum dihapus
+    if (isDeleted) return false;
 
     if (activeTab === "active")
       return matchesSearch && item.status === "Active";
@@ -84,10 +95,15 @@ export function Contracts({
 
   const countStatus = (statusName: string) => {
     if (statusName === "Cancel") {
-      return contracts.filter((c) => c.status === "Cancel" || c.status === "Canceled").length;
+      return contracts.filter((c) => !c.deletedAt && (c.status === "Cancel" || c.status === "Canceled")).length;
     }
-    return contracts.filter((c) => c.status === statusName).length;
+    if (statusName === "deleted") {
+      return contracts.filter((c) => !!c.deletedAt).length;
+    }
+    return contracts.filter((c) => !c.deletedAt && c.status === statusName).length;
   };
+
+  const activeContracts = contracts.filter((c) => !c.deletedAt);
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-6">
@@ -116,7 +132,7 @@ export function Contracts({
                 value="all"
                 className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
-                All ({contracts.length})
+                All ({activeContracts.length})
               </TabsTrigger>
               <TabsTrigger
                 value="active"
@@ -142,6 +158,13 @@ export function Contracts({
               >
                 Cancel ({countStatus("Cancel")})
               </TabsTrigger>
+              <TabsTrigger
+                value="deleted"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-red-600"
+              >
+                <Trash2 className="h-3 w-3 mr-1 inline-block" />
+                Deleted ({countStatus("deleted")})
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -164,9 +187,16 @@ export function Contracts({
             return (
               <Card
                 key={item.id}
-                onClick={() => onCardClick?.(item)}
-                className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-3 relative hover:border-red-logo hover:bg-red-50/20 transition-all cursor-pointer group"
+                onClick={() => !item.deletedAt && onCardClick?.(item)}
+                className={`w-full rounded-xl border outline outline-gray-300/40 shadow-lg p-6 space-y-3 relative transition-all group ${
+                  item.deletedAt
+                    ? "bg-gray-50 border-gray-200 cursor-default opacity-70"
+                    : "bg-white border-gray-200 hover:border-red-logo hover:bg-red-50/20 cursor-pointer"
+                }`}
               >
+                {item.deletedAt && (
+                  <div className="absolute inset-0 rounded-xl pointer-events-none border border-dashed border-red-300/60" />
+                )}
                 {/* Actions Dropdown replacing simple '>' button */}
                 <div
                   className="absolute right-5 top-6 z-10"
@@ -186,51 +216,64 @@ export function Contracts({
                       align="end"
                       className="w-44 bg-white border border-gray-250/80 shadow-md rounded-xl p-1 z-50"
                     >
-                      <DropdownMenuItem
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
-                        onClick={() => onEditClick?.(item)}
-                      >
-                        <Pencil className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                        <span>Edit Contract</span>
-                      </DropdownMenuItem>
+                      {item.deletedAt ? (
+                        // Kontrak sudah dihapus: tampilkan opsi Restore saja
+                        <DropdownMenuItem
+                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
+                          onClick={() => onRestoreClick?.(item.id)}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                          <span>Restore</span>
+                        </DropdownMenuItem>
+                      ) : (
+                        <>
+                          <DropdownMenuItem
+                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
+                            onClick={() => onEditClick?.(item)}
+                          >
+                            <Pencil className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                            <span>Edit Contract</span>
+                          </DropdownMenuItem>
 
-                      <DropdownMenuSeparator className="border-gray-100 my-1" />
+                          <DropdownMenuSeparator className="border-gray-100 my-1" />
 
-                      <DropdownMenuLabel className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        Set Status
-                      </DropdownMenuLabel>
+                          <DropdownMenuLabel className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            Set Status
+                          </DropdownMenuLabel>
 
-                      <DropdownMenuItem
-                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
-                        onClick={() => onStatusChange?.(item.id, "Active")}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                        <span>Active</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50 transition-colors"
-                        onClick={() => onStatusChange?.(item.id, "Completed")}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
-                        <span>Completed</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
-                        onClick={() => onStatusChange?.(item.id, "Cancel")}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
-                        <span>Cancel</span>
-                      </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
+                            onClick={() => onStatusChange?.(item.id, "Active")}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
+                            <span>Active</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50 transition-colors"
+                            onClick={() => onStatusChange?.(item.id, "Completed")}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                            <span>Completed</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
+                            onClick={() => onStatusChange?.(item.id, "Cancel")}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                            <span>Cancel</span>
+                          </DropdownMenuItem>
 
-                      <DropdownMenuSeparator className="border-gray-100 my-1" />
+                          <DropdownMenuSeparator className="border-gray-100 my-1" />
 
-                      <DropdownMenuItem
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
-                        onClick={() => onDeleteClick?.(item.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-red-550 shrink-0" />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
+                            onClick={() => onDeleteClick?.(item.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-red-550 shrink-0" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

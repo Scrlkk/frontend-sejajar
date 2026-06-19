@@ -35,6 +35,7 @@ export type ContentFormValues = {
   feedback?: string;
   overdue?: boolean;
   assignedTeam?: TeamMember[];
+  fileUrl?: string;
 };
 
 interface ContentModalProps {
@@ -76,6 +77,7 @@ function ContentModalForm({
   );
   const [dueDate, setDueDate] = React.useState(initialData?.dueDate ?? "");
   const [notes, setNotes] = React.useState(initialData?.notes ?? "");
+  const [fileUrl, setFileUrl] = React.useState(initialData?.fileUrl ?? "");
   const status = initialData?.status ?? "Draft";
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -106,6 +108,7 @@ function ContentModalForm({
       dueDate,
       notes,
       status,
+      fileUrl: status === "Published" ? fileUrl : undefined,
       id: initialData?.id,
       assignedTeam: initialData?.assignedTeam,
     });
@@ -362,6 +365,29 @@ function ContentModalForm({
             className="flex min-h-24 w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors resize-none"
           />
         </div>
+
+        {/* Published File URL — only show when status is Published */}
+        {status === "Published" && (
+          <div className="space-y-1.5 flex flex-col">
+            <Label
+              htmlFor="fileUrl"
+              className="text-xs font-semibold uppercase tracking-wider text-gray-500"
+            >
+              Published Content URL
+            </Label>
+            <Input
+              id="fileUrl"
+              type="url"
+              placeholder="e.g. https://www.instagram.com/p/..."
+              value={fileUrl}
+              onChange={(e) => setFileUrl(e.target.value)}
+              className="rounded-lg border-cyan-200 bg-cyan-50/30 py-2.5 focus:outline-none focus:border-cyan-600 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors"
+            />
+            <p className="text-[10px] text-gray-400 font-medium">
+              Link to the published content on the platform.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Footer actions */}

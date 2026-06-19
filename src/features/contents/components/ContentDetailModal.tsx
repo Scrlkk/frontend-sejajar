@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock } from "lucide-react";
+import { Clock, ExternalLink } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
@@ -225,6 +225,32 @@ export function ContentDetailModal({
                 </p>
               </div>
             </div>
+
+            {/* Published Content URL */}
+            {card.status === "Published" && (
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  Published Content URL
+                </span>
+                {card.fileUrl ? (
+                  <a
+                    href={card.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-2 w-full bg-cyan-50/50 border border-cyan-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-cyan-700 hover:bg-cyan-100/60 hover:border-cyan-300 transition-all group"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-cyan-500 group-hover:text-cyan-700 transition-colors" />
+                    <span className="truncate">{card.fileUrl}</span>
+                  </a>
+                ) : (
+                  <div className="flex items-center gap-2 bg-gray-50/50 border border-gray-100 rounded-xl px-3 py-2.5">
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-gray-300" />
+                    <span className="text-xs text-gray-400 italic">No URL provided yet.</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Revision Feedback */}
             {card.feedback && (

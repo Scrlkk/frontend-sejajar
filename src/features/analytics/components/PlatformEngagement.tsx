@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import {
@@ -16,12 +17,14 @@ export interface EngagementData {
   TikTok: number;
   Instagram: number;
   YouTube: number;
+  year?: number;
 }
 
 interface PlatformEngagementProps {
   data: EngagementData[];
   title?: string;
   timeframe?: string;
+  headerAction?: ReactNode;
 }
 
 const chartConfig = {
@@ -99,7 +102,8 @@ const computeYDomain = (
 export function PlatformEngagement({
   data,
   title = "Platform Engagement Trend",
-  timeframe = "Last 6 weeks",
+  timeframe,
+  headerAction,
 }: PlatformEngagementProps) {
   const { domain, ticks: yTicks } = computeYDomain(data);
 
@@ -109,7 +113,13 @@ export function PlatformEngagement({
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}
         </CardTitle>
-        <span className="text-sm text-gray-400 font-medium">{timeframe}</span>
+        {headerAction ? (
+          headerAction
+        ) : (
+          timeframe && (
+            <span className="text-sm text-gray-400 font-medium">{timeframe}</span>
+          )
+        )}
       </CardHeader>
 
       <CardContent className="p-0">

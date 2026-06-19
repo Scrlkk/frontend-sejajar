@@ -7,9 +7,12 @@ import {
   ChevronLeft,
   ChevronRight,
   UserRoundPen,
+  UserCheck,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -25,7 +28,7 @@ interface ClientsManagementProps {
   clients: ClientData[];
   onAddClient: (client: ClientData) => void;
   onEditClient: (client: ClientData) => void;
-  onDeleteClient: (id: number) => void;
+  onDeleteClient?: (id: number) => void;
   title?: string;
   itemsPerPage?: number;
 }
@@ -34,7 +37,6 @@ export function ClientsManagement({
   clients,
   onAddClient,
   onEditClient,
-  onDeleteClient,
   title = "Client Management",
   itemsPerPage = 8,
 }: ClientsManagementProps) {
@@ -112,10 +114,35 @@ export function ClientsManagement({
 
   const confirmDeleteClient = () => {
     if (clientToDelete) {
-      onDeleteClient(clientToDelete.client_id);
+      onEditClient({
+        ...clientToDelete,
+        status: "inactive",
+      });
       setIsDeleteModalOpen(false);
       setTimeout(() => {
         setClientToDelete(null);
+      }, 300);
+    }
+  };
+
+  // Reactivate confirmation dialog states
+  const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
+  const [clientToReactivate, setClientToReactivate] = useState<ClientData | null>(null);
+
+  const handleReactivateTrigger = (client: ClientData) => {
+    setClientToReactivate(client);
+    setIsReactivateModalOpen(true);
+  };
+
+  const confirmReactivateClient = () => {
+    if (clientToReactivate) {
+      onEditClient({
+        ...clientToReactivate,
+        status: "active",
+      });
+      setIsReactivateModalOpen(false);
+      setTimeout(() => {
+        setClientToReactivate(null);
       }, 300);
     }
   };
@@ -133,6 +160,7 @@ export function ClientsManagement({
       onAddClient({
         ...data,
         client_id: nextId,
+        status: data.status ?? "active",
         joinedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       } as ClientData);
     }
@@ -209,9 +237,9 @@ export function ClientsManagement({
                 <TableRow className="border-none hover:bg-transparent">
                   <TableHead className="text-gray-400 font-medium">Company / Brand</TableHead>
                   <TableHead className="text-gray-400 font-medium">Client Name</TableHead>
-                  <TableHead className="text-gray-400 font-medium">Client ID</TableHead>
                   <TableHead className="text-gray-400 font-medium">Email</TableHead>
                   <TableHead className="text-gray-400 font-medium">Phone</TableHead>
+                  <TableHead className="text-gray-400 font-medium">Status</TableHead>
                   <TableHead className="text-gray-400 font-medium text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -243,16 +271,24 @@ export function ClientsManagement({
                         {client.client_name}
                       </TableCell>
 
-                      <TableCell className="py-3.5 text-gray-400 font-semibold text-xs">
-                        {client.client_id}
-                      </TableCell>
-
                       <TableCell className="py-3.5 text-gray-500">
                         {client.contact_email}
                       </TableCell>
 
                       <TableCell className="py-3.5 text-gray-500">
                         {client.contact_phone}
+                      </TableCell>
+
+                      <TableCell className="py-3.5">
+                        <Badge
+                          className={`${
+                            (client.status ?? "active") === "active"
+                              ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50"
+                              : "bg-red-50 text-red-500 hover:bg-red-50"
+                          } shadow-none rounded-lg px-2 py-0.5 font-bold text-xs border-none capitalize`}
+                        >
+                          {client.status ?? "active"}
+                        </Badge>
                       </TableCell>
 
                       <TableCell className="py-3.5">
@@ -265,14 +301,25 @@ export function ClientsManagement({
                           >
                             <UserRoundPen className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteTrigger(client)}
-                            className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {(client.status ?? "active") === "active" ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteTrigger(client)}
+                              className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleReactivateTrigger(client)}
+                              className="h-8 w-8 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg cursor-pointer transition-colors"
+                            >
+                              <UserCheck className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -350,16 +397,47 @@ export function ClientsManagement({
           }, 300);
         }}
         onConfirm={confirmDeleteClient}
-        title="Hapus Klien"
+        title="Non-Aktifkan Klien"
         description={
           <>
-            Apakah Anda yakin ingin menghapus klien{" "}
+            Apakah Anda yakin ingin menonaktifkan klien{" "}
             <span className="font-semibold text-gray-950">
-              {clientToDelete?.company_name}
+              {clientToDelete?.client_name}
             </span>
-            ? Semua alokasi kontrak terkait klien ini akan diputus secara permanen. Tindakan ini tidak dapat dibatalkan.
+            ? Status klien akan berubah menjadi <span className="font-semibold text-red-600">Inactive</span>. Anda masih bisa mengaktifkan kembali melalui menu Edit.
           </>
         }
+        cancelText="Batal"
+        confirmText="Non-Aktifkan"
+      />
+
+      {/* Reactivate Confirmation Dialog */}
+      <DeleteModal
+        isOpen={isReactivateModalOpen}
+        onClose={() => {
+          setIsReactivateModalOpen(false);
+          setTimeout(() => {
+            setClientToReactivate(null);
+          }, 300);
+        }}
+        onConfirm={confirmReactivateClient}
+        title="Aktifkan Kembali Klien"
+        description={
+          <>
+            Apakah Anda yakin ingin mengaktifkan kembali klien{" "}
+            <span className="font-semibold text-gray-950">
+              {clientToReactivate?.client_name}
+            </span>
+            ? Akses klien akan dipulihkan kembali.
+          </>
+        }
+        icon={<User className="h-6 w-6" />}
+        iconBgColor="bg-emerald-50"
+        iconBorderColor="border-emerald-200"
+        iconTextColor="text-emerald-800"
+        cancelText="Batal"
+        confirmText="Aktifkan"
+        confirmBtnClassName="bg-emerald-600 hover:bg-emerald-700 text-white"
       />
     </div>
   );
