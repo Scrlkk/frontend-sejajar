@@ -31,10 +31,10 @@ const statusDotColors: Record<string, string> = {
 };
 
 const priorityStyles: Record<string, string> = {
-  low: "bg-blue-50 text-blue-600 border-blue-100",
-  medium: "bg-amber-50 text-amber-600 border-amber-100",
-  high: "bg-orange-50 text-orange-600 border-orange-100",
-  critical: "bg-red-50 text-red-600 border-red-100",
+  low: "bg-blue-50 text-blue-700 border-blue-100",
+  medium: "bg-amber-50 text-amber-700 border-amber-100",
+  high: "bg-orange-50 text-orange-700 border-orange-100",
+  critical: "bg-red-50 text-red-700 border-red-100",
 };
 
 export function TaskCalendar({ tasks }: TaskCalendarProps) {
@@ -57,15 +57,33 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const allDaysGrid = eachDayOfInterval({ start: startDate, end: endDate });
 
+  const PRIORITY_ORDER: Record<string, number> = {
+    low: 1,
+    medium: 2,
+    high: 3,
+    critical: 4,
+  };
+
   const getHeatmapClass = (day: Date) => {
     const dayTasks = tasks.filter((t) => isSameDay(t.date, day));
-    const count = dayTasks.length;
+    if (dayTasks.length === 0)
+      return "bg-transparent text-gray-700 hover:bg-gray-100";
 
-    if (count === 0) return "bg-transparent text-gray-700 hover:bg-gray-100";
-    if (count === 1) return "bg-blue-100/70 text-blue-800 font-semibold";
-    if (count === 2) return "bg-blue-300 text-blue-950 font-semibold";
-    if (count === 3) return "bg-blue-400 text-white font-semibold";
-    return "bg-blue-600 text-white font-semibold";
+    // Find the highest priority task on this day
+    let maxVal = 0;
+    dayTasks.forEach((t) => {
+      const p = t.priority?.toLowerCase() || "low";
+      const val = PRIORITY_ORDER[p] || 1;
+      if (val > maxVal) maxVal = val;
+    });
+
+    if (maxVal === 1)
+      return "bg-red-50 text-red-700 border border-red-100 font-semibold shadow-xs hover:bg-red-100/50";
+    if (maxVal === 2)
+      return "bg-red-100 text-red-800 font-semibold border border-red-200/50 shadow-xs hover:bg-red-200/50";
+    if (maxVal === 3)
+      return "bg-red-200 text-red-900 font-semibold border border-red-300/40 hover:bg-red-300/50";
+    return "bg-red-logo text-white font-semibold hover:bg-red-800";
   };
 
   const selectedDayTasks = tasks.filter((t) => isSameDay(t.date, selectedDate));
@@ -100,11 +118,10 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
         <div className="flex items-center justify-center space-x-4">
           <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
             <div className="flex gap-0.5 mr-1">
-              <span className="h-2.5 w-2.5 rounded bg-blue-50" />
-              <span className="h-2.5 w-2.5 rounded bg-blue-100" />
-              <span className="h-2.5 w-2.5 rounded bg-blue-300" />
-              <span className="h-2.5 w-2.5 rounded bg-blue-400" />
-              <span className="h-2.5 w-2.5 rounded bg-blue-600" />
+              <span className="h-2.5 w-2.5 rounded bg-red-50 border border-red-100" />
+              <span className="h-2.5 w-2.5 rounded bg-red-100 border border-red-200/50" />
+              <span className="h-2.5 w-2.5 rounded bg-red-200 border border-red-300/40" />
+              <span className="h-2.5 w-2.5 rounded bg-red-logo" />
             </div>
             <span>Low</span>
             <ArrowRight className="h-4 w-4" />
@@ -150,9 +167,8 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
                 key={idx}
                 onClick={() => setSelectedDate(day)}
                 className={`h-9 w-9 text-xs rounded-sm flex items-center justify-center transition-all cursor-pointer relative
-                  ${getHeatmapClass(day)}
-                  ${isToday ? "bg-red-logo text-white font-extrabold! hover:bg-red-800" : ""}
-                  ${isSelected && !isToday ? "ring-2 ring-red-800/30 border border-red-800" : ""}
+                  ${isToday ? "bg-red-logo text-white font-extrabold hover:bg-red-800" : getHeatmapClass(day)}
+                  ${isSelected && !isToday ? "ring-1 ring-red-800/30 border border-red-800" : ""}
                 `}
               >
                 {format(day, "d")}
@@ -176,24 +192,31 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
                 key={task.id}
                 className="flex items-center justify-between gap-2.5 text-xs font-semibold"
               >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
                   <Circle
-                    className={`h-2.5 w-2.5 fill-current shrink-0 ${
+                    className={`h-2.5 w-2.5 fill-current shrink-0 mt-1 ${
                       task.status === "approved"
                         ? "text-emerald-500"
                         : statusDotColors[task.status] || "text-gray-400"
                     }`}
                   />
 
-                  <span
-                    className={`truncate line-clamp-1 ${
-                      task.status === "approved"
-                        ? "text-gray-400 line-through font-semibold"
-                        : "text-gray-700 font-semibold"
-                    }`}
-                  >
-                    {task.title}
-                  </span>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    {task.category && (
+                      <span className="text-[10px] text-gray-400 font-medium truncate block">
+                        {task.category}
+                      </span>
+                    )}
+                    <span
+                      className={`truncate line-clamp-1 ${
+                        task.status === "approved"
+                          ? "text-gray-400 line-through font-semibold"
+                          : "text-gray-700 font-semibold"
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+                  </div>
                 </div>
 
                 <span

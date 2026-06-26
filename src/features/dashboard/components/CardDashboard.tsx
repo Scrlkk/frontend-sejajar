@@ -9,14 +9,15 @@ import type { LucideIcon } from "lucide-react";
 export interface CardDashboardProps {
   title: string;
   value: string | number;
-  description?: string;
+  description?: string | React.ReactNode;
   icon: LucideIcon;
   iconColor?: string;
   iconBgColor?: string;
   isEmpty?: boolean;
   emptyValue?: string | number;
-  emptyDescription?: string;
+  emptyDescription?: string | React.ReactNode;
   mutedIfEmpty?: boolean;
+  valueColor?: string;
 }
 
 export function CardDashboard({
@@ -30,8 +31,9 @@ export function CardDashboard({
   emptyValue = "-",
   emptyDescription,
   mutedIfEmpty = true,
+  valueColor,
 }: CardDashboardProps) {
-  const isCardEmpty = isEmpty ?? (value === undefined || value === null || value === "" || value === 0);
+  const isCardEmpty = isEmpty ?? (value === undefined || value === null || value === "" || value === 0 || value === "0");
 
   const displayValue = isCardEmpty ? emptyValue : value;
   const displayDescription = isCardEmpty 
@@ -48,7 +50,7 @@ export function CardDashboard({
             {title}
           </CardTitle>
           <CardDescription className={`text-2xl font-bold ${
-            isCardEmpty ? "text-gray-400 font-medium" : "text-primary"
+            isCardEmpty ? "text-gray-400 font-medium" : (valueColor ? valueColor : "text-primary")
           }`}>
             {displayValue}
           </CardDescription>

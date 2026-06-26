@@ -79,7 +79,7 @@ export function TeamsMember({
               {/* Right: Status Dot */}
               <div
                 className={`h-2.5 w-2.5 rounded-full shrink-0 ${
-                  member.statusDotColor || "bg-emerald-500"
+                  member.statusDotColor || "bg-gray-300"
                 }`}
               />
             </div>

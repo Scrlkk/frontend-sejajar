@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { UserData } from "@/data/mockData";
+import type { UserData } from "@/features/users/api/usersApi";
 import {
   Plus,
   Trash2,
@@ -31,26 +31,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getRoleVisuals } from "@/features/users/constants/roleColors";
 
 interface UserManagementProps {
   users: UserData[];
+  onSaveUser?: (data: UserFormValues & { id?: number }) => void;
+  onDeleteUser?: (id: number) => void;
+  onReactivateUser?: (id: number) => void;
   title?: string;
   itemsPerPage?: number;
 }
 
 export function UserManagement({
   users,
+  onSaveUser,
+  onDeleteUser,
+  onReactivateUser,
   title = "User Management",
   itemsPerPage = 8,
 }: UserManagementProps) {
-  const [prevUsers, setPrevUsers] = useState<UserData[]>(users);
-  const [usersList, setUsersList] = useState<UserData[]>(users);
-
-  // Adjust state synchronously if props change
-  if (users !== prevUsers) {
-    setPrevUsers(users);
-    setUsersList(users);
-  }
+  const { isAdmin } = usePermissions();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,7 +62,7 @@ export function UserManagement({
 
   const roles = Array.from(
     new Set(
-      usersList.flatMap((user) =>
+      users.flatMap((user) =>
         user.role ? user.role.split(",").map((r) => r.trim()) : [],
       ),
     ),
@@ -69,15 +70,22 @@ export function UserManagement({
     (role) =>
       role !== "Super Admin" &&
       role !== "Superadmin" &&
-      role !== "",
+      role !== "" &&
+      (isAdmin || role.toLowerCase() !== "owner"),
   );
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
-  const filteredUsers = usersList.filter((user) => {
+  const filteredUsers = users.filter((user) => {
     if (user.role === "Super Admin" || user.role === "Superadmin") return false;
+
+    // Specifically for owner role viewing, exclude owner role users
+    if (!isAdmin && user.role) {
+      const userRolesList = user.role.split(",").map((r) => r.trim().toLowerCase());
+      if (userRolesList.includes("owner")) return false;
+    }
 
     const matchesName = user.name
       .toLowerCase()
@@ -116,53 +124,9 @@ export function UserManagement({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Helper to generate visuals based on role
-  const getRoleVisuals = (role: string) => {
-    switch (role) {
-      case "Owner":
-        return {
-          avatarBg: "bg-amber-50 text-amber-600",
-          roleBg: "bg-amber-50 text-amber-600 hover:bg-amber-50",
-        };
-      case "Content Lead":
-        return {
-          avatarBg: "bg-blue-50 text-blue-600",
-          roleBg: "bg-blue-50 text-blue-600 hover:bg-blue-50",
-        };
-      case "Admin Social Media":
-        return {
-          avatarBg: "bg-emerald-50 text-emerald-600",
-          roleBg: "bg-emerald-50 text-emerald-600 hover:bg-emerald-50",
-        };
-      case "Content Editor":
-      case "Editor":
-        return {
-          avatarBg: "bg-pink-50 text-pink-600",
-          roleBg: "bg-pink-50 text-pink-500 hover:bg-pink-50",
-        };
-      case "Script Writer":
-        return {
-          avatarBg: "bg-purple-50 text-purple-600",
-          roleBg: "bg-purple-50 text-purple-600 hover:bg-purple-50",
-        };
-      default:
-        return {
-          avatarBg: "bg-gray-50 text-gray-600",
-          roleBg: "bg-gray-50 text-gray-500 hover:bg-gray-50",
-        };
-    }
-  };
 
-  const getInitials = (fullName: string) => {
-    return (
-      fullName
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase() || "U"
-    );
-  };
+
+
 
   const handleOpenAddModal = () => {
     setSelectedUser(null);
@@ -185,11 +149,7 @@ export function UserManagement({
 
   const confirmDeleteUser = () => {
     if (userToDelete) {
-      setUsersList((prev) =>
-        prev.map((u) =>
-          u.id === userToDelete.id ? { ...u, status: "inactive" } : u,
-        ),
-      );
+      onDeleteUser?.(userToDelete.id);
       setIsDeleteModalOpen(false);
       setUserToDelete(null);
     }
@@ -208,76 +168,29 @@ export function UserManagement({
 
   const confirmReactivateUser = () => {
     if (userToReactivate) {
-      setUsersList((prev) =>
-        prev.map((u) =>
-          u.id === userToReactivate.id ? { ...u, status: "active" } : u,
-        ),
-      );
+      onReactivateUser?.(userToReactivate.id);
       setIsReactivateModalOpen(false);
       setUserToReactivate(null);
     }
   };
 
   const handleSaveUser = (data: UserFormValues & { id?: number }) => {
-    const primaryRole = data.role[0] || "";
-    const visuals = getRoleVisuals(primaryRole);
-    const initials = getInitials(data.fullName);
-    const rolesString = data.role.join(", ");
-
-    if (data.id) {
-      // Edit mode
-      setUsersList((prev) =>
-        prev.map((u) =>
-          u.id === data.id
-            ? {
-                ...u,
-                name: data.fullName,
-                email: data.email,
-                role: rolesString,
-                status: data.isActive ? "active" : "inactive",
-                initials,
-                ...visuals,
-              }
-            : u,
-        ),
-      );
-    } else {
-      // Add mode
-      const newId = Math.max(...usersList.map((u) => u.id), 0) + 1;
-      const today = new Date();
-      const formattedDate = today.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-
-      const newUser: UserData = {
-        id: newId,
-        name: data.fullName,
-        email: data.email,
-        role: rolesString,
-        initials,
-        tasks: 0,
-        joined: formattedDate,
-        status: data.isActive ? "active" : "inactive",
-        ...visuals,
-      };
-
-      setUsersList((prev) => [newUser, ...prev]);
-    }
+    onSaveUser?.(data);
   };
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4">
       <div className="flex flex-row items-center justify-between gap-4">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-        <Button
-          onClick={handleOpenAddModal}
-          className="w-auto bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <Plus className="h-4 w-4" />
-          Add User
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={handleOpenAddModal}
+            className="w-auto bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+            Add User
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full">
@@ -366,9 +279,11 @@ export function UserManagement({
               <TableHead className="text-gray-400 font-medium">
                 Status
               </TableHead>
-              <TableHead className="text-gray-400 font-medium text-center">
-                Actions
-              </TableHead>
+              {isAdmin && (
+                <TableHead className="text-gray-400 font-medium text-center">
+                  Actions
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
 
@@ -431,43 +346,45 @@ export function UserManagement({
                     </Badge>
                   </TableCell>
 
-                  <TableCell className="py-3.5">
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenEditModal(user)}
-                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer"
-                      >
-                        <UserRoundPen className="h-4 w-4" />
-                      </Button>
-                      {user.status === "active" ? (
+                  {isAdmin && (
+                    <TableCell className="py-3.5">
+                      <div className="flex items-center justify-center gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteUser(user)}
-                          className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                          onClick={() => handleOpenEditModal(user)}
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <UserRoundPen className="h-4 w-4" />
                         </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleReactivateUser(user)}
-                          className="h-8 w-8 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg cursor-pointer"
-                        >
-                          <UserCheck className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+                        {user.status === "active" ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteUser(user)}
+                            className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleReactivateUser(user)}
+                            className="h-8 w-8 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg cursor-pointer"
+                          >
+                            <UserCheck className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
-            ) : usersList.length === 0 ? (
+            ) : users.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={isAdmin ? 7 : 6}
                   className="py-16 text-center text-gray-400"
                 >
                   <div className="flex flex-col items-center justify-center">
@@ -496,7 +413,7 @@ export function UserManagement({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={isAdmin ? 7 : 6}
                   className="py-16 text-center text-gray-400"
                 >
                   <div className="flex flex-col items-center justify-center">

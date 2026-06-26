@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TaskCommentItem } from "@/features/tasks/components/TasksContent";
 
@@ -15,9 +15,17 @@ export function FeedbackComment({
   const [newComment, setNewComment] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const prevLengthRef = useRef<number | null>(null);
+
   // Auto-scroll to the bottom of the chat list on load or when new comments are added
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (comments && comments.length > 0) {
+      const prevLength = prevLengthRef.current;
+      if (prevLength === null || comments.length > prevLength) {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+      prevLengthRef.current = comments.length;
+    }
   }, [comments]);
 
   const handleSend = (e: React.FormEvent) => {
@@ -34,44 +42,66 @@ export function FeedbackComment({
         {comments && comments.length > 0 ? (
           comments.map((comment) => {
             const isMe = comment.isMe;
+            const isSystem = comment.isSystem;
             return (
               <div
                 key={comment.id}
                 className={`flex items-start gap-2.5 max-w-[85%] transition-all duration-300 ${
-                  isMe ? "ml-auto flex-row-reverse" : "mr-auto"
+                  isSystem
+                    ? "mr-auto"
+                    : isMe
+                      ? "ml-auto flex-row-reverse"
+                      : "mr-auto"
                 }`}
               >
                 {/* Avatar */}
-                <div
-                  className={`h-7 w-7 rounded-full flex items-center justify-center text-[9px] font-bold border shrink-0 border-white shadow-md transition-transform hover:scale-105 ${
-                    comment.senderBg
-                  }`}
-                  title={comment.sender}
-                >
-                  {comment.senderInitials}
-                </div>
+                {isSystem ? (
+                  <div
+                    className="h-7 w-7 rounded-full flex items-center justify-center border shrink-0 border-slate-300 bg-white text-slate-800 shadow-md transition-transform hover:scale-105"
+                    title={comment.sender}
+                  >
+                    <Bot className="h-3.5 w-3.5 text-slate-800" />
+                  </div>
+                ) : (
+                  <div
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[9px] font-bold border shrink-0 border-white shadow-md transition-transform hover:scale-105 ${
+                      comment.senderBg
+                    }`}
+                    title={comment.sender}
+                  >
+                    {comment.senderInitials}
+                  </div>
+                )}
 
                 {/* Message Bubble Container */}
                 <div
                   className={`flex flex-col space-y-1 ${
-                    isMe ? "items-end" : "items-start"
+                    isSystem
+                      ? "items-start"
+                      : isMe
+                        ? "items-end"
+                        : "items-start"
                   }`}
                 >
-                  {/* Sender Name & Date */}
+                  {/* Sender Name (Others) & Date */}
                   <span
-                    className={`text-[9px] font-semibold text-gray-400 uppercase tracking-widest ${
+                    className={`text-[9px] font-semibold text-gray-400 capitalize tracking-widest ${
                       isMe ? "text-right" : "text-left"
                     }`}
                   >
-                    {comment.sender} • {comment.timestamp}
+                    {isMe
+                      ? comment.timestamp
+                      : `${comment.sender} • ${comment.timestamp}`}
                   </span>
 
                   {/* Message Bubble */}
                   <div
                     className={`px-3 py-2 rounded-lg text-xs leading-relaxed shadow-sm font-medium transition-all ${
-                      isMe
-                        ? "bg-linear-to-br from-red-800 to-red-900 text-white rounded-tr-none border border-red-950/20"
-                        : "bg-white text-gray-800 border border-gray-300 rounded-tl-none"
+                      isSystem
+                        ? "bg-slate-100/90 text-slate-700 border border-slate-200 rounded-tl-none font-semibold italic"
+                        : isMe
+                          ? "bg-linear-to-br from-red-800 to-red-900 text-white rounded-tr-none border border-red-950/20"
+                          : "bg-white text-gray-800 border border-gray-300 rounded-tl-none"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{comment.text}</p>

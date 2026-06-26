@@ -1,0 +1,190 @@
+import {
+  UsersRound,
+  Activity,
+  FileText,
+  Video,
+  SquareDashedText,
+  Send,
+  TrendingUp,
+  ChartNoAxesColumn,
+  FileClock,
+  Clock,
+  CircleCheckBig,
+  TriangleAlert,
+  CheckCircle,
+} from "lucide-react";
+
+export const SUPERADMIN_CARDS_TEMPLATE = [
+  {
+    key: "total_users",
+    title: "Total Users",
+    description: "Overall Users",
+    icon: UsersRound,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+  {
+    key: "online_users",
+    title: "Active Users",
+    description: "All Online Users",
+    icon: UsersRound,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    key: "roles_assigned",
+    title: "Roles Assigned",
+    description: "All Roles",
+    icon: UsersRound,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    key: "active_sessions",
+    title: "Active Session",
+    description: "All Online Sessions",
+    icon: Activity,
+    iconColor: "text-blue-600",
+    iconBgColor: "bg-blue-600/10",
+  },
+];
+
+export const OWNER_CARDS_TEMPLATE = [
+  {
+    key: "active_contracts",
+    title: "Active Contracts",
+    description: "Active Contracts",
+    icon: FileText,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+  {
+    key: "total_employee",
+    title: "Total Employee",
+    description: "Total Employee",
+    icon: FileText,
+    iconColor: "text-blue-600",
+    iconBgColor: "bg-blue-600/10",
+  },
+  {
+    key: "content_published",
+    title: "Content Published",
+    description: "Content Published",
+    icon: ChartNoAxesColumn,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    key: "revenue",
+    title: "Revenue",
+    description: "Revenue of This Month",
+    icon: TrendingUp,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+];
+
+export const CONTENT_LEAD_CARDS_TEMPLATE = [
+  {
+    key: "active_contracts",
+    title: "Active Contracts",
+    description: "All Active Contracts",
+    icon: FileText,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+  {
+    key: "total_content",
+    title: "Total Content",
+    description: "This Month",
+    icon: Video,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    key: "in_production",
+    title: "In Production",
+    description: "Awaiting Completion",
+    icon: SquareDashedText,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    key: "published",
+    title: "Published",
+    description: "This Month",
+    icon: Send,
+    iconColor: "text-blue-600",
+    iconBgColor: "bg-blue-600/10",
+  },
+];
+
+export const STAFF_CARDS_TEMPLATE = [
+  {
+    key: "to_do",
+    title: "To Do",
+    description: "Awaiting Start",
+    icon: FileClock,
+    iconColor: "text-gray-600",
+    iconBgColor: "bg-gray-600/10",
+  },
+  {
+    key: "on_progress",
+    title: "On Progress",
+    description: "Currently Working",
+    icon: Clock,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    key: "approved",
+    title: "Approved",
+    description: "Completed",
+    icon: CircleCheckBig,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    key: "revision",
+    title: "Revision",
+    description: "Needs Attention",
+    icon: TriangleAlert,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+];
+
+export const ADMIN_SOCIAL_MEDIA_CARDS_TEMPLATE = [
+  {
+    key: "published_today",
+    title: "Published Today",
+    description: "Content Published Today",
+    icon: CheckCircle,
+    iconColor: "text-green-600",
+    iconBgColor: "bg-green-600/10",
+  },
+  {
+    key: "on_progress",
+    title: "On Progress",
+    description: "Task Sedang Dikerjakan",
+    icon: Clock,
+    iconColor: "text-yellow-600",
+    iconBgColor: "bg-yellow-600/10",
+  },
+  {
+    key: "scheduled",
+    title: "Scheduled",
+    description: "Konten Terjadwal",
+    icon: Send,
+    iconColor: "text-blue-600",
+    iconBgColor: "bg-blue-600/10",
+  },
+  {
+    key: "revision",
+    title: "Revision",
+    description: "Needs Attention",
+    icon: TriangleAlert,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+  },
+];

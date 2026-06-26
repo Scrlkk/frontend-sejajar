@@ -3,7 +3,6 @@ import { AuthLayout } from "@/layouts/AuthLayout";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { ForgotPasswordPage } from "@/features/auth/pages/ForgotPasswordPage";
-import { ResetPasswordPage } from "@/features/auth/pages/ResetPasswordPage";
 import { SuperadminPage } from "@/features/dashboard/pages/SuperadminPage";
 import { UserRolePage } from "@/features/users/pages/UserRolePage";
 import { ProfilePage } from "@/features/users/pages/ProfilePage";
@@ -25,96 +24,218 @@ import { UploadsPage } from "@/features/tasks/pages/UploadsPage";
 import { DraftsPage } from "@/features/tasks/pages/DraftsPage";
 import { ContractContentPage } from "@/features/contracts/pages/ContractContentPage";
 import { ClientsPage } from "@/features/clients/pages/ClientsPage";
+import { PillarsPage } from "@/features/pillars/pages/PillarsPage";
+
+// Route guard wrappers
+import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import { GuestRoute } from "@/routes/GuestRoute";
+import { RoleRoute } from "@/routes/RoleRoute";
 
 export const router = createBrowserRouter([
   {
-    element: <AuthLayout />,
-    errorElement: <InternalError />,
+    element: <GuestRoute />,
     children: [
-      { path: "/login", element: <LoginPage /> },
-      { path: "/forgot-password", element: <ForgotPasswordPage /> },
-      { path: "/reset-password", element: <ResetPasswordPage /> },
+      {
+        element: <AuthLayout />,
+        errorElement: <InternalError />,
+        children: [
+          { path: "/login", element: <LoginPage /> },
+          { path: "/forgot-password", element: <ForgotPasswordPage /> },
+        ],
+      },
     ],
   },
   {
-    element: <DashboardLayout />,
-    errorElement: <InternalError />,
+    element: <ProtectedRoute />,
     children: [
       {
-        path: "/dashboard/superadmin",
-        element: <SuperadminPage />,
-      },
-      {
-        path: "/dashboard/social-media",
-        element: <AdminSocialMediaPage />,
-      },
-      {
-        path: "/dashboard/content-lead",
-        element: <ContentLeadPage />,
-      },
-      {
-        path: "/dashboard/owner",
-        element: <OwnerPage />,
-      },
-      {
-        path: "/dashboard/script-writer",
-        element: <ScriptWriterPage />,
-      },
-      {
-        path: "/dashboard/content-editor",
-        element: <ContentEditorPage />,
-      },
-      {
-        path: "/clients",
-        element: <ClientsPage />,
-      },
-      {
-        path: "/contracts",
-        element: <ContractPage />,
-      },
-      {
-        path: "/contracts/:id",
-        element: <ContractContentPage />,
-      },
-      {
-        path: "/tasks",
-        element: <TasksPage />,
-      },
-      {
-        path: "/calendar",
-        element: <CalendarPage />,
-      },
-      {
-        path: "/drafts",
-        element: <DraftsPage />,
-      },
-      {
-        path: "/uploads",
-        element: <UploadsPage />,
-      },
-      {
-        path: "/publish",
-        element: <PublishPage />,
-      },
-      {
-        path: "/analytics",
-        element: <AnalyticsPage />,
-      },
-      {
-        path: "/engagement",
-        element: <EngagementPage />,
-      },
-      {
-        path: "/user-roles",
-        element: <UserRolePage />,
-      },
-      {
-        path: "/profile",
-        element: <ProfilePage />,
-      },
-      {
-        path: "/system-logs",
-        element: <SystemlogsPage />,
+        element: <DashboardLayout />,
+        errorElement: <InternalError />,
+        children: [
+          // --- Role-specific Dashboards ---
+          {
+            element: <RoleRoute allowedRoles={["superadmin"]} />,
+            children: [
+              {
+                path: "/dashboard/superadmin",
+                element: <SuperadminPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["admin_social_media"]} />,
+            children: [
+              {
+                path: "/dashboard/social-media",
+                element: <AdminSocialMediaPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["content_lead"]} />,
+            children: [
+              {
+                path: "/dashboard/content-lead",
+                element: <ContentLeadPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["owner"]} />,
+            children: [
+              {
+                path: "/dashboard/owner",
+                element: <OwnerPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["script_writer"]} />,
+            children: [
+              {
+                path: "/dashboard/script-writer",
+                element: <ScriptWriterPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["content_editor"]} />,
+            children: [
+              {
+                path: "/dashboard/content-editor",
+                element: <ContentEditorPage />,
+              },
+            ],
+          },
+
+          // --- Shared/Authenticated Pages ---
+          {
+            element: <RoleRoute allowedRoles={["owner"]} />,
+            children: [
+              {
+                path: "/clients",
+                element: <ClientsPage />,
+              },
+              {
+                path: "/analytics",
+                element: <AnalyticsPage />,
+              },
+              {
+                path: "/employee",
+                element: <UserRolePage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["owner", "content_lead"]} />,
+            children: [
+              {
+                path: "/contracts",
+                element: <ContractPage />,
+              },
+              {
+                path: "/contracts/:id",
+                element: <ContractContentPage />,
+              },
+              {
+                path: "/metadata",
+                element: <PillarsPage />,
+              },
+            ],
+          },
+          {
+            element: (
+              <RoleRoute
+                allowedRoles={[
+                  "content_lead",
+                  "content_editor",
+                  "script_writer",
+                  "admin_social_media",
+                ]}
+              />
+            ),
+            children: [
+              {
+                path: "/tasks",
+                element: <TasksPage />,
+              },
+            ],
+          },
+          {
+            element: (
+              <RoleRoute
+                allowedRoles={[
+                  "owner",
+                  "content_lead",
+                  "content_editor",
+                  "script_writer",
+                  "admin_social_media",
+                ]}
+              />
+            ),
+            children: [
+              {
+                path: "/calendar",
+                element: <CalendarPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["script_writer"]} />,
+            children: [
+              {
+                path: "/drafts",
+                element: <DraftsPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["content_editor"]} />,
+            children: [
+              {
+                path: "/uploads",
+                element: <UploadsPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["admin_social_media"]} />,
+            children: [
+              {
+                path: "/publish",
+                element: <PublishPage />,
+              },
+              {
+                path: "/engagement",
+                element: <EngagementPage />,
+              },
+            ],
+          },
+          {
+            path: "/profile",
+            element: <ProfilePage />,
+          },
+
+          // --- Restricted Pages ---
+          {
+            element: <RoleRoute allowedRoles={["superadmin", "owner"]} />,
+            children: [
+              {
+                path: "/user-roles",
+                element: <UserRolePage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={["superadmin"]} />,
+            children: [
+              {
+                path: "/system-logs",
+                element: <SystemlogsPage />,
+              },
+            ],
+          },
+        ],
       },
     ],
   },

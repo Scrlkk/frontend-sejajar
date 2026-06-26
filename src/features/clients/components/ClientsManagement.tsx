@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ClientData } from "@/data/mockData";
+import type { ClientData } from "@/features/clients/pages/ClientsPage";
 import {
   Plus,
   Trash2,
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import { ClientsModal } from "@/features/clients/components/ClientsModal";
 import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDateEN } from "@/utils/helpers";
 
 interface ClientsManagementProps {
   clients: ClientData[];
@@ -40,6 +42,7 @@ export function ClientsManagement({
   title = "Client Management",
   itemsPerPage = 8,
 }: ClientsManagementProps) {
+  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -53,13 +56,26 @@ export function ClientsManagement({
 
   const filteredClients = clients.filter((client) => {
     const query = searchQuery.toLowerCase().trim();
-    return (
+    const matchesSearch =
       client.client_name.toLowerCase().includes(query) ||
       client.company_name.toLowerCase().includes(query) ||
       String(client.client_id).toLowerCase().includes(query) ||
-      client.contact_email.toLowerCase().includes(query)
-    );
+      client.contact_email.toLowerCase().includes(query);
+
+    const clientStatus = client.status ?? "active";
+    if (activeTab === "all" || activeTab === "active")
+      return matchesSearch && clientStatus === "active";
+    if (activeTab === "inactive")
+      return matchesSearch && clientStatus === "inactive";
+    return matchesSearch;
   });
+
+  const countStatus = (statusName: string) => {
+    if (statusName === "all") {
+      return clients.filter((c) => (c.status ?? "active") === "active").length;
+    }
+    return clients.filter((c) => (c.status ?? "active") === statusName).length;
+  };
 
   const totalItems = filteredClients.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
@@ -127,7 +143,8 @@ export function ClientsManagement({
 
   // Reactivate confirmation dialog states
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
-  const [clientToReactivate, setClientToReactivate] = useState<ClientData | null>(null);
+  const [clientToReactivate, setClientToReactivate] =
+    useState<ClientData | null>(null);
 
   const handleReactivateTrigger = (client: ClientData) => {
     setClientToReactivate(client);
@@ -147,21 +164,24 @@ export function ClientsManagement({
     }
   };
 
-  const handleSaveClient = (data: Omit<ClientData, "client_id"> & { client_id?: number }) => {
+  const handleSaveClient = (
+    data: Omit<ClientData, "client_id"> & { client_id?: number },
+  ) => {
     if (selectedClient) {
       onEditClient({
         ...data,
         client_id: selectedClient.client_id,
       } as ClientData);
     } else {
-      const nextId = clients.length > 0 
-        ? Math.max(...clients.map((c) => c.client_id)) + 1
-        : 1;
+      const nextId =
+        clients.length > 0
+          ? Math.max(...clients.map((c) => c.client_id)) + 1
+          : 1;
       onAddClient({
         ...data,
         client_id: nextId,
         status: data.status ?? "active",
-        joinedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        joinedDate: formatDateEN(new Date()),
       } as ClientData);
     }
   };
@@ -180,6 +200,31 @@ export function ClientsManagement({
               onChange={handleSearchChange}
               className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/20 focus:border-red-800 transition-colors"
             />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Tabs
+              value={activeTab}
+              onValueChange={(val) => {
+                setActiveTab(val);
+                setCurrentPage(1);
+              }}
+              className="w-full sm:w-auto"
+            >
+              <TabsList className="bg-gray-100/80 p-1 rounded-xl h-10 gap-1 justify-start">
+                <TabsTrigger
+                  value="all"
+                  className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  All ({countStatus("all")})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="inactive"
+                  className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-red-600"
+                >
+                  Inactive ({countStatus("inactive")})
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
           <Button
             onClick={handleOpenAddModal}
@@ -200,7 +245,8 @@ export function ClientsManagement({
             Belum Ada Klien
           </h4>
           <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-5 font-semibold">
-            Mulai dengan mendaftarkan klien baru untuk mengelola kontak dan detail kerja sama secara terpusat.
+            Mulai dengan mendaftarkan klien baru untuk mengelola kontak dan
+            detail kerja sama secara terpusat.
           </p>
           <Button
             onClick={handleOpenAddModal}
@@ -219,7 +265,8 @@ export function ClientsManagement({
             Klien Tidak Ditemukan
           </h4>
           <p className="text-xs text-gray-500 max-w-xs leading-relaxed mb-5 font-semibold">
-            Tidak ada klien yang cocok dengan kata kunci pencarian "{searchQuery}".
+            Tidak ada klien yang cocok dengan kata kunci pencarian "
+            {searchQuery}".
           </p>
           <Button
             variant="outline"
@@ -235,12 +282,24 @@ export function ClientsManagement({
             <Table>
               <TableHeader className="bg-gray-50/50">
                 <TableRow className="border-none hover:bg-transparent">
-                  <TableHead className="text-gray-400 font-medium">Company / Brand</TableHead>
-                  <TableHead className="text-gray-400 font-medium">Client Name</TableHead>
-                  <TableHead className="text-gray-400 font-medium">Email</TableHead>
-                  <TableHead className="text-gray-400 font-medium">Phone</TableHead>
-                  <TableHead className="text-gray-400 font-medium">Status</TableHead>
-                  <TableHead className="text-gray-400 font-medium text-center">Actions</TableHead>
+                  <TableHead className="text-gray-400 font-medium">
+                    Company / Brand
+                  </TableHead>
+                  <TableHead className="text-gray-400 font-medium">
+                    Client Name
+                  </TableHead>
+                  <TableHead className="text-gray-400 font-medium">
+                    Email
+                  </TableHead>
+                  <TableHead className="text-gray-400 font-medium">
+                    Phone
+                  </TableHead>
+                  <TableHead className="text-gray-400 font-medium">
+                    Status
+                  </TableHead>
+                  <TableHead className="text-gray-400 font-medium text-center">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -404,7 +463,9 @@ export function ClientsManagement({
             <span className="font-semibold text-gray-950">
               {clientToDelete?.client_name}
             </span>
-            ? Status klien akan berubah menjadi <span className="font-semibold text-red-600">Inactive</span>. Anda masih bisa mengaktifkan kembali melalui menu Edit.
+            ? Status klien akan berubah menjadi{" "}
+            <span className="font-semibold text-red-600">Inactive</span>. Anda
+            masih bisa mengaktifkan kembali melalui menu Edit.
           </>
         }
         cancelText="Batal"

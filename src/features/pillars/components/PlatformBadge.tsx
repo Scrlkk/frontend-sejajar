@@ -1,13 +1,23 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { getColorToken } from "@/features/pillars/constants/colorPalette";
 
 interface PlatformBadgeProps {
   platform: string;
+  colorKey?: string | null;
   className?: string;
   showDot?: boolean;
 }
 
-const getPlatformStyle = (platform: string) => {
+const getPlatformStyle = (platform: string, colorKey?: string | null) => {
+  if (colorKey) {
+    const token = getColorToken(platform, colorKey);
+    return {
+      bg: token.badge,
+      dot: token.dot,
+    };
+  }
+
   const norm = platform.toLowerCase().trim();
   switch (norm) {
     case "instagram":
@@ -35,17 +45,18 @@ const getPlatformStyle = (platform: string) => {
 
 export const PlatformBadge = ({
   platform,
+  colorKey,
   className,
   showDot = true,
 }: PlatformBadgeProps) => {
   if (!platform) return null;
-  const style = getPlatformStyle(platform);
+  const style = getPlatformStyle(platform, colorKey);
 
   return (
     <Badge
       variant="outline"
       className={cn(
-        "rounded-full font-medium px-2.5 py-0.5 text-xs flex items-center gap-1.5 shadow-none border",
+        "rounded-full font-medium px-2.5 py-0.5 text-xs flex items-center gap-1.5 w-fit shadow-none border shrink-0",
         style.bg,
         className
       )}
@@ -57,3 +68,4 @@ export const PlatformBadge = ({
     </Badge>
   );
 };
+

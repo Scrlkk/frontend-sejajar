@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Upload, Play, Trash2, Image, AlertTriangle } from "lucide-react";
+import { Search, Upload, AlertTriangle, Video, Play, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
@@ -7,14 +7,31 @@ import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeCon
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import type { AssignerInfo } from "@/data/mockData";
+const getFileUrl = (url?: string | null) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  let apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+  if (apiBase.endsWith("/api")) {
+    apiBase = apiBase.substring(0, apiBase.length - 4);
+  }
+  const path = url.startsWith("/") ? url : `/${url}`;
+  return `${apiBase}${path}`;
+};
+
+export interface AssignerInfo {
+  name: string;
+  role: string;
+  initials: string;
+}
 
 export interface UploadedMediaItem {
   id: string | number;
+  latest_output_id?: number;
   title: string;
   type: "video" | "image";
   durationText?: string;
   platform: "TikTok" | "Instagram" | "YouTube" | string;
+  platformColorKey?: string | null;
   platformBg: string;
   fileSizeText: string;
   uploadedTimeText: string;
@@ -24,6 +41,10 @@ export interface UploadedMediaItem {
   revisionNote?: string;
   assigner?: AssignerInfo;
   isOverdue?: boolean;
+  content_id?: number;
+  task_id?: number;
+  file_url?: string;
+  deadline?: string | null;
 }
 
 export type UploadedVideoItem = UploadedMediaItem;
@@ -32,36 +53,48 @@ interface UploadsProps {
   uploads: UploadedMediaItem[];
   onUploadNew?: () => void;
   onOpen?: (item: UploadedMediaItem) => void;
-  onDelete?: (id: string | number) => void;
 }
 
-export function Uploads({
-  uploads,
-  onUploadNew,
-  onOpen,
-  onDelete,
-}: UploadsProps) {
+export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [playingItemId, setPlayingItemId] = useState<string | number | null>(
+    null,
+  );
 
-  const filteredUploads = uploads.filter((item) => {
-    const matchesSearch = item.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+  const handleClosePreview = () => {
+    setPlayingItemId(null);
+  };
 
-    if (activeTab === "uploading")
-      return matchesSearch && item.status === "Uploading";
-    if (activeTab === "pending")
-      return matchesSearch && item.status === "Pending";
-    if (activeTab === "revision")
-      return matchesSearch && item.status === "Revision";
-    if (activeTab === "approved")
-      return matchesSearch && item.status === "Approved";
-    if (activeTab === "overdue")
-      return matchesSearch && item.isOverdue;
+  const handlePlayClick = (item: UploadedMediaItem) => {
+    setPlayingItemId(item.id);
+  };
 
-    return matchesSearch;
-  });
+  const filteredUploads = uploads
+    .filter((item) => {
+      const matchesSearch = item.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+      if (activeTab === "all")
+        return matchesSearch && item.status.toLowerCase() !== "approved";
+      if (activeTab === "on_progress")
+        return matchesSearch && item.status === "On Progress";
+      if (activeTab === "pending")
+        return matchesSearch && item.status === "Pending";
+      if (activeTab === "revision")
+        return matchesSearch && item.status === "Revision";
+      if (activeTab === "approved")
+        return matchesSearch && item.status === "Approved";
+      if (activeTab === "overdue") return matchesSearch && item.isOverdue;
+
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+    });
 
   const countStatus = (statusName: string) =>
     uploads.filter((u) => u.status === statusName).length;
@@ -79,19 +112,24 @@ export function Uploads({
               value="all"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
-              All ({uploads.length})
+              All (
+              {
+                uploads.filter((u) => u.status.toLowerCase() !== "approved")
+                  .length
+              }
+              )
             </TabsTrigger>
             <TabsTrigger
-              value="uploading"
+              value="on_progress"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
-              Uploading ({countStatus("Uploading")})
+              On Progress ({countStatus("On Progress")})
             </TabsTrigger>
             <TabsTrigger
               value="pending"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
-              Pending Review ({countStatus("Pending")})
+              Review ({countStatus("Pending")})
             </TabsTrigger>
             <TabsTrigger
               value="revision"
@@ -107,7 +145,7 @@ export function Uploads({
             </TabsTrigger>
             <TabsTrigger
               value="overdue"
-              className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs text-red-600 data-[state=active]:text-red-700"
+              className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs data-[state=active]:text-red-700"
             >
               Overdue ({uploads.filter((u) => u.isOverdue).length})
             </TabsTrigger>
@@ -142,41 +180,167 @@ export function Uploads({
             <Card
               key={item.id}
               className={cn(
-                "w-full rounded-xl border outline outline-gray-300/50 shadow-lg p-4 space-y-4 flex flex-col justify-between transition-colors hover:border-red-logo",
+                "w-full rounded-xl border outline outline-gray-300/50 shadow-lg p-4 space-y-4 flex flex-col justify-between transition-colors hover:border-gray-300",
                 item.isOverdue
                   ? "bg-red-50/20 border-red-300"
-                  : "bg-white border-gray-200"
+                  : "bg-white border-gray-200",
               )}
             >
               <div className="space-y-4">
-                <div className="w-full h-44 bg-[#1e2530] rounded-xl flex items-center justify-center relative shadow-inner group cursor-pointer">
-                  <PlatformBadge
-                    platform={item.platform}
-                    className="absolute left-3 top-3 text-[10px]"
-                  />
-
-                  {item.type === "video" ? (
-                    <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-xs flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
-                      <Play className="h-5 w-5 text-white fill-white ml-0.5" />
+                <div className="w-full h-44 bg-[#1e2530] rounded-xl flex items-center justify-center relative shadow-inner group cursor-pointer overflow-hidden">
+                  {item.file_url && playingItemId === item.id ? (
+                    <div className="w-full h-full relative z-25 bg-[#1e2530] flex items-center justify-center">
+                      {item.type === "video" ? (
+                        (() => {
+                          const filenameWithExt = item.file_url.split("/").pop() || "";
+                          const dotIndex = filenameWithExt.lastIndexOf(".");
+                          const basename =
+                            dotIndex !== -1
+                              ? filenameWithExt.substring(0, dotIndex)
+                              : filenameWithExt;
+                          const streamUrl = `${(import.meta.env.VITE_API_URL || "").replace(/\/$/, "")}/stream-media/${basename}`;
+                          return (
+                            <video
+                              src={streamUrl}
+                              controls
+                              autoPlay
+                              playsInline
+                              controlsList="nodownload"
+                              className="w-full h-full object-contain"
+                            />
+                          );
+                        })()
+                      ) : (
+                        <img
+                          src={getFileUrl(item.file_url)}
+                          alt={item.title}
+                          className="w-full h-full object-contain"
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClosePreview();
+                        }}
+                        className="absolute top-2 right-2 h-7 w-7 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center shadow-md transition-colors cursor-pointer z-30"
+                        title="Close preview"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
+                  ) : item.file_url ? (
+                    item.type === "video" ? (
+                      (() => {
+                        const filenameWithExt =
+                          item.file_url.split("/").pop() || "";
+                        const dotIndex = filenameWithExt.lastIndexOf(".");
+                        const basename =
+                          dotIndex !== -1
+                            ? filenameWithExt.substring(0, dotIndex)
+                            : filenameWithExt;
+                        const streamUrl = `${(import.meta.env.VITE_API_URL || "").replace(/\/$/, "")}/stream-media/${basename}`;
+                        return (
+                          <div className="w-full h-full bg-slate-950 relative overflow-hidden group">
+                            {/* Video First Frame Thumbnail */}
+                            <video
+                              src={streamUrl}
+                              preload="metadata"
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover opacity-40 transition-transform duration-300 group-hover:scale-105"
+                            />
+                            {/* Overlaid Info */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 group-hover:text-white transition-colors pointer-events-none">
+                              <div className="h-10 w-10 rounded-full bg-red-800/10 border border-red-800/30 flex items-center justify-center mb-1.5 shadow-md">
+                                <Video className="h-4.5 w-4.5 text-red-650" />
+                              </div>
+                              <span className="text-[10px] font-bold tracking-wider text-slate-350 uppercase">
+                                Video Production
+                              </span>
+                              <span className="text-[8px] text-slate-500 mt-0.5 truncate max-w-40 font-medium">
+                                {filenameWithExt}
+                              </span>
+                            </div>
+                            {/* Play button overlay */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-10">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePlayClick(item);
+                                }}
+                                className="h-12 w-12 rounded-full bg-red-800 hover:bg-red-900 text-white flex items-center justify-center shadow-lg transition-transform duration-200 hover:scale-110 cursor-pointer"
+                              >
+                                <Play className="h-5 w-5 fill-current ml-0.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="w-full h-full relative overflow-hidden group/img">
+                        <img
+                          src={getFileUrl(item.file_url)}
+                          alt={item.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        {/* Preview button overlay */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-10">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPlayingItemId(item.id);
+                            }}
+                            className="h-12 w-12 rounded-full bg-red-800 hover:bg-red-900 text-white flex items-center justify-center shadow-lg transition-transform duration-200 hover:scale-110 cursor-pointer"
+                          >
+                            <Search className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </div>
+                    )
                   ) : (
-                    <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-xs flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
-                      <Image className="h-5 w-5 text-white" />
+                    <div className="flex flex-col items-center justify-center text-center p-4 w-full h-full bg-linear-to-b from-slate-900 to-slate-950 text-slate-400 group-hover:text-slate-200 transition-colors">
+                      <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs flex items-center justify-center mb-2 transition-all group-hover:scale-110 group-hover:bg-white/10 group-hover:border-white/20 shadow-lg">
+                        <Upload className="h-5 w-5 text-white/80" />
+                      </div>
+                      <span className="text-xs font-bold tracking-wide text-white/90">
+                        Belum Ada Media
+                      </span>
+                      <span className="text-[10px] text-white/40 mt-0.5">
+                        Klik "Open" untuk unggah file
+                      </span>
                     </div>
                   )}
 
-                  {item.type === "video" && item.durationText && (
-                    <span className="absolute right-3 bottom-3 bg-black/80 text-white font-extrabold text-[10px] tracking-wide rounded px-1.5 py-0.5">
-                      {item.durationText}
-                    </span>
-                  )}
+                  {item.type === "video" &&
+                    item.durationText &&
+                    playingItemId !== item.id && (
+                      <span className="absolute right-3 bottom-3 bg-black/80 text-white font-extrabold text-[10px] tracking-wide rounded px-1.5 py-0.5 z-10">
+                        {item.durationText}
+                      </span>
+                    )}
                 </div>
 
-                <div className="flex items-start justify-between gap-3 pt-1">
-                  <div className="space-y-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-base md:text-lg leading-snug truncate">
-                      {item.title}
-                    </h3>
+                <div className="flex gap-3 pt-1">
+                  <div className="space-y-2 min-w-0 flex-1">
+                    <div className="flex items-start flex-wrap gap-2">
+                      <h3 className="font-semibold text-gray-900 text-base md:text-lg leading-snug line-clamp-2 max-w-[80%]">
+                        {item.title}
+                      </h3>
+                      <StatusBadgeContent
+                        status={item.status}
+                        className="text-xs mt-0.5"
+                      />
+
+                      <PlatformBadge
+                        platform={item.platform}
+                        colorKey={item.platformColorKey}
+                        className="text-[10px] shrink-0"
+                      />
+                    </div>
+
                     <div className="flex items-center gap-2 text-[10px] md:text-xs font-semibold text-gray-400 tracking-wide uppercase flex-wrap">
                       <span className="capitalize">{item.type}</span>
                       <span>•</span>
@@ -188,7 +352,7 @@ export function Uploads({
                       {item.isOverdue && (
                         <>
                           <span>•</span>
-                          <span className="text-red-650 font-bold normal-case flex items-center gap-1">
+                          <span className="text-red-600 font-bold normal-case flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3 stroke-[2.5] text-red-600 shrink-0" />
                             Overdue
                           </span>
@@ -196,11 +360,6 @@ export function Uploads({
                       )}
                     </div>
                   </div>
-
-                  <StatusBadgeContent
-                    status={item.status}
-                    className="text-xs"
-                  />
                 </div>
 
                 {item.status === "Revision" && item.revisionNote && (
@@ -210,16 +369,7 @@ export function Uploads({
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-gray-50 text-xs md:text-sm font-bold text-gray-500">
-                <button
-                  type="button"
-                  onClick={() => onDelete?.(item.id)}
-                  className="flex items-center gap-1.5 text-red-500 hover:text-red-650 hover:bg-red-50 p-1.5 rounded-lg transition-all cursor-pointer font-semibold"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </button>
-
+              <div className="flex items-center justify-end pt-3 border-t border-gray-50">
                 <Button
                   type="button"
                   onClick={() => onOpen?.(item)}
@@ -230,7 +380,7 @@ export function Uploads({
               </div>
             </Card>
           ))
-        ) : uploads.length === 0 ? (
+        ) : filteredUploads.length === 0 && !searchQuery ? (
           <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-250 bg-slate-50/20 rounded-2xl">
             <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-800 shadow-sm mb-4">
               <Upload className="h-6 w-6 stroke-[1.5]" />

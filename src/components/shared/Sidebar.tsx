@@ -1,9 +1,12 @@
 import { LayoutPanelLeft } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { sidebarMenuGroups } from "@/components/shared/sidebarMenu";
+import { getSidebarGroupsForUser } from "@/components/shared/sidebarMenu";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Sidebar = () => {
   const location = useLocation();
+  const { user } = useAuth();
+  const sidebarGroups = getSidebarGroupsForUser(user);
 
   return (
     <div className="h-full flex flex-col">
@@ -20,7 +23,7 @@ export const Sidebar = () => {
       </div>
 
       <nav className="flex-1 px-4 overflow-y-auto space-y-4">
-        {sidebarMenuGroups.map((group) => (
+        {sidebarGroups.map((group) => (
           <div key={group.group}>
             <p className="px-4 mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
               {group.group}

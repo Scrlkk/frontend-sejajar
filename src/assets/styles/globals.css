@@ -131,6 +131,10 @@
     @apply bg-background text-foreground;
     font-family: var(--font-family-sans);
   }
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
 }
 
 ::-webkit-scrollbar {

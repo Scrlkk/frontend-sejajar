@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Eye,
   Heart,
@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -28,10 +29,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ManualEngagementEntry } from "@/data/mockData";
+export interface ManualEngagementEntry {
+  id: number;
+  contentTitle: string;
+  platform: "Instagram" | "TikTok" | "YouTube" | "Twitter";
+  date: string;
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+}
 import toast from "react-hot-toast";
 import { EngagementModal } from "@/features/analytics/components/EngagementModal";
 import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getTopContentsApi, recordEngagementApi, deleteEngagementApi } from "@/features/analytics/api/analyticsApi";
 
 type Platform = ManualEngagementEntry["platform"];
 
@@ -43,7 +55,7 @@ const platformBadgeBg: Record<Platform, string> = {
 };
 
 interface EngagementProps {
-  initialEntries: ManualEngagementEntry[];
+  initialEntries?: ManualEngagementEntry[];
   title?: string;
   itemsPerPage?: number;
   onAdd?: () => void;
@@ -52,15 +64,13 @@ interface EngagementProps {
 }
 
 export function Engagement({
-  initialEntries,
   title = "Engagement Entries",
   itemsPerPage = 6,
   onAdd,
   onUpdate,
   onDelete,
 }: EngagementProps) {
-  const [entries, setEntries] =
-    useState<ManualEngagementEntry[]>(initialEntries);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -75,6 +85,83 @@ export function Engagement({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] =
     useState<ManualEngagementEntry | null>(null);
+
+  // Live Query for top contents
+  const { data: topContents = [] } = useQuery({
+    queryKey: ["top-contents"],
+    queryFn: () => getTopContentsApi({ limit: 50 }),
+  });
+
+  // Map backend TopContent objects to ManualEngagementEntry shape
+  const entries = useMemo(() => {
+    return topContents
+      .map((item) => ({
+        id: item.id,
+        contentTitle: item.title,
+        platform: (item.platform_name || "Instagram") as Platform,
+        date: item.last_updated || new Date().toISOString(),
+        views: Number(item.total_views || 0),
+        likes: Number(item.total_likes || 0),
+        comments: Number(item.total_comments || 0),
+        shares: Number(item.total_shares || 0),
+      }))
+      .filter(
+        (entry) =>
+          entry.views > 0 ||
+          entry.likes > 0 ||
+          entry.comments > 0 ||
+          entry.shares > 0,
+      );
+  }, [topContents]);
+
+  // Live Mutation to record engagement
+  const recordMutation = useMutation({
+    mutationFn: async (payload: {
+      content_id: number;
+      views: number;
+      likes: number;
+      comments: number;
+      shares: number;
+      recorded_at?: string;
+      isEdit?: boolean;
+      isDelete?: boolean;
+    }) => {
+      if (payload.isDelete) {
+        await deleteEngagementApi(payload.content_id);
+      } else {
+        await recordEngagementApi({
+          content_id: payload.content_id,
+          views: payload.views,
+          likes: payload.likes,
+          comments: payload.comments,
+          shares: payload.shares,
+          recorded_at: payload.recorded_at,
+        });
+      }
+    },
+    onSuccess: (_, variables) => {
+      if (variables.isDelete) {
+        toast.success("Entri engagement berhasil dihapus!");
+      } else if (variables.isEdit) {
+        toast.success("Entri engagement berhasil diperbarui!");
+      } else {
+        toast.success("Entri engagement berhasil ditambahkan!");
+      }
+      queryClient.invalidateQueries({ queryKey: ["top-contents"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-charts"] });
+      setIsModalOpen(false);
+    },
+    onError: (err, variables) => {
+      console.error(err);
+      if (variables.isDelete) {
+        toast.error("Gagal menghapus entri engagement");
+      } else if (variables.isEdit) {
+        toast.error("Gagal memperbarui entri engagement");
+      } else {
+        toast.error("Gagal menambahkan entri engagement");
+      }
+    },
+  });
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -106,38 +193,49 @@ export function Engagement({
   };
 
   const handleModalSave = (data: {
+    contentId: number;
     contentTitle: string;
-    platform: ManualEngagementEntry["platform"];
+    platform: Platform;
     date: string;
     views: number;
     likes: number;
     comments: number;
     shares: number;
   }) => {
-    if (modalMode === "create") {
-      const newEntry: ManualEngagementEntry = {
-        id: Date.now(),
-        ...data,
-      };
-      setEntries((prev) => [newEntry, ...prev]);
-      toast.success("Entri engagement berhasil ditambahkan!");
-    } else if (editingItem) {
-      setEntries((prev) =>
-        prev.map((entry) =>
-          entry.id === editingItem.id ? { ...entry, ...data } : entry,
-        ),
-      );
-      toast.success("Entri engagement berhasil diperbarui!");
-    }
-    setIsModalOpen(false);
+    // Find if the currently selected content already has metrics in our list (either editing or another one)
+    const existing = entries.find((e) => e.id === data.contentId);
+
+    const currentViews = existing ? existing.views : 0;
+    const currentLikes = existing ? existing.likes : 0;
+    const currentComments = existing ? existing.comments : 0;
+    const currentShares = existing ? existing.shares : 0;
+
+    const viewsDiff = Math.max(0, data.views - currentViews);
+    const likesDiff = Math.max(0, data.likes - currentLikes);
+    const commentsDiff = Math.max(0, data.comments - currentComments);
+    const sharesDiff = Math.max(0, data.shares - currentShares);
+
+    recordMutation.mutate({
+      content_id: data.contentId,
+      views: viewsDiff,
+      likes: likesDiff,
+      comments: commentsDiff,
+      shares: sharesDiff,
+      recorded_at: data.date,
+      isEdit: modalMode === "edit",
+    });
   };
 
   const handleConfirmDelete = () => {
     if (itemToDelete) {
-      setEntries((prev) =>
-        prev.filter((entry) => entry.id !== itemToDelete.id),
-      );
-      toast.success("Entri engagement berhasil dihapus!");
+      recordMutation.mutate({
+        content_id: itemToDelete.id,
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        isDelete: true,
+      });
     }
     setIsDeleteModalOpen(false);
     setItemToDelete(null);
@@ -238,11 +336,7 @@ export function Engagement({
 
                   <TableCell className="py-4 text-gray-500 font-medium text-sm">
                     <span className="flex items-center gap-1.5">
-                      {new Date(entry.date).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {entry.date ? formatDate(entry.date) : "-"}
                     </span>
                   </TableCell>
 
@@ -424,6 +518,7 @@ export function Engagement({
         onClose={() => setIsModalOpen(false)}
         mode={modalMode}
         editingItem={editingItem}
+        existingEntries={entries}
         onSave={handleModalSave}
       />
 

@@ -40,6 +40,21 @@ const getStatusBadgeStyle = (status: string) => {
   }
 };
 
+const formatStatusLabel = (status: string) => {
+  const normStatus = status.trim().toLowerCase();
+  if (normStatus === "to_do" || normStatus === "todo" || normStatus === "to do") {
+    return "To Do";
+  }
+  if (normStatus === "on_progress" || normStatus === "on progress" || normStatus === "onprogress") {
+    return "On Progress";
+  }
+  if (normStatus === "pending" || normStatus === "review") {
+    return "Review";
+  }
+  // Capitalize first letter for others
+  return normStatus.charAt(0).toUpperCase() + normStatus.slice(1);
+};
+
 export const StatusBadgeContent = ({
   status,
   className,
@@ -56,7 +71,7 @@ export const StatusBadgeContent = ({
       )}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current shrink-0" />
-      {status}
+      {formatStatusLabel(status)}
     </Badge>
   );
 };

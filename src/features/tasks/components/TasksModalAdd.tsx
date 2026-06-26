@@ -11,46 +11,113 @@ import { Label } from "@/components/ui/label";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
 interface TasksModalAddProps {
   isOpen: boolean;
   onClose: () => void;
   card: ContentPlanCardItem | null;
-  onSave?: (
+  onSaveSingle?: (
     cardId: string,
-    memberTasks: Record<number, { title: string; description: string }>,
-  ) => void;
+    idx: number,
+    taskData: { title: string; description: string; deadline: string },
+  ) => Promise<void> | void;
 }
+
+const formatRoleLabel = (role?: string) => {
+  if (!role) return "Assigned Member";
+  const mapping: Record<string, string> = {
+    superadmin: "Super Admin",
+    owner: "Owner",
+    content_lead: "Content Lead",
+    content_editor: "Content Editor",
+    script_writer: "Script Writer",
+    admin_social_media: "Social Media Admin",
+  };
+  return mapping[role.toLowerCase()] || role.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+};
+
+const formatDateToInput = (dateStr?: string | null) => {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().split("T")[0];
+    }
+  } catch {
+    // ignore
+  }
+  return "";
+};
 
 export function TasksModalAdd({
   isOpen,
   onClose,
   card,
-  onSave,
+  onSaveSingle,
 }: TasksModalAddProps) {
-  // State to store task title and description for each member.
-  // Initialized dynamically from the card prop.
+  // State to store task title, description, and deadline for each member.
   const [memberTasks, setMemberTasks] = useState<
-    Record<number, { title: string; description: string }>
+    Record<number, { title: string; description: string; deadline: string }>
   >(() => {
-    const initialTasks: Record<number, { title: string; description: string }> =
+    const initialTasks: Record<number, { title: string; description: string; deadline: string }> =
       {};
     card?.assignedTeam?.forEach((_, idx) => {
       const existing = card.tasks?.[idx];
+      const isPlaceholder = existing?.title === "Persiapan Konten";
+      
+      let deadlineVal = "";
+      if (existing?.deadline) {
+        deadlineVal = formatDateToInput(existing.deadline);
+      } else if (card.dueDate) {
+        deadlineVal = formatDateToInput(card.dueDate);
+      }
+
       initialTasks[idx] = {
-        title: existing?.title || "",
-        description: existing?.description || "",
+        title: isPlaceholder ? "" : existing?.title || "",
+        description: isPlaceholder ? "" : existing?.description || "",
+        deadline: deadlineVal,
       };
     });
     return initialTasks;
   });
+
+  // Track initial tasks to compare and detect changes
+  const [initialTasksState, setInitialTasksState] = useState<
+    Record<number, { title: string; description: string; deadline: string; exists: boolean }>
+  >(() => {
+    const initialTasks: Record<number, { title: string; description: string; deadline: string; exists: boolean }> =
+      {};
+    card?.assignedTeam?.forEach((_, idx) => {
+      const existing = card.tasks?.[idx];
+      const isPlaceholder = existing?.title === "Persiapan Konten";
+
+      let deadlineVal = "";
+      if (existing?.deadline) {
+        deadlineVal = formatDateToInput(existing.deadline);
+      } else if (card.dueDate) {
+        deadlineVal = formatDateToInput(card.dueDate);
+      }
+
+      initialTasks[idx] = {
+        title: isPlaceholder ? "" : existing?.title || "",
+        description: isPlaceholder ? "" : existing?.description || "",
+        deadline: deadlineVal,
+        exists: !!existing && !isPlaceholder,
+      };
+    });
+    return initialTasks;
+  });
+
+  const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({});
 
   // Early return after hook declarations to follow Rules of Hooks
   if (!card) return null;
 
   const handleTaskChange = (
     idx: number,
-    field: "title" | "description",
+    field: "title" | "description" | "deadline",
     value: string,
   ) => {
     setMemberTasks((prev) => ({
@@ -62,21 +129,45 @@ export function TasksModalAdd({
     }));
   };
 
-  const isSaveDisabled =
-    !card.assignedTeam ||
-    card.assignedTeam.length === 0 ||
-    card.assignedTeam.some((_, idx) => {
-      const task = memberTasks[idx];
-      return !task || !task.title?.trim() || !task.description?.trim();
-    });
+  const handleSaveSingle = async (idx: number) => {
+    const task = memberTasks[idx];
+    if (!task) return;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onSave) {
-      onSave(card.id, memberTasks);
+    if (!task.title?.trim() || !task.description?.trim() || !task.deadline?.trim()) {
+      toast.error("Judul, deskripsi, dan tenggat waktu tugas harus diisi");
+      return;
     }
-    console.log("Saving tasks for card:", card.id, memberTasks);
-    onClose();
+
+    setLoadingStates((prev) => ({ ...prev, [idx]: true }));
+    try {
+      if (onSaveSingle) {
+        await onSaveSingle(card.id, idx, task);
+      }
+      setInitialTasksState((prev) => ({
+        ...prev,
+        [idx]: { ...task, exists: true },
+      }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [idx]: false }));
+    }
+  };
+
+  const isTaskChanged = (idx: number) => {
+    const current = memberTasks[idx];
+    const init = initialTasksState[idx];
+    if (!current || !init) return false;
+    return (
+      current.title?.trim() !== init.title?.trim() ||
+      current.description?.trim() !== init.description?.trim() ||
+      current.deadline?.trim() !== init.deadline?.trim()
+    );
+  };
+
+  const hasExistingTask = (idx: number) => {
+    const init = initialTasksState[idx];
+    return !!init?.exists;
   };
 
   return (
@@ -93,10 +184,7 @@ export function TasksModalAdd({
         </DialogHeader>
 
         {/* Scrollable Container */}
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col flex-1 overflow-hidden min-h-0"
-        >
+        <div className="flex flex-col flex-1 overflow-hidden min-h-0">
           <div className="flex-1 overflow-y-auto space-y-6 py-4 pr-1.5 scrollbar-none">
             {/* Content Plan Preview Card */}
             <div>
@@ -117,7 +205,24 @@ export function TasksModalAdd({
                     const task = memberTasks[idx] || {
                       title: "",
                       description: "",
+                      deadline: "",
                     };
+                    const isChanged = isTaskChanged(idx);
+                    const hasExisting = hasExistingTask(idx);
+                    const isLoading = loadingStates[idx] || false;
+
+                    let buttonText = "Kirim Tugas";
+                    let isButtonDisabled = !task.title?.trim() || !task.description?.trim() || !task.deadline?.trim() || isLoading;
+
+                    if (hasExisting) {
+                      if (isChanged) {
+                        buttonText = "Perbarui Tugas";
+                      } else {
+                        buttonText = "Terkirim";
+                        isButtonDisabled = true;
+                      }
+                    }
+
                     return (
                       <div
                         key={idx}
@@ -134,31 +239,52 @@ export function TasksModalAdd({
                             <p className="text-xs font-bold text-gray-800 leading-tight">
                               {member.name}
                             </p>
-                            <p className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider">
-                              Assigned Member
+                            <p className="text-[9px] text-gray-400 font-semibold tracking-wider">
+                              {formatRoleLabel(member.role)}
                             </p>
                           </div>
                         </div>
 
-                        {/* Title and Description Inputs */}
+                        {/* Title, Deadline, and Description Inputs */}
                         <div className="space-y-3">
-                          <div className="space-y-1.5 flex flex-col">
-                            <Label
-                              htmlFor={`title-${idx}`}
-                              className="text-[10px] font-semibold uppercase tracking-wider text-gray-500"
-                            >
-                              Task Title <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                              id={`title-${idx}`}
-                              placeholder={`e.g. Scriptwriting / Shooting for ${member.name}`}
-                              value={task.title}
-                              onChange={(e) =>
-                                handleTaskChange(idx, "title", e.target.value)
-                              }
-                              required
-                              className="rounded-lg border-gray-200 bg-white py-2 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 text-xs transition-colors"
-                            />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1.5 flex flex-col">
+                              <Label
+                                htmlFor={`title-${idx}`}
+                                className="text-[10px] font-semibold uppercase tracking-wider text-gray-500"
+                              >
+                                Task Title <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id={`title-${idx}`}
+                                placeholder={`e.g. Scriptwriting / Shooting for ${member.name}`}
+                                value={task.title}
+                                onChange={(e) =>
+                                  handleTaskChange(idx, "title", e.target.value)
+                                }
+                                required
+                                className="rounded-lg border-gray-200 bg-white py-2 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 text-xs transition-colors"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5 flex flex-col">
+                              <Label
+                                htmlFor={`deadline-${idx}`}
+                                className="text-[10px] font-semibold uppercase tracking-wider text-gray-500"
+                              >
+                                Task Deadline <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id={`deadline-${idx}`}
+                                type="date"
+                                value={task.deadline}
+                                onChange={(e) =>
+                                  handleTaskChange(idx, "deadline", e.target.value)
+                                }
+                                required
+                                className="rounded-lg border-gray-200 bg-white py-2 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 text-xs transition-colors"
+                              />
+                            </div>
                           </div>
 
                           <div className="space-y-1.5 flex flex-col">
@@ -185,6 +311,23 @@ export function TasksModalAdd({
                             />
                           </div>
                         </div>
+
+                        {/* Card Submit Action */}
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            type="button"
+                            onClick={() => handleSaveSingle(idx)}
+                            disabled={isButtonDisabled}
+                            className={`rounded-lg font-semibold px-4 py-1.5 h-8 text-[11px] transition-all flex items-center gap-1.5 cursor-pointer ${
+                              hasExisting && !isChanged
+                                ? "bg-emerald-50 border border-emerald-200 text-emerald-700 disabled:opacity-100"
+                                : "bg-red-800 hover:bg-red-900 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            }`}
+                          >
+                            {isLoading && <Loader2 className="h-3 w-3 animate-spin shrink-0" />}
+                            <span>{buttonText}</span>
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -205,19 +348,12 @@ export function TasksModalAdd({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-750 px-5 text-xs font-semibold"
+              className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-700 px-5 text-xs font-semibold cursor-pointer"
             >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSaveDisabled}
-              className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-semibold px-5 transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Save Tasks
+              Tutup
             </Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

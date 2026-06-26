@@ -53,7 +53,7 @@ export const InternalError = () => {
           atau kembali ke dashboard.
         </p>
 
-        {import.meta.env.DEV && error && (
+        {import.meta.env.DEV && !!error && (
           <div className="mb-8 mx-auto max-w-md rounded-xl border border-red-100 bg-red-50/50 p-4 text-left">
             <p className="text-xs font-semibold text-red-800/70 uppercase tracking-wider mb-1">
               Detail Error

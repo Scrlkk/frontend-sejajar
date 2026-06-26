@@ -45,8 +45,10 @@ export function ProductionProgress({
         {/* Progress Bar */}
         <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-4">
           <div
-            className="h-full bg-red-800 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${percentage}%` }}
+            className={`h-full rounded-full transition-all duration-500 ease-out ${
+              percentage === 0 ? "bg-gray-300 w-full" : "bg-red-800"
+            }`}
+            style={percentage === 0 ? undefined : { width: `${percentage}%` }}
           />
         </div>
 

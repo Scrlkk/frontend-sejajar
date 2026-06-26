@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Bot } from "lucide-react";
 
 export interface CommentItem {
   id: string | number;
@@ -12,6 +13,7 @@ export interface CommentItem {
   targetContent: string;
   commentText: string;
   date: string;
+  isSystem?: boolean;
 }
 
 interface RecentCommentsProps {
@@ -49,10 +51,18 @@ export function RecentComments({
             >
 
               <Avatar
-                className={`h-10 w-10 ${item.avatarBg} font-semibold flex items-center justify-center text-sm shrink-0 mt-0.5`}
+                className={`h-10 w-10 ${
+                  item.isSystem
+                    ? "bg-slate-100 border border-slate-200 text-slate-500"
+                    : item.avatarBg
+                } font-semibold flex items-center justify-center text-sm shrink-0 mt-0.5`}
               >
                 <AvatarFallback className="bg-transparent">
-                  {item.initials}
+                  {item.isSystem ? (
+                    <Bot className="h-5 w-5" />
+                  ) : (
+                    item.initials
+                  )}
                 </AvatarFallback>
               </Avatar>
 

@@ -1,11 +1,13 @@
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 export interface FeedbackItem {
   id: string | number;
   subject: string;
   message: string;
   date: string;
+  contractId?: number;
 }
 
 interface FeedbackProps {
@@ -19,6 +21,8 @@ export function Feedback({
   title = "Owner Feedback",
   maxHeightClass = "max-h-[380px]",
 }: FeedbackProps) {
+  const navigate = useNavigate();
+
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-5">
       <CardHeader className="flex flex-row items-center justify-between p-0 space-y-0">
@@ -38,7 +42,14 @@ export function Feedback({
           feedbacks.map((item) => (
             <div
               key={item.id}
-              className="w-full bg-amber-50/40 border border-amber-200/50 rounded-2xl p-5 space-y-2"
+              onClick={() =>
+                item.contractId && navigate(`/contracts/${item.contractId}`)
+              }
+              className={`w-full bg-amber-50/40 border border-amber-200/50 rounded-2xl p-5 space-y-2 transition-all duration-200 ${
+                item.contractId
+                  ? "cursor-pointer hover:bg-amber-100/40 hover:border-amber-300/60 hover:shadow-md"
+                  : ""
+              }`}
             >
               <div className="flex items-center justify-between text-amber-800 font-bold text-sm">
                 <div className="flex items-center gap-2">

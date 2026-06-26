@@ -9,8 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check } from "lucide-react";
-import type { UserData } from "@/data/mockData";
+import { Check, Eye, EyeOff } from "lucide-react";
+import type { UserData } from "@/features/users/api/usersApi";
 
 export type UserRoleType = "Owner" | "Content Lead" | "Admin Social Media" | "Content Editor" | "Script Writer";
 
@@ -55,13 +55,14 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
   const [isActive, setIsActive] = React.useState(user ? user.status === "active" : true);
   const [errors, setErrors] = React.useState<{ fullName?: string; email?: string; password?: string; role?: string }>({});
   const [isPasswordFocused, setIsPasswordFocused] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   // Password criteria helper checks
-  const hasMinLength = password.length >= 6;
+  const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
-  const hasSymbol = /[^A-Za-z0-9]/.test(password);
+  const hasSymbol = /[@$!%*?&]/.test(password);
 
   const validate = () => {
     const newErrors: typeof errors = {};
@@ -76,7 +77,7 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
     const shouldValidatePassword = !isEdit || password.length > 0;
     if (shouldValidatePassword) {
       if (!hasMinLength) {
-        newErrors.password = "Password must be at least 6 characters";
+        newErrors.password = "Password must be at least 8 characters";
       } else if (!hasUppercase) {
         newErrors.password = "Password must contain at least one uppercase letter (A-Z)";
       } else if (!hasLowercase) {
@@ -84,7 +85,7 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
       } else if (!hasNumber) {
         newErrors.password = "Password must contain at least one number (0-9)";
       } else if (!hasSymbol) {
-        newErrors.password = "Password must contain at least one special character/symbol";
+        newErrors.password = "Password must contain at least one symbol (@$!%*?&)";
       }
     }
 
@@ -177,18 +178,31 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
                 </span>
               )}
             </div>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Masukkan password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => setIsPasswordFocused(true)}
-              onBlur={() => setIsPasswordFocused(false)}
-              className={`rounded-xl border-gray-200 bg-gray-50/50 py-2.5 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors ${
-                errors.password ? "border-red-500 focus:border-red-500" : ""
-              }`}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Masukkan password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setIsPasswordFocused(true)}
+                onBlur={() => setIsPasswordFocused(false)}
+                className={`rounded-xl border-gray-200 bg-gray-50/50 pr-10 py-2.5 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors ${
+                  errors.password ? "border-red-500 focus:border-red-500" : ""
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer flex items-center justify-center"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-xs text-red-500 font-medium">{errors.password}</p>
             )}
@@ -200,7 +214,7 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
                 {!hasMinLength && (
                   <div className="flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-                    <span className="text-gray-500">Min. 6 Karakter</span>
+                    <span className="text-gray-500">Min. 8 Karakter</span>
                   </div>
                 )}
                 {!hasUppercase && (
@@ -224,7 +238,7 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
                 {!hasSymbol && (
                   <div className="flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-                    <span className="text-gray-500">Simbol (!@#$ dll)</span>
+                    <span className="text-gray-500">Simbol (@$!%*?&)</span>
                   </div>
                 )}
               </div>
@@ -339,7 +353,8 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
             </Button>
             <Button
               type="submit"
-              className="rounded-xl bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all"
+              disabled={fullName.trim().length < 2 || !email || !/\S+@\S+\.\S+/.test(email) || role.length === 0 || (!(!isEdit || password.length > 0) ? false : !(hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSymbol))}
+              className="rounded-xl bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isEdit ? "Save Changes" : "Create Account"}
             </Button>

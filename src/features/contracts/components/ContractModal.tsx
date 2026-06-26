@@ -11,10 +11,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from "lucide-react";
 import type { ContractCardItem } from "@/features/contracts/components/Contracts";
-import { sampleTeamMembers } from "@/data/mockData";
-
-// Only filter members with role "Content Lead"
-const contentLeads = sampleTeamMembers.filter((m) => m.role === "Content Lead");
+import { useQuery } from "@tanstack/react-query";
+import { getClientsApi } from "@/features/clients/api/clientsApi";
+import { getUsersApi } from "@/features/users/api/usersApi";
+import { getPlatformsApi } from "@/features/platforms/api/platformsApi";
+import { getColorToken } from "@/features/pillars/constants/colorPalette";
+import { getInitials, getAvatarBg } from "@/utils/formatter";
+import {
+  formatDateToDisplay,
+  formatRupiah,
+  parseInitialValue,
+} from "@/features/contracts/utils/contractHelpers";
+import {
+  clientKeys,
+  userKeys,
+  platformKeys,
+} from "@/features/contracts/api/contractKeys";
 
 interface ContractModalProps {
   isOpen: boolean;
@@ -31,65 +43,23 @@ interface ContractModalFormProps {
   contractsList: ContractCardItem[];
 }
 
-function formatDateToInput(dateStr?: string): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return "";
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function formatDateToDisplay(dateStr?: string): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return "";
-  const options: Intl.DateTimeFormatOptions = {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  };
-  return date.toLocaleDateString("en-US", options);
-}
-
-// Format number input value into Indonesian Rupiah (Rp. XX,XXX,XXX)
-function formatRupiah(value: string): string {
-  const numberString = value.replace(/[^0-9]/g, "");
-  if (!numberString) return "";
-  const formatted = Number(numberString).toLocaleString("en-US");
-  return `Rp. ${formatted}`;
-}
-
-// Parse initial database values (e.g. "Rp 15M" or "Rp. 15,000,000") to expanded formatted Rupiah strings
-function parseInitialValue(value?: string): string {
-  if (!value) return "";
-  const clean = value.replace(/[^0-9mM]/g, "");
-  if (clean.toLowerCase().endsWith("m")) {
-    const num = parseFloat(clean);
-    if (!isNaN(num)) {
-      return `Rp. ${(num * 1000000).toLocaleString("en-US")}`;
-    }
-  }
-  const numOnly = clean.replace(/[^0-9]/g, "");
-  if (numOnly) {
-    return `Rp. ${Number(numOnly).toLocaleString("en-US")}`;
-  }
-  return value;
-}
-
 // Get custom selection classes (focus border / background) depending on Content Lead name
 function getLeadSelectedClasses(leadName: string) {
-  switch (leadName) {
-    case "Sarah Mitchell":
-      return "border-indigo-500 bg-indigo-50/40 text-indigo-900 ring-2 ring-indigo-500/20";
-    case "Alisha Khan":
-      return "border-amber-500 bg-amber-50/40 text-amber-900 ring-2 ring-amber-500/20";
-    case "Michael Brown":
-      return "border-emerald-500 bg-emerald-50/40 text-emerald-900 ring-2 ring-emerald-500/25";
-    default:
-      return "border-blue-500 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/20";
+  const colors = [
+    "border-indigo-500 bg-indigo-50/40 text-indigo-900 ring-2 ring-indigo-500/20",
+    "border-amber-500 bg-amber-50/40 text-amber-900 ring-2 ring-amber-500/20",
+    "border-emerald-500 bg-emerald-50/40 text-emerald-900 ring-2 ring-emerald-500/25",
+    "border-blue-500 bg-blue-50/40 text-blue-900 ring-2 ring-blue-500/20",
+    "border-violet-500 bg-violet-50/40 text-violet-900 ring-2 ring-violet-500/20",
+    "border-rose-500 bg-rose-50/40 text-rose-900 ring-2 ring-rose-500/20"
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < leadName.length; i++) {
+    hash = leadName.charCodeAt(i) + ((hash << 5) - hash);
   }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
 }
 
 function ContractModalForm({
@@ -108,10 +78,10 @@ function ContractModalForm({
     initialData?.platforms ?? [],
   );
   const [startDate, setStartDate] = React.useState(
-    formatDateToInput(initialData?.startDate) ?? "",
+    initialData?.rawStartDate ?? "",
   );
   const [endDate, setEndDate] = React.useState(
-    formatDateToInput(initialData?.endDate) ?? "",
+    initialData?.rawEndDate ?? "",
   );
   const [valueAmount, setValueAmount] = React.useState(
     () => parseInitialValue(initialData?.valueAmount) ?? "",
@@ -150,15 +120,30 @@ function ContractModalForm({
   );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-  const clients = [
-    "TechVision Corp",
-    "FreshBrew Coffee",
-    "BeautyGlow Brand",
-    "FitLife Sports",
-    "Zara Studio",
-    "ElectroShop",
-    "GreenLeaf Org",
-  ];
+  const { data: clientsList = [] } = useQuery({
+    queryKey: clientKeys.all,
+    queryFn: () => getClientsApi(),
+  });
+
+  const { data: usersList = [] } = useQuery({
+    queryKey: userKeys.all,
+    queryFn: () => getUsersApi(),
+  });
+
+  const { data: dbPlatforms = [] } = useQuery({
+    queryKey: platformKeys.active(),
+    queryFn: () => getPlatformsApi({ include_inactive: false }),
+  });
+
+  const contentLeads = usersList
+    .filter((u) => u.roles.includes("content_lead"))
+    .map((u) => ({
+      name: u.full_name,
+      initials: getInitials(u.full_name),
+      avatarBg: getAvatarBg(u.full_name),
+    }));
+
+  const clients = clientsList.map((c) => c.company_name);
 
   const filteredClients = clients.filter((c) =>
     c.toLowerCase().includes(brand.toLowerCase()),
@@ -180,7 +165,6 @@ function ContractModalForm({
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!title.trim()) newErrors.title = "Contract title is required";
-    if (!description.trim()) newErrors.description = "Description is required";
     if (platforms.length === 0)
       newErrors.platforms = "Select at least one platform";
     if (!startDate) newErrors.startDate = "Start date is required";
@@ -188,7 +172,7 @@ function ContractModalForm({
     if (!valueAmount.trim())
       newErrors.valueAmount = "Revenue / contract value is required";
     if (!brand.trim()) newErrors.brand = "Client is required";
-    if (!createdBy) newErrors.createdBy = "Created by/Owner name is required";
+    if (!createdBy) newErrors.createdBy = "Content Lead is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -198,7 +182,7 @@ function ContractModalForm({
     if (!validate()) return;
 
     const currentProgress = initialData?.currentProgress ?? 0;
-    const targetProgress = initialData?.targetProgress ?? 10;
+    const targetProgress = initialData?.targetProgress ?? 0;
 
     // Auto calculate completed or overdue
     let finalStatus = status;
@@ -239,6 +223,8 @@ function ContractModalForm({
       platforms,
       startDate: formatDateToDisplay(startDate),
       endDate: formatDateToDisplay(endDate),
+      rawStartDate: startDate,
+      rawEndDate: endDate,
       valueAmount,
       brand,
       createdBy,
@@ -251,7 +237,16 @@ function ContractModalForm({
     onClose();
   };
 
-  const selectedLeadObj = sampleTeamMembers.find((m) => m.name === createdBy);
+  const selectedLeadObj = contentLeads.find((m) => m.name === createdBy);
+
+  const isFormValid =
+    title.trim() !== "" &&
+    brand.trim() !== "" &&
+    createdBy !== "" &&
+    startDate !== "" &&
+    endDate !== "" &&
+    valueAmount.trim() !== "" &&
+    platforms.length > 0;
 
   return (
     <form
@@ -341,7 +336,7 @@ function ContractModalForm({
               htmlFor="createdBy"
               className="text-xs font-semibold uppercase tracking-wider text-gray-500"
             >
-              Created By / Owner <span className="text-red-500">*</span>
+              Content Lead <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
               <div className="relative flex items-center">
@@ -358,7 +353,7 @@ function ContractModalForm({
                 )}
                 <Input
                   id="createdBy"
-                  placeholder="Search Creator/Owner..."
+                  placeholder="Search Content Lead..."
                   value={searchLeadText}
                   onChange={(e) => {
                     setSearchLeadText(e.target.value);
@@ -571,45 +566,40 @@ function ContractModalForm({
           <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
             Platforms <span className="text-red-500">*</span>
           </Label>
-          <div className="grid grid-cols-3 gap-2">
-            {["Instagram", "TikTok", "YouTube"].map((platform) => {
-              const isSelected = platforms.includes(platform);
+          {dbPlatforms.length === 0 ? (
+            <p className="text-xs text-gray-400 font-semibold">Loading platforms...</p>
+          ) : (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {dbPlatforms.map((platform) => {
+                const isSelected = platforms.includes(platform.platform_name);
+                const token = getColorToken(platform.platform_name, platform.color_key);
 
-              let activeStyle = "";
-              if (platform === "Instagram") {
-                activeStyle = isSelected
-                  ? "border-pink-500 bg-pink-50 text-pink-600 ring-2 ring-pink-500/20 font-semibold focus:outline-none"
-                  : "border-gray-200 bg-white text-gray-600 focus:outline-none";
-              } else if (platform === "TikTok") {
-                activeStyle = isSelected
-                  ? "border-slate-800 bg-slate-50 text-slate-900 ring-2 ring-slate-800/20 font-semibold focus:outline-none"
-                  : "border-gray-200 bg-white text-gray-600 focus:outline-none";
-              } else if (platform === "YouTube") {
-                activeStyle = isSelected
-                  ? "border-red-600 bg-red-50 text-red-600 ring-2 ring-red-600/20 font-semibold focus:outline-none"
-                  : "border-gray-200 bg-white text-gray-600 focus:outline-none";
-              }
+                const activeStyle = isSelected
+                  ? `${token.badge} ring-2 ring-offset-1 ring-gray-950/10 font-bold`
+                  : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700";
 
-              return (
-                <button
-                  key={platform}
-                  type="button"
-                  onClick={() => {
-                    if (isSelected) {
-                      setPlatforms((prev) =>
-                        prev.filter((p) => p !== platform),
-                      );
-                    } else {
-                      setPlatforms((prev) => [...prev, platform]);
-                    }
-                  }}
-                  className={`flex items-center justify-center py-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer outline-none ${activeStyle}`}
-                >
-                  {platform}
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setPlatforms((prev) =>
+                          prev.filter((p) => p !== platform.platform_name),
+                        );
+                      } else {
+                        setPlatforms((prev) => [...prev, platform.platform_name]);
+                      }
+                    }}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer outline-none shadow-xs ${activeStyle}`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? token.dot : "bg-gray-300"}`} />
+                    {platform.platform_name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {errors.platforms && (
             <p className="text-[11px] text-red-500 font-medium">
               {errors.platforms}
@@ -623,7 +613,7 @@ function ContractModalForm({
             htmlFor="description"
             className="text-xs font-semibold uppercase tracking-wider text-gray-500"
           >
-            Description <span className="text-red-500">*</span>
+            Description
           </Label>
           <textarea
             id="description"
@@ -653,7 +643,8 @@ function ContractModalForm({
         </Button>
         <Button
           type="submit"
-          className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all"
+          disabled={!isFormValid}
+          className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isEdit ? "Save Changes" : "Add Contract"}
         </Button>

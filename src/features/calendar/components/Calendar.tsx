@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -22,15 +23,22 @@ import {
   setYear,
 } from "date-fns";
 
+import { getColorToken } from "@/features/pillars/constants/colorPalette";
+
 export interface CalendarEvent {
   id: string | number;
   title: string;
   time: string;
   date: Date;
   platform: "TikTok" | "Instagram" | "YouTube" | string;
+  platformColorKey?: string | null;
   badgeBg: string;
   lineColor: string;
-  status?: "Draft" | "Scheduled" | "Revision";
+  status?: string;
+  category?: string;
+  pillar?: string;
+  format?: string;
+  priority?: string;
 }
 
 interface ContentCalendarProps {
@@ -38,6 +46,8 @@ interface ContentCalendarProps {
   onEventClick?: (event: CalendarEvent) => void;
   selectedDay?: Date | null;
   onDaySelect?: (day: Date | null) => void;
+  currentDate?: Date;
+  onCurrentDateChange?: (date: Date) => void;
 }
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -61,14 +71,35 @@ export function ContentCalendar({
   onEventClick,
   selectedDay: propSelectedDay,
   onDaySelect,
+  currentDate: propCurrentDate,
+  onCurrentDateChange,
 }: ContentCalendarProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const { roles } = usePermissions();
+  const showContentVsTaskLegend = useMemo(() => {
+    const allowed = ["owner", "content_lead", "superadmin"];
+    return roles.some((r) => allowed.includes(r));
+  }, [roles]);
+
+  const [internalCurrentDate, setInternalCurrentDate] = useState(new Date());
+  const currentDate =
+    propCurrentDate !== undefined ? propCurrentDate : internalCurrentDate;
+  const setCurrentDate = (date: Date) => {
+    if (onCurrentDateChange) {
+      onCurrentDateChange(date);
+    } else {
+      setInternalCurrentDate(date);
+    }
+  };
+
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [tempMonth, setTempMonth] = useState(currentDate.getMonth());
   const [tempYear, setTempYear] = useState(currentDate.getFullYear());
-  const [internalSelectedDay, setInternalSelectedDay] = useState<Date | null>(null);
+  const [internalSelectedDay, setInternalSelectedDay] = useState<Date | null>(
+    null,
+  );
 
-  const selectedDay = propSelectedDay !== undefined ? propSelectedDay : internalSelectedDay;
+  const selectedDay =
+    propSelectedDay !== undefined ? propSelectedDay : internalSelectedDay;
   const setSelectedDay = (day: Date | null) => {
     if (onDaySelect) {
       onDaySelect(day);
@@ -100,6 +131,24 @@ export function ContentCalendar({
 
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+
+  const platformsLegend = useMemo(() => {
+    const seen = new Set<string>();
+    const list: { name: string; colorKey?: string | null }[] = [];
+    events.forEach((event) => {
+      if (event.platform) {
+        const norm = event.platform.trim();
+        if (!seen.has(norm)) {
+          seen.add(norm);
+          list.push({
+            name: norm,
+            colorKey: event.platformColorKey,
+          });
+        }
+      }
+    });
+    return list;
+  }, [events]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
@@ -211,16 +260,51 @@ export function ContentCalendar({
           </Button>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-semibold text-gray-500">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#252f41]" /> TikTok
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-xs font-semibold text-gray-500">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            {platformsLegend.slice(0, 4).map((p) => {
+              const token = getColorToken(p.name, p.colorKey);
+              return (
+                <div key={p.name} className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className={`h-2 w-2 rounded-full ${token.dot}`} /> {p.name}
+                </div>
+              );
+            })}
+            {platformsLegend.length > 4 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="text-[11px] font-bold text-red-800 hover:text-red-950 underline cursor-pointer">
+                    +{platformsLegend.length - 4} more
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-2 bg-white rounded-lg shadow-md border border-gray-100 flex flex-col gap-1.5">
+                  {platformsLegend.slice(4).map((p) => {
+                    const token = getColorToken(p.name, p.colorKey);
+                    return (
+                      <div key={p.name} className="flex items-center gap-2 px-2 py-1 text-xs font-semibold text-gray-700">
+                        <span className={`h-2 w-2 rounded-full ${token.dot}`} /> {p.name}
+                      </div>
+                    );
+                  })}
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-pink-500" /> Instagram
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-red-600" /> YouTube
-          </div>
+          
+          {showContentVsTaskLegend && (
+            <>
+              <div className="hidden sm:block h-3.5 w-px bg-gray-200" />
+              
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-gray-400" /> Content - Schedule
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full border-2 border-gray-400 bg-transparent" /> Task - Deadline
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </CardHeader>
 
@@ -233,7 +317,7 @@ export function ContentCalendar({
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-gray-100/50 rounded-2xl overflow-hidden border border-gray-100/30">
+        <div className="grid h-112 grid-cols-7 gap-px bg-gray-100/50 rounded-2xl overflow-hidden border border-gray-100/30">
           {allDaysGrid.map((day, dayIdx) => {
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isToday = isSameDay(day, today);
@@ -249,13 +333,13 @@ export function ContentCalendar({
               <div
                 key={dayIdx}
                 onClick={() => setSelectedDay(isSelected ? null : day)}
-                className={`min-h-27.5 p-2 relative flex flex-col justify-between group transition-colors cursor-pointer ${
+                className={`min-h-20 p-2.5 relative flex flex-col justify-between group transition-all hover:bg-slate-50/50 cursor-pointer ${
                   !isCurrentMonth
-                    ? "bg-red-50/30 border border-red-200/40 rounded-xl m-1"
+                    ? "bg-red-50/15 border border-red-100/50 rounded-xl m-1"
                     : isSelected
-                      ? "bg-red-50/30 border-2 border-red-500 rounded-xl m-0.5"
-                      : "bg-white"
-                } ${isToday ? "bg-emerald-50/40! border-emerald-300/60! rounded-xl m-0.5" : ""}`}
+                      ? "bg-red-50/20 border-2 border-red-500 rounded-xl m-0.5"
+                      : "bg-white border border-gray-100/60"
+                } ${isToday ? "bg-emerald-50/30! border-emerald-300/50! rounded-xl m-0.5" : ""}`}
               >
                 <div className="flex justify-end items-start w-full">
                   <span
@@ -267,22 +351,44 @@ export function ContentCalendar({
                   </span>
                 </div>
 
-                <div className="mt-1 space-y-1 flex-1 overflow-y-auto max-h-18.75 scrollbar-none">
+                {/* Event indicators (Colored Dots) */}
+                <div className="flex flex-wrap items-center justify-center gap-1 mt-1.5 mb-0.5 min-h-3">
                   {isCurrentMonth &&
-                    dayEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        onClick={() => onEventClick?.(event)}
-                        className={`text-[10px] md:text-xs font-medium p-1.5 border-l-2 ${event.lineColor} ${event.badgeBg} truncate cursor-pointer transition-all flex flex-col justify-center`}
-                      >
-                        <span className="truncate">
-                          <span className="opacity-80 font-medium mr-1">
-                            {event.time}
-                          </span>
-                          • {event.title}
-                        </span>
-                      </div>
-                    ))}
+                    dayEvents.slice(0, 3).map((event) => {
+                      const token = getColorToken(event.platform, event.platformColorKey);
+                      const dotColor = token.dot;
+                      const borderColor = token.dot;
+
+                      const isTask = event.id.toString().startsWith("t_");
+                      const drawAsTask = showContentVsTaskLegend && isTask;
+
+                      return (
+                        <div
+                          key={event.id}
+                          title={
+                            showContentVsTaskLegend
+                              ? `${isTask ? "Task (Deadline)" : "Content (Schedule)"}${event.time ? ` • ${event.time}` : ""} • ${event.title}`
+                              : `${event.time ? `${event.time} • ` : ""}${event.title}`
+                          }
+                          className={`h-2 w-2 rounded-full ${
+                            drawAsTask ? `bg-transparent border-2 ${borderColor}` : dotColor
+                          } transition-transform hover:scale-130 shadow-sm`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDay(day);
+                            onEventClick?.(event);
+                          }}
+                        />
+                      );
+                    })}
+                  {isCurrentMonth && dayEvents.length > 3 && (
+                    <span
+                      title={`${dayEvents.length - 3} more events`}
+                      className="text-[9px] font-bold text-gray-500 bg-gray-50 border border-gray-200/60 rounded px-1 flex items-center justify-center leading-none h-3.5 select-none"
+                    >
+                      +{dayEvents.length - 3}
+                    </span>
+                  )}
                 </div>
               </div>
             );

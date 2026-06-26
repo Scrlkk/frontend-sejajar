@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Calendar, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDateEN } from "@/utils/helpers";
 import {
   Dialog,
   DialogContent,
@@ -135,32 +136,7 @@ const parseMockDateToInputDate = (dateStr: string) => {
   return "";
 };
 
-const formatInputDateToMockDate = (inputDateStr: string) => {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const parts = inputDateStr.split("-");
-  if (parts.length === 3) {
-    const year = parts[0];
-    const monthIdx = parseInt(parts[1], 10) - 1;
-    const day = parseInt(parts[2], 10).toString();
-    if (monthIdx >= 0 && monthIdx < 12) {
-      return `${months[monthIdx]} ${day}, ${year}`;
-    }
-  }
-  return inputDateStr;
-};
+
 
 export function SchedulesModal({
   isOpen,
@@ -237,7 +213,7 @@ export function SchedulesModal({
       pillar: selectedContent.pillar,
       pillarBg: selectedContent.pillarBg,
       pillarDot: selectedContent.pillarDot,
-      postDate: formatInputDateToMockDate(date),
+      postDate: formatDateEN(date),
       time: time,
       status: selectedContent.status,
       statusBg: selectedContent.statusBg,
@@ -375,7 +351,7 @@ export function SchedulesModal({
                     platform: selectedContent.platform,
                     format: "Video",
                     priority: "Medium",
-                    dueDate: formatInputDateToMockDate(date) || "No Date Set",
+                    dueDate: formatDateEN(date) || "No Date Set",
                     status:
                       selectedContent.status as ContentPlanCardItem["status"],
                     overdue: false,

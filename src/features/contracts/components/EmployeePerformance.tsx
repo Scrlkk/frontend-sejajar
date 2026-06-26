@@ -1,7 +1,17 @@
 import type { ReactNode } from "react";
 import { UserRound } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { EmployeePerformanceData } from "@/data/mockData";
+export interface EmployeePerformanceData {
+  id: number;
+  name: string;
+  role: string;
+  initials: string;
+  tasksCount: number;
+  completionRate: number;
+  avatarBg: string;
+  month: string;
+  year: number;
+}
 
 interface EmployeePerformanceProps {
   data: EmployeePerformanceData[];

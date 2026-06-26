@@ -1,9 +1,38 @@
 import { useNavigate } from "react-router-dom";
 import { Home, ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export const NotFound = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+
+  const handleDashboardRedirect = () => {
+    if (isAuthenticated && user) {
+      switch (user.role) {
+        case "superadmin":
+          navigate("/dashboard/superadmin");
+          break;
+        case "admin_social_media":
+          navigate("/dashboard/social-media");
+          break;
+        case "content_lead":
+          navigate("/dashboard/content-lead");
+          break;
+        case "owner":
+          navigate("/dashboard/owner");
+          break;
+        case "script_writer":
+          navigate("/dashboard/script-writer");
+          break;
+        case "content_editor":
+          navigate("/dashboard/content-editor");
+          break;
+      }
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-6 relative overflow-hidden">
@@ -45,7 +74,7 @@ export const NotFound = () => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button
-            onClick={() => navigate("/dashboard")}
+            onClick={handleDashboardRedirect}
             className="h-11 px-6 bg-red-800 hover:bg-red-900 text-white rounded-xl font-semibold text-sm gap-2 shadow-lg shadow-red-800/20 transition-all hover:shadow-xl hover:shadow-red-800/30 cursor-pointer"
           >
             <Home className="w-4 h-4" />

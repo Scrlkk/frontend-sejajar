@@ -10,7 +10,10 @@ export interface ContractInfoProps {
   items?: InfoItem[];
 }
 
-export function ContractInfo({ title = "Contract Info", items = [] }: ContractInfoProps) {
+export function ContractInfo({
+  title = "Contract Info",
+  items = [],
+}: ContractInfoProps) {
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6">
       <CardHeader className="p-0 mb-5">
@@ -26,7 +29,9 @@ export function ContractInfo({ title = "Contract Info", items = [] }: ContractIn
               index !== items.length - 1 ? "border-b border-gray-100" : ""
             }`}
           >
-            <span className="text-slate-400/90 font-medium">{item.label}</span>
+            <span className="text-slate-400/90 font-medium">
+              {item.label}
+            </span>
             <span className="text-slate-900 font-semibold text-right">
               {item.value}
             </span>
@@ -36,4 +41,3 @@ export function ContractInfo({ title = "Contract Info", items = [] }: ContractIn
     </Card>
   );
 }
-

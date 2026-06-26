@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface RequestRevisionProps {
   isOpen: boolean;
@@ -39,6 +40,8 @@ export function RequestRevision({
   cardsList = [],
   onSave,
 }: RequestRevisionProps) {
+  const { isClient } = usePermissions();
+
   const [selectedCard, setSelectedCard] = useState<ContentPlanCardItem | null>(
     card,
   );
@@ -47,14 +50,14 @@ export function RequestRevision({
     () => card?.priority || "Medium",
   );
 
-  const [selectedStatus, setSelectedStatus] = useState<ContentPlanCardItem["status"]>(
-    () => "Review",
+  const [selectedStatus, setSelectedStatus] = useState<ContentPlanCardItem["status"] | "">(
+    "",
   );
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const isViewingRevision = selectedCard?.status === "Revision";
+  const isViewingRevision = selectedCard?.status === "Revision" && !isClient;
 
   const filteredCards = useMemo(() => {
     return cardsList.filter((c) =>
@@ -67,15 +70,14 @@ export function RequestRevision({
     setSelectedCard(found);
     setNotes(found?.feedback || "");
     setPriority(found?.priority || "Medium");
-    if (found && found.status !== "Revision") {
-      setSelectedStatus("Review");
-    }
+    setSelectedStatus("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCard) return;
     if (isViewingRevision) {
+      if (!selectedStatus) return;
       onSave(selectedCard.id, notes, priority, selectedStatus);
     } else {
       if (!notes.trim()) return;
@@ -323,7 +325,7 @@ export function RequestRevision({
             </Button>
             <Button
               type="submit"
-              disabled={(!isViewingRevision && !notes.trim()) || !selectedCard}
+              disabled={!selectedCard || (isViewingRevision ? !selectedStatus : !notes.trim())}
               className="rounded-xl bg-red-800 hover:bg-red-900 text-white font-semibold px-5 text-xs h-9 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isViewingRevision ? "Confirm" : "Request Revision"}

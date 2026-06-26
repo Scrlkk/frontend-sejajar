@@ -6,7 +6,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -14,6 +13,7 @@ import {
   type TooltipProps,
 } from "recharts";
 import type { ContractCardItem } from "@/features/contracts/components/Contracts";
+import { formatCompactIDR } from "@/utils/helpers";
 
 interface ContractPerformanceProps {
   data: ContractCardItem[];
@@ -53,7 +53,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
               Contract Value
             </span>
             <span className="font-bold text-gray-900 shrink-0">
-              Rp {data.value}M
+              {formatCompactIDR(data.value)}
             </span>
           </div>
           <div className="flex items-center justify-between gap-4">
@@ -86,19 +86,25 @@ const computeXDomain = (
   const rawMax = Math.max(...data.map((d) => d.value), 0);
 
   if (rawMax === 0) {
-    return { domain: [0, 80], ticks: [0, 20, 40, 60, 80] };
+    return { domain: [0, 100_000_000], ticks: [0, 25_000_000, 50_000_000, 75_000_000, 100_000_000] };
   }
 
-  let step: number;
-  if (rawMax > 100) step = 20;
-  else if (rawMax > 50) step = 10;
-  else if (rawMax > 20) step = 5;
-  else step = 2;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawMax)));
+  const normalizedMax = rawMax / magnitude;
+  
+  let normalizedNiceMax: number;
+  if (normalizedMax <= 1) normalizedNiceMax = 1;
+  else if (normalizedMax <= 2) normalizedNiceMax = 2;
+  else if (normalizedMax <= 5) normalizedNiceMax = 5;
+  else if (normalizedMax <= 10) normalizedNiceMax = 10;
+  else normalizedNiceMax = Math.ceil(normalizedMax);
 
-  const niceMax = Math.ceil(rawMax / step) * step;
+  const niceMax = normalizedNiceMax * magnitude;
   const tickStep = niceMax / tickCount;
-  const ticks = Array.from({ length: tickCount + 1 }, (_, i) =>
-    Math.round(i * tickStep),
+  const ticks = Array.from(
+    new Set(
+      Array.from({ length: tickCount + 1 }, (_, i) => Math.round(i * tickStep))
+    )
   );
 
   return { domain: [0, niceMax], ticks };
@@ -110,9 +116,10 @@ export function ContractPerformance({
   headerAction,
 }: ContractPerformanceProps) {
   const chartData = data.map((c) => {
-    const numericValue = parseInt(c.valueAmount.replace(/[^0-9]/g, "")) || 0;
-    const progressPercent =
-      Math.round((c.currentProgress / c.targetProgress) * 100) || 0;
+    const numericValue = c.value || 0;
+    const progressPercent = c.targetProgress > 0
+      ? Math.round((c.currentProgress / c.targetProgress) * 100)
+      : 0;
 
     return {
       id: c.id,
@@ -153,55 +160,53 @@ export function ContractPerformance({
         ) : (
           <>
             <ChartContainer config={chartConfig} className="h-65 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData}
-                  layout="vertical"
-                  margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-                >
-                  <CartesianGrid
-                    horizontal={false}
-                    strokeDasharray="3 3"
-                    className="stroke-gray-100"
-                  />
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+              >
+                <CartesianGrid
+                  horizontal={false}
+                  strokeDasharray="3 3"
+                  className="stroke-gray-100"
+                />
 
-                  <XAxis
-                    type="number"
-                    axisLine={false}
-                    tickLine={false}
-                    domain={domain}
-                    ticks={ticks}
-                    className="text-xs font-medium text-gray-400"
-                    tickFormatter={(val) => `Rp ${val}M`}
-                  />
+                <XAxis
+                  type="number"
+                  axisLine={false}
+                  tickLine={false}
+                  domain={domain}
+                  ticks={ticks}
+                  className="text-xs font-medium text-gray-400"
+                  tickFormatter={(val) => formatCompactIDR(val)}
+                />
 
-                  <YAxis
-                    dataKey="brand"
-                    type="category"
-                    axisLine={false}
-                    tickLine={false}
-                    className="text-xs font-semibold text-gray-500"
-                    width={120}
-                  />
+                <YAxis
+                  dataKey="brand"
+                  type="category"
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-xs font-semibold text-gray-500"
+                  width={120}
+                />
 
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={{ fill: "rgba(243, 244, 246, 0.4)", radius: 4 }}
-                  />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ fill: "rgba(243, 244, 246, 0.4)", radius: 4 }}
+                />
 
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={16}>
-                    {chartData.map((entry, index) => {
-                      const color =
-                        entry.status === "Active"
-                          ? "#2baa7a"
-                          : entry.status === "Completed"
-                            ? "#3b82f6"
-                            : "#ef4444";
-                      return <Cell key={`cell-${index}`} fill={color} />;
-                    })}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={16}>
+                  {chartData.map((entry, index) => {
+                    const color =
+                      entry.status === "Active"
+                        ? "#2baa7a"
+                        : entry.status === "Completed"
+                          ? "#3b82f6"
+                          : "#ef4444";
+                    return <Cell key={`cell-${index}`} fill={color} />;
+                  })}
+                </Bar>
+              </BarChart>
             </ChartContainer>
 
             <div className="flex items-center gap-6 text-xs font-semibold text-gray-500 mt-4 pt-2 border-t border-gray-50">

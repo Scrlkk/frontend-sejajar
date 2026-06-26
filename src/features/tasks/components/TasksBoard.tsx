@@ -4,11 +4,13 @@ import {
   TasksContent,
   type TaskBoardItem,
 } from "@/features/tasks/components/TasksContent";
-import { taskBoardColumns } from "@/data/mockData";
+import { taskBoardColumns } from "@/features/tasks/constants/boardConfig";
 
 interface TasksBoardProps {
   tasks: TaskBoardItem[];
   onSelectTask?: (task: TaskBoardItem) => void;
+  onDeleteTask?: (task: TaskBoardItem) => void;
+  onRestoreTask?: (task: TaskBoardItem) => void;
 }
 
 const columnBgColors: Record<string, string> = {
@@ -17,9 +19,16 @@ const columnBgColors: Record<string, string> = {
   revision: "bg-red-200/50",
   approved: "bg-emerald-100/50",
   pending: "bg-purple-200/50",
+  scheduled: "bg-blue-100/50",
+  published: "bg-green-100/50",
 };
 
-export function TaskBoard({ tasks, onSelectTask }: TasksBoardProps) {
+export function TaskBoard({
+  tasks,
+  onSelectTask,
+  onDeleteTask,
+  onRestoreTask,
+}: TasksBoardProps) {
   const getColumnTasks = (status: TaskBoardItem["status"]) =>
     tasks.filter((t) => t.status === status);
 
@@ -53,7 +62,7 @@ export function TaskBoard({ tasks, onSelectTask }: TasksBoardProps) {
               <div className="space-y-3">
                 {columnTasks.length > 0 ? (
                   columnTasks.map((task) => (
-                    <TasksContent key={task.id} task={task} onSelect={onSelectTask} />
+                    <TasksContent key={task.id} task={task} onSelect={onSelectTask} onDelete={onDeleteTask} onRestore={onRestoreTask} />
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 px-4 text-center rounded-xl border border-dashed border-gray-300/80 bg-white/30 backdrop-blur-[2px]">

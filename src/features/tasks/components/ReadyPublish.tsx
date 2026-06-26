@@ -175,6 +175,7 @@ export function ReadyPublish({
       </CardContent>
 
       <ModalPreviewPublish
+        key={itemToPublish?.id ?? "publish-closed"}
         isOpen={isPublishModalOpen}
         onClose={() => {
           setIsPublishModalOpen(false);

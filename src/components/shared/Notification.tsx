@@ -1,98 +1,55 @@
-import { useState } from "react";
 import {
   Bell,
   AlertTriangle,
   CircleCheckBig,
   ClipboardList,
   CheckCheck,
+  MessageSquare,
+  FileSignature,
+  Video,
+  FileUp,
+  Trash2,
 } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-
-export interface NotificationItem {
-  id: string;
-  title: string;
-  description: string;
-  time: string;
-  isRead: boolean;
-  type: "revision" | "approved" | "assigned" | "general";
-}
-
-const initialNotifications: NotificationItem[] = [
-  {
-    id: "notif-1",
-    title: "Revision Required",
-    description:
-      "Sarah Miller requested a revision on 'Skincare Routine Reel'.",
-    time: "2 mins ago",
-    isRead: false,
-    type: "revision",
-  },
-  {
-    id: "notif-2",
-    title: "Contract Approved",
-    description: "Contract CNT-2026-001 has been fully approved by TechVision.",
-    time: "1 hour ago",
-    isRead: false,
-    type: "approved",
-  },
-  {
-    id: "notif-3",
-    title: "New Task Assigned",
-    description:
-      "Diego Santos assigned a new task: Coffee routine caption writing.",
-    time: "3 hours ago",
-    isRead: true,
-    type: "assigned",
-  },
-  {
-    id: "notif-4",
-    title: "Revision Required",
-    description:
-      "Sarah Miller requested a revision on 'Skincare Routine Reel'.",
-    time: "2 mins ago",
-    isRead: false,
-    type: "revision",
-  },
-  {
-    id: "notif-5",
-    title: "Contract Approved",
-    description: "Contract CNT-2026-001 has been fully approved by TechVision.",
-    time: "1 hour ago",
-    isRead: false,
-    type: "approved",
-  },
-  {
-    id: "notif-6",
-    title: "New Task Assigned",
-    description:
-      "Diego Santos assigned a new task: Coffee routine caption writing.",
-    time: "3 hours ago",
-    isRead: true,
-    type: "assigned",
-  },
-];
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function Notification() {
-  const [notifications, setNotifications] =
-    useState<NotificationItem[]>(initialNotifications);
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications();
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
   const hasUnread = unreadCount > 0;
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, ...{ isRead: true } } : n)),
-    );
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await markAsRead(id);
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((n) => ({ ...n, ...{ isRead: true } })),
-    );
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteNotification(id);
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
   };
 
   const getNotifIcon = (type: string) => {
@@ -113,6 +70,30 @@ export function Notification() {
         return (
           <div className="h-8 w-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
             <ClipboardList className="h-4 w-4 stroke-2" />
+          </div>
+        );
+      case "comment":
+        return (
+          <div className="h-8 w-8 rounded-lg bg-violet-50 border border-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+            <MessageSquare className="h-4 w-4 stroke-2" />
+          </div>
+        );
+      case "contract":
+        return (
+          <div className="h-8 w-8 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+            <FileSignature className="h-4 w-4 stroke-2" />
+          </div>
+        );
+      case "content":
+        return (
+          <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+            <Video className="h-4 w-4 stroke-2" />
+          </div>
+        );
+      case "upload":
+        return (
+          <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0">
+            <FileUp className="h-4 w-4 stroke-2" />
           </div>
         );
       default:
@@ -176,7 +157,7 @@ export function Notification() {
               >
                 {getNotifIcon(notif.type)}
 
-                <div className="flex-1 min-w-0 pr-6 space-y-0.5">
+                <div className="flex-1 min-w-0 pr-12 space-y-0.5">
                   <div className="flex items-center justify-between gap-2">
                     <h5 className="font-bold text-gray-900 text-xs truncate">
                       {notif.title}
@@ -190,18 +171,40 @@ export function Notification() {
                   </p>
                 </div>
 
-                {/* Mark as read indicator / action button */}
-                {!notif.isRead ? (
+                {/* Actions container shown on hover */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  {!notif.isRead && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(notif.id);
+                      }}
+                      className="h-6 w-6 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 hover:text-red-800 rounded-full flex items-center justify-center cursor-pointer shadow-sm transition-colors"
+                      title="Mark as read"
+                    >
+                      <CheckCheck className="h-3.5 w-3.5 stroke-[2.5]" />
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleMarkAsRead(notif.id)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 h-5 w-5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 hover:text-red-800 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-sm"
-                    title="Mark as read"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(notif.id);
+                    }}
+                    className="h-6 w-6 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 rounded-full flex items-center justify-center cursor-pointer shadow-sm transition-colors"
+                    title="Delete notification"
                   >
-                    <CheckCheck className="h-3 w-3 stroke-[2.5]" />
+                    <Trash2 className="h-3.5 w-3.5 stroke-2" />
                   </button>
-                ) : (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 h-1.5 w-1.5 bg-gray-300 rounded-full"></span>
-                )}
+                </div>
+
+                {/* Default dot indicators when not hovering */}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 group-hover:opacity-0 transition-opacity">
+                  {!notif.isRead ? (
+                    <span className="h-2 w-2 bg-red-600 rounded-full block animate-pulse"></span>
+                  ) : (
+                    <span className="h-1.5 w-1.5 bg-gray-300 rounded-full block"></span>
+                  )}
+                </div>
               </div>
             ))
           ) : (

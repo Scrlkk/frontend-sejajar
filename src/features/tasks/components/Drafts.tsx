@@ -3,7 +3,6 @@ import {
   Search,
   Plus,
   FilePen,
-  Trash2,
   AlertTriangle,
   Clock,
   CircleCheckBig,
@@ -13,38 +12,73 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
-import type { DraftsItem } from "@/data/mockData";
+export interface DraftsItem {
+  id: string | number;
+  title: string;
+  category: string;
+  categoryBg: string;
+  status: "Pending" | "Revision" | "Approved" | "Overdue" | string;
+  statusBg: string;
+  statusDot: string;
+  revisionNote?: string;
+  wordCount: number;
+  savedTimeText: string;
+  iconBg: string;
+  iconColor: string;
+  assigner?: {
+    name: string;
+    role: string;
+    initials: string;
+  };
+  content_id?: number;
+  deadline?: string | null;
+}
 
 interface DraftsProps {
   drafts: DraftsItem[];
   onNewDraft?: () => void;
   onOpen?: (item: DraftsItem) => void;
-  onDelete?: (id: string | number) => void;
 }
 
-export function Drafts({ drafts, onNewDraft, onOpen, onDelete }: DraftsProps) {
+export function Drafts({ drafts, onNewDraft, onOpen }: DraftsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  const filteredDrafts = drafts.filter((item) => {
-    const matchesSearch = item.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+  const filteredDrafts = drafts
+    .filter((item) => {
+      const matchesSearch = item.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    if (activeTab === "pending")
-      return matchesSearch && item.status === "Pending";
-    if (activeTab === "revision")
-      return matchesSearch && item.status === "Revision";
-    if (activeTab === "approved")
-      return matchesSearch && item.status === "Approved";
-    if (activeTab === "overdue")
-      return matchesSearch && item.status === "Overdue";
+      if (activeTab === "all")
+        return matchesSearch && item.status.toLowerCase() !== "approved";
+      if (activeTab === "on_progress")
+        return matchesSearch && item.status === "On Progress";
+      if (activeTab === "pending")
+        return matchesSearch && item.status === "Pending";
+      if (activeTab === "revision")
+        return matchesSearch && item.status === "Revision";
+      if (activeTab === "approved")
+        return matchesSearch && item.status === "Approved";
+      if (activeTab === "overdue")
+        return matchesSearch && item.status === "Overdue";
 
-    return matchesSearch;
-  });
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+    });
 
   const countStatus = (
-    statusName: "Pending" | "Revision" | "Approved" | "Overdue",
+    statusName:
+      | "Pending"
+      | "Revision"
+      | "Approved"
+      | "Overdue"
+      | "On Progress"
+      | string,
   ) => drafts.filter((d) => d.status === statusName).length;
 
   const getStatusIcon = (status: string) => {
@@ -77,13 +111,24 @@ export function Drafts({ drafts, onNewDraft, onOpen, onDelete }: DraftsProps) {
               value="all"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
-              All ({drafts.length})
+              All (
+              {
+                drafts.filter((d) => d.status.toLowerCase() !== "approved")
+                  .length
+              }
+              )
+            </TabsTrigger>
+            <TabsTrigger
+              value="on_progress"
+              className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
+            >
+              On Progress ({countStatus("On Progress")})
             </TabsTrigger>
             <TabsTrigger
               value="pending"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
-              Pending ({countStatus("Pending")})
+              Review ({countStatus("Pending")})
             </TabsTrigger>
             <TabsTrigger
               value="revision"
@@ -133,7 +178,11 @@ export function Drafts({ drafts, onNewDraft, onOpen, onDelete }: DraftsProps) {
           filteredDrafts.map((item) => (
             <Card
               key={item.id}
-              className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg hover:border-red-logo p-5 space-y-4 flex flex-col justify-between"
+              className={`w-full rounded-xl border outline outline-gray-300/50 shadow-lg hover:border-red-logo p-5 space-y-4 flex flex-col justify-between transition-colors ${
+                item.status === "Overdue"
+                  ? "bg-red-50/20 border-red-300"
+                  : "bg-white border-gray-200"
+              }`}
             >
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
@@ -168,40 +217,28 @@ export function Drafts({ drafts, onNewDraft, onOpen, onDelete }: DraftsProps) {
                 {(item.status === "Revision" || item.status === "Overdue") &&
                   item.revisionNote && (
                     <div className="w-full bg-red-50/40 border border-red-400 rounded-xl p-3 text-xs md:text-sm text-red-800 font-semibold leading-relaxed">
-                      {item.revisionNote}
+                      Naskah ini memerlukan revisi. Silakan melihat detail
+                      feedback lengkap di kolom diskusi.
                     </div>
                   )}
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-50 text-xs md:text-sm font-bold text-gray-400">
-                <div className="flex items-center gap-2 font-medium">
-                  <span>{item.wordCount} words</span>
-                  <span>•</span>
-                  <span>{item.savedTimeText}</span>
+                <div className="flex flex-col gap-0.5 font-medium min-w-0">
+                  <span className="truncate">{item.savedTimeText}</span>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => onDelete?.(item.id)}
-                    className="flex items-center gap-1.5 text-red-500 hover:text-red-650 hover:bg-red-50 p-1.5 rounded-lg transition-all cursor-pointer font-semibold"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </button>
-
-                  <Button
-                    type="button"
-                    onClick={() => onOpen?.(item)}
-                    className="bg-red-800 hover:bg-red-900 text-white rounded-md px-5 h-9 font-semibold text-xs flex items-center gap-1 border-none shadow-none cursor-pointer"
-                  >
-                    Open
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  onClick={() => onOpen?.(item)}
+                  className="bg-red-800 hover:bg-red-900 text-white rounded-md px-5 h-9 font-semibold text-xs flex items-center gap-1 border-none shadow-none cursor-pointer"
+                >
+                  Open
+                </Button>
               </div>
             </Card>
           ))
-        ) : drafts.length === 0 ? (
+        ) : filteredDrafts.length === 0 && !searchQuery ? (
           <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-250 bg-slate-50/20 rounded-2xl">
             <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-800 shadow-sm mb-4">
               <FilePen className="h-6 w-6 stroke-[1.5]" />

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ClientData } from "@/data/mockData";
+import type { ClientData } from "@/features/clients/pages/ClientsPage";
 
 interface ClientsModalProps {
   isOpen: boolean;
@@ -34,6 +34,14 @@ export function ClientsModal({
     client ? (client.status ?? "active") === "active" : true
   );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  const isEmailValid = /\S+@\S+\.\S+/.test(contactEmail);
+  const isFormInvalid =
+    !clientName.trim() ||
+    !companyName.trim() ||
+    !contactEmail.trim() ||
+    !isEmailValid ||
+    !contactPhone.trim();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -225,7 +233,8 @@ export function ClientsModal({
             </Button>
             <Button
               type="submit"
-              className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all"
+              disabled={isFormInvalid}
+              className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isEdit ? "Save Changes" : "Register Client"}
             </Button>

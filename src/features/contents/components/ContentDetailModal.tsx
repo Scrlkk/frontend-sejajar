@@ -48,7 +48,12 @@ const getStatusBadgeStyle = (status: ContentPlanCardItem["status"]) => {
     case "Approved":
       return {
         dot: "bg-emerald-600",
-        bg: "bg-emerald-50 text-emerald-600 border-emerald-200",
+        bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      };
+    case "Scheduled":
+      return {
+        dot: "bg-blue-600",
+        bg: "bg-blue-50 text-blue-700 border-blue-200",
       };
     case "Published":
       return {
@@ -97,9 +102,9 @@ export function ContentDetailModal({
               </h3>
               <div className="flex flex-wrap gap-2 items-center">
                 {card.platform && (
-                  <PlatformBadge platform={card.platform} showDot={false} />
+                  <PlatformBadge platform={card.platform} colorKey={card.platformColorKey} showDot={false} />
                 )}
-                {card.category && <PillarsCard category={card.category} />}
+                {card.category && <PillarsCard category={card.category} colorKey={card.categoryColorKey} />}
                 {card.format && <FormatBadgeContent format={card.format} />}
               </div>
             </div>
@@ -123,13 +128,13 @@ export function ContentDetailModal({
               </div>
             )}
 
-            {/* Grid Info */}
-            <div className="grid grid-cols-2 gap-5">
+            {/* Objective & Target Audience (Stacked) */}
+            <div className="space-y-4">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   Objective
                 </span>
-                <p className="text-xs text-gray-700 font-medium">
+                <p className="text-xs text-gray-700 font-medium whitespace-pre-wrap">
                   {card.objective || "-"}
                 </p>
               </div>
@@ -137,18 +142,27 @@ export function ContentDetailModal({
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   Target Audience
                 </span>
-                <p className="text-xs text-gray-700 font-medium">
+                <p className="text-xs text-gray-700 font-medium whitespace-pre-wrap">
                   {card.targetAudience || "-"}
                 </p>
               </div>
+            </div>
 
+            {/* Grid Info */}
+            <div className="grid grid-cols-2 gap-5">
               {/* Content Pillar */}
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   Content Pillar
                 </span>
                 <div>
-                  {card.pillar ? (
+                  {card.pillars && card.pillars.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {card.pillars.map((p) => (
+                        <PillarsCard key={p.id} category={p.pillar_name} categoryId={p.id} colorKey={p.color_key} />
+                      ))}
+                    </div>
+                  ) : card.pillar ? (
                     <PillarsCard category={card.pillar} />
                   ) : (
                     <p className="text-xs text-gray-400 font-medium">None</p>

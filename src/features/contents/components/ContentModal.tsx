@@ -19,13 +19,18 @@ import {
 import { Image as ImageIcon, Video } from "lucide-react";
 import type { TeamMember } from "@/features/contents/components/ContentPlan";
 import { PillarsContent } from "@/features/pillars/components/PillarsContent";
+import { useQuery } from "@tanstack/react-query";
+import { getPlatformsApi } from "@/features/platforms/api/platformsApi";
+import { getContentCategoriesApi } from "@/features/contents/api/contentCategoriesApi";
+import { getContractByIdApi } from "@/features/contracts/api/contractsApi";
 
 export type ContentFormValues = {
   title: string;
   objective?: string;
   category: string;
   targetAudience?: string;
-  pillar: string;
+  pillars: string[];   // multi-select — replaces single `pillar`
+  pillar?: string;     // kept for backward compat (first pillar name)
   format: "Video" | "Image" | "";
   platform: string;
   priority: "High" | "Medium" | "Low";
@@ -43,18 +48,21 @@ interface ContentModalProps {
   onClose: () => void;
   onSave: (data: ContentFormValues & { id?: string }) => void;
   initialData?: (ContentFormValues & { id?: string }) | null;
+  contractId?: number;
 }
 
 interface ContentModalFormProps {
   initialData?: (ContentFormValues & { id?: string }) | null;
   onClose: () => void;
   onSave: (data: ContentFormValues & { id?: string }) => void;
+  contractId?: number;
 }
 
 function ContentModalForm({
   initialData,
   onClose,
   onSave,
+  contractId,
 }: ContentModalFormProps) {
   const isEdit = !!initialData;
 
@@ -67,7 +75,14 @@ function ContentModalForm({
   const [targetAudience, setTargetAudience] = React.useState(
     initialData?.targetAudience ?? "",
   );
-  const [pillar, setPillar] = React.useState(initialData?.pillar ?? "");
+  // Multi-select pillars — init from pillars[] or fall back to single pillar string
+  const [pillars, setPillars] = React.useState<string[]>(
+    initialData?.pillars && initialData.pillars.length > 0
+      ? initialData.pillars
+      : initialData?.pillar
+      ? [initialData.pillar]
+      : [],
+  );
   const [format, setFormat] = React.useState<"Video" | "Image" | "">(
     (initialData?.format as "Video" | "Image" | "") ?? "",
   );
@@ -81,11 +96,37 @@ function ContentModalForm({
   const status = initialData?.status ?? "Draft";
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
+  const { data: platformsList = [] } = useQuery({
+    queryKey: ["platforms"],
+    queryFn: () => getPlatformsApi(),
+  });
+
+  const { data: contractData } = useQuery({
+    queryKey: ["contract", contractId],
+    queryFn: () => getContractByIdApi(contractId!),
+    enabled: !!contractId,
+  });
+
+  const filteredPlatforms = React.useMemo(() => {
+    if (!contractData || !contractData.platforms || contractData.platforms.length === 0) {
+      return platformsList;
+    }
+    const contractPlatformNames = contractData.platforms.map((p) => p.platform_name.toLowerCase());
+    return platformsList.filter((p) =>
+      contractPlatformNames.includes(p.platform_name.toLowerCase())
+    );
+  }, [platformsList, contractData]);
+
+  const { data: categoriesList = [] } = useQuery({
+    queryKey: ["content-categories"],
+    queryFn: () => getContentCategoriesApi(),
+  });
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!title.trim()) newErrors.title = "Content title is required";
     if (!category.trim()) newErrors.category = "Content category is required";
-    if (!pillar) newErrors.pillar = "Content pillar is required";
+    if (pillars.length === 0) newErrors.pillars = "At least one content pillar is required";
     if (!format) newErrors.format = "Content type is required";
     if (!platform) newErrors.platform = "Platform is required";
     if (!dueDate) newErrors.dueDate = "Deadline is required";
@@ -101,7 +142,8 @@ function ContentModalForm({
       objective,
       category,
       targetAudience,
-      pillar,
+      pillars,
+      pillar: pillars[0] ?? "",
       format,
       platform,
       priority,
@@ -114,6 +156,14 @@ function ContentModalForm({
     });
     onClose();
   };
+
+  const isFormInvalid =
+    !title.trim() ||
+    !category.trim() ||
+    pillars.length === 0 ||
+    !format ||
+    !platform.trim() ||
+    !dueDate;
 
   return (
     <form
@@ -172,15 +222,27 @@ function ContentModalForm({
             >
               Content Category <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="category"
-              placeholder="e.g. Tutorial"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className={`rounded-lg border-gray-200 bg-gray-50/50 py-2.5 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors ${
-                errors.category ? "border-red-500 focus:border-red-500" : ""
-              }`}
-            />
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger
+                id="category"
+                className={`w-full rounded-lg border-gray-200 bg-gray-50/50 py-2.5 text-left focus:outline-none focus:border-red-800 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors ${
+                  errors.category ? "border-red-500 focus:border-red-500" : ""
+                }`}
+              >
+                <SelectValue placeholder="Select Category" />
+              </SelectTrigger>
+              <SelectContent className="rounded-lg border border-gray-100 bg-white p-1 shadow-lg z-50">
+                {categoriesList.map((cat) => (
+                  <SelectItem
+                    key={cat.id}
+                    value={cat.type_name}
+                    className="rounded-lg py-2 focus:bg-red-50 focus:text-red-900 cursor-pointer"
+                  >
+                    {cat.type_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.category && (
               <p className="text-[11px] text-red-500 font-medium">
                 {errors.category}
@@ -206,11 +268,11 @@ function ContentModalForm({
           </div>
         </div>
 
-        {/* Content Pillar */}
+        {/* Content Pillar — multi-select */}
         <PillarsContent
-          pillar={pillar}
-          setPillar={setPillar}
-          error={errors.pillar}
+          pillars={pillars}
+          setPillars={setPillars}
+          error={errors.pillars}
         />
 
         {/* Grid for Content Type (Format) & Platform */}
@@ -226,8 +288,8 @@ function ContentModalForm({
                 onClick={() => setFormat("Video")}
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${
                   format === "Video"
-                    ? "border-red-800 bg-red-50/25 text-red-955 ring-1 ring-red-800/10"
-                    : "border-gray-200 bg-white text-gray-650 hover:bg-gray-50"
+                    ? "border-red-800 bg-red-50/25 text-red-800 ring-1 ring-red-800/10"
+                    : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50"
                 }`}
               >
                 <Video className="h-4 w-4 shrink-0" />
@@ -238,7 +300,7 @@ function ContentModalForm({
                 onClick={() => setFormat("Image")}
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${
                   format === "Image"
-                    ? "border-red-800 bg-red-50/25 text-red-955 ring-1 ring-red-800/10"
+                    ? "border-red-800 bg-red-50/25 text-red-800 ring-1 ring-red-800/10"
                     : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50"
                 }`}
               >
@@ -269,7 +331,7 @@ function ContentModalForm({
                 <SelectValue placeholder="Select Platform" />
               </SelectTrigger>
               <SelectContent className="rounded-lg border border-gray-100 bg-white p-1 shadow-lg z-50">
-                {["Instagram", "TikTok", "YouTube"].map((plat) => (
+                {filteredPlatforms.map((p) => p.platform_name).map((plat) => (
                   <SelectItem
                     key={plat}
                     value={plat}
@@ -402,7 +464,8 @@ function ContentModalForm({
         </Button>
         <Button
           type="submit"
-          className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all"
+          disabled={isFormInvalid}
+          className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-medium px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isEdit ? "Save Changes" : "Create Plan"}
         </Button>
@@ -417,6 +480,7 @@ export function ContentModal({
   onClose,
   onSave,
   initialData,
+  contractId,
 }: ContentModalProps) {
   const isEdit = !!initialData;
   const formKey = isOpen ? (initialData?.id ?? "new") : "closed";
@@ -440,6 +504,7 @@ export function ContentModal({
           initialData={initialData}
           onClose={onClose}
           onSave={onSave}
+          contractId={contractId}
         />
       </DialogContent>
     </Dialog>

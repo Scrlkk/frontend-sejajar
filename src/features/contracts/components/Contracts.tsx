@@ -25,6 +25,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { PillarsContract } from "@/features/pillars/components/PillarsContract";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export interface ContractCardItem {
   id: string | number;
@@ -37,7 +38,10 @@ export interface ContractCardItem {
   targetProgress: number;
   startDate: string;
   endDate: string;
+  rawStartDate?: string;
+  rawEndDate?: string;
   valueAmount: string;
+  value?: number;
   status: "Completed" | "Active" | "Overdue" | string;
   statusBg: string;
   statusDot: string;
@@ -65,6 +69,8 @@ export function Contracts({
   onRestoreClick,
   onStatusChange,
 }: ContractsProps) {
+  const { can } = usePermissions();
+  const canManageContracts = can(["owner", "superadmin"]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
@@ -104,6 +110,10 @@ export function Contracts({
   };
 
   const activeContracts = contracts.filter((c) => !c.deletedAt);
+  const hasBaseContracts =
+    activeTab === "deleted"
+      ? contracts.some((c) => !!c.deletedAt)
+      : activeContracts.length > 0;
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-6">
@@ -168,21 +178,24 @@ export function Contracts({
             </TabsList>
           </Tabs>
 
-          <Button
-            onClick={onAddClick}
-            className="bg-red-800 hover:bg-red-900 text-white rounded-lg h-10 px-4 gap-2 cursor-pointer shadow-sm text-sm font-semibold w-full sm:w-auto justify-center shrink-0"
-          >
-            <Plus className="h-4 w-4" />
-            Add Contract
-          </Button>
+          {canManageContracts && (
+            <Button
+              onClick={onAddClick}
+              className="bg-red-800 hover:bg-red-900 text-white rounded-lg h-10 px-4 gap-2 cursor-pointer shadow-sm text-sm font-semibold w-full sm:w-auto justify-center shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              Add Contract
+            </Button>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {filteredContracts.length > 0 ? (
           filteredContracts.map((item) => {
-            const progressPercentage =
-              (item.currentProgress / item.targetProgress) * 100;
+            const progressPercentage = item.targetProgress > 0
+              ? (item.currentProgress / item.targetProgress) * 100
+              : 0;
 
             return (
               <Card
@@ -198,85 +211,87 @@ export function Contracts({
                   <div className="absolute inset-0 rounded-xl pointer-events-none border border-dashed border-red-300/60" />
                 )}
                 {/* Actions Dropdown replacing simple '>' button */}
-                <div
-                  className="absolute right-5 top-6 z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:text-red-logo hover:bg-gray-150/50 rounded-lg cursor-pointer transition-colors"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-44 bg-white border border-gray-250/80 shadow-md rounded-xl p-1 z-50"
-                    >
-                      {item.deletedAt ? (
-                        // Kontrak sudah dihapus: tampilkan opsi Restore saja
-                        <DropdownMenuItem
-                          className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
-                          onClick={() => onRestoreClick?.(item.id)}
+                {canManageContracts && (
+                  <div
+                    className="absolute right-5 top-6 z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-red-logo hover:bg-gray-150/50 rounded-lg cursor-pointer transition-colors"
                         >
-                          <RotateCcw className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                          <span>Restore</span>
-                        </DropdownMenuItem>
-                      ) : (
-                        <>
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-44 bg-white border border-gray-250/80 shadow-md rounded-xl p-1 z-50"
+                      >
+                        {item.deletedAt ? (
+                          // Kontrak sudah dihapus: tampilkan opsi Restore saja
                           <DropdownMenuItem
-                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
-                            onClick={() => onEditClick?.(item)}
+                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
+                            onClick={() => onRestoreClick?.(item.id)}
                           >
-                            <Pencil className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                            <span>Edit Contract</span>
+                            <RotateCcw className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                            <span>Restore</span>
                           </DropdownMenuItem>
+                        ) : (
+                          <>
+                            <DropdownMenuItem
+                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
+                              onClick={() => onEditClick?.(item)}
+                            >
+                              <Pencil className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                              <span>Edit Contract</span>
+                            </DropdownMenuItem>
 
-                          <DropdownMenuSeparator className="border-gray-100 my-1" />
+                            <DropdownMenuSeparator className="border-gray-100 my-1" />
 
-                          <DropdownMenuLabel className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                            Set Status
-                          </DropdownMenuLabel>
+                            <DropdownMenuLabel className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                              Set Status
+                            </DropdownMenuLabel>
 
-                          <DropdownMenuItem
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
-                            onClick={() => onStatusChange?.(item.id, "Active")}
-                          >
-                            <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                            <span>Active</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50 transition-colors"
-                            onClick={() => onStatusChange?.(item.id, "Completed")}
-                          >
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
-                            <span>Completed</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
-                            onClick={() => onStatusChange?.(item.id, "Cancel")}
-                          >
-                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
-                            <span>Cancel</span>
-                          </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
+                              onClick={() => onStatusChange?.(item.id, "Active")}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
+                              <span>Active</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50 transition-colors"
+                              onClick={() => onStatusChange?.(item.id, "Completed")}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                              <span>Completed</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
+                              onClick={() => onStatusChange?.(item.id, "Cancel")}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                              <span>Cancel</span>
+                            </DropdownMenuItem>
 
-                          <DropdownMenuSeparator className="border-gray-100 my-1" />
+                            <DropdownMenuSeparator className="border-gray-100 my-1" />
 
-                          <DropdownMenuItem
-                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
-                            onClick={() => onDeleteClick?.(item.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-red-550 shrink-0" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                            <DropdownMenuItem
+                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
+                              onClick={() => onDeleteClick?.(item.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-red-550 shrink-0" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
 
                 <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-400">
                   <span className="py-0.5">{item.code}</span>
@@ -317,8 +332,12 @@ export function Contracts({
                     </span>
                   </div>
                   <Progress
-                    value={progressPercentage}
-                    className="h-1.5 bg-gray-100 [&>div]:bg-red-800"
+                    value={progressPercentage === 0 ? 100 : progressPercentage}
+                    className={`h-1.5 bg-gray-100 ${
+                      progressPercentage === 0
+                        ? "[&>div]:bg-gray-300"
+                        : "[&>div]:bg-red-800"
+                    }`}
                   />
 
                   <div className="flex items-center justify-between text-xs font-semibold pt-0.5">
@@ -349,7 +368,7 @@ export function Contracts({
               </Card>
             );
           })
-        ) : contracts.length === 0 ? (
+        ) : !hasBaseContracts ? (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50/20 rounded-2xl border border-dashed border-gray-200 shadow-xs">
             <div className="h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-800 shadow-sm border border-red-100 mb-4 animate-pulse">
               <FolderClosed className="h-7 w-7" />

@@ -11,6 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Search, Check } from "lucide-react";
 import type { TeamMemberItem } from "@/features/contracts/components/TeamsMember";
 import { AvatarUser } from "@/features/users/components/AvatarUser";
+import { useQuery } from "@tanstack/react-query";
+import { getUsersApi } from "@/features/users/api/usersApi";
+import { getInitials, getAvatarBg } from "@/utils/formatter";
+import { getRoleLabel } from "@/features/users/constants/roleColors";
 
 interface AssignMembersProps {
   isOpen: boolean;
@@ -19,57 +23,38 @@ interface AssignMembersProps {
   onSave: (selectedMembers: TeamMemberItem[]) => void;
 }
 
-const ALL_CANDIDATES: TeamMemberItem[] = [
-  {
-    name: "James Rivera",
-    role: "Script Writer",
-    initials: "JR",
-    avatarBg: "bg-purple-100 text-purple-700",
-  },
-  {
-    name: "Mia Chen",
-    role: "Script Writer",
-    initials: "MC",
-    avatarBg: "bg-purple-100 text-purple-700",
-  },
-  {
-    name: "Lucas Hoffmann",
-    role: "Editor",
-    initials: "LH",
-    avatarBg: "bg-pink-100 text-pink-700",
-  },
-  {
-    name: "Aria Thompson",
-    role: "Editor",
-    initials: "AT",
-    avatarBg: "bg-rose-100 text-rose-700",
-  },
-  {
-    name: "Diego Santos",
-    role: "Admin Social Media",
-    initials: "DS",
-    avatarBg: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    name: "Nina Patel",
-    role: "Admin Social Media",
-    initials: "NP",
-    avatarBg: "bg-teal-100 text-teal-700",
-  },
-  {
-    name: "Atta Halilintar",
-    role: "Admin Social Media",
-    initials: "AH",
-    avatarBg: "bg-blue-100 text-blue-700",
-  },
-];
-
 export function AssignMembers({
   isOpen,
   onClose,
   currentMembers,
   onSave,
 }: AssignMembersProps) {
+  const { data: usersList = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => getUsersApi(),
+  });
+
+  const allCandidates = useMemo(() => {
+    return usersList
+      .filter((u) => {
+        // Exclude users with superadmin, owner, or content_lead roles
+        const excludedRoles = ["superadmin", "owner", "content_lead"];
+        return !u.roles.some((r) => excludedRoles.includes(r));
+      })
+      .map((u) => {
+        const mappedRole = u.roles.map(getRoleLabel).find((label) =>
+          ["Script Writer", "Editor", "Admin Social Media"].includes(label)
+        ) || "Staff";
+
+        return {
+          name: u.full_name,
+          role: mappedRole,
+          initials: getInitials(u.full_name),
+          avatarBg: getAvatarBg(u.full_name),
+        };
+      });
+  }, [usersList]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("All");
 
@@ -86,7 +71,7 @@ export function AssignMembers({
   };
 
   const handleSave = () => {
-    const selectedMembers = ALL_CANDIDATES.filter((m) =>
+    const selectedMembers = allCandidates.filter((m) =>
       selectedNames.includes(m.name)
     );
     onSave(selectedMembers);
@@ -94,7 +79,7 @@ export function AssignMembers({
 
   // Filter and search logic
   const filteredCandidates = useMemo(() => {
-    return ALL_CANDIDATES.filter((candidate) => {
+    return allCandidates.filter((candidate) => {
       const matchesSearch = candidate.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
@@ -102,7 +87,7 @@ export function AssignMembers({
         selectedRole === "All" || candidate.role === selectedRole;
       return matchesSearch && matchesRole;
     });
-  }, [searchQuery, selectedRole]);
+  }, [allCandidates, searchQuery, selectedRole]);
 
   // Helper to determine styling based on role
   const getRoleStyles = (role: string) => {
@@ -248,7 +233,8 @@ export function AssignMembers({
             <Button
               type="button"
               onClick={handleSave}
-              className="rounded-xl bg-red-800 hover:bg-red-900 text-white font-semibold px-5 text-xs h-9 transition-all cursor-pointer"
+              disabled={selectedNames.length === 0}
+              className="rounded-xl bg-red-800 hover:bg-red-900 text-white font-semibold px-5 text-xs h-9 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Assign Members
             </Button>

@@ -25,7 +25,7 @@ export function RevisionBanner({
         </div>
 
         <div className="flex flex-col min-w-0 space-y-0.5">
-          <h4 className="font-bold text-red-900 text-sm md:text-base truncate leading-snug">
+          <h4 className="font-semibold text-red-900 text-sm md:text-base truncate leading-snug">
             {title}
           </h4>
           <p className="text-xs md:text-sm font-medium text-red-800/80 leading-normal wrap-break-word">
@@ -38,7 +38,7 @@ export function RevisionBanner({
         <Button
           variant="outline"
           onClick={onReUpload}
-          className="bg-red-50 text-red-600 border-red-300 hover:border-red-logo hover:bg-red-logo hover:text-white rounded-xl font-semibold text-xs md:text-sm h-10 px-4 flex items-center gap-2 transition-all cursor-pointer shadow-none"
+          className="bg-red-50 text-red-600 border-red-300 hover:border-red-logo hover:bg-red-logo hover:text-white rounded-xl font-medium text-xs md:text-sm h-10 px-4 flex items-center gap-2 transition-all cursor-pointer shadow-none"
         >
           {buttonIcon}
           {buttonText}

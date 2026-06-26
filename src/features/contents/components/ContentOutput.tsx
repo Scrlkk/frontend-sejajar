@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
@@ -6,7 +6,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -26,14 +25,10 @@ interface ContentOutputProps {
 }
 
 const KEY_COLORS: Record<string, string> = {
-  Published: "#991b1b",
-  Scheduled: "#10b981",
-  Draft: "#e5e7eb",
-  "To Do": "#9ca3af",
-  "On Progress": "#eab308",
-  Review: "#3b82f6",
+  Draft: "#94a3b8",
+  "On Progress": "#d97706",
   Approved: "#10b981",
-  Revision: "#ef4444",
+  Published: "#0891b2",
 };
 
 const CustomTooltip = ({
@@ -42,28 +37,34 @@ const CustomTooltip = ({
   label,
 }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
+    const visibleEntries = payload.filter(
+      (entry) => entry.value !== undefined && entry.value > 0
+    );
+
+    if (visibleEntries.length === 0) return null;
+
     return (
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-xl flex flex-col gap-2 min-w-35 animate-in fade-in-50 duration-150">
         <p className="text-sm font-bold text-gray-800">{label}</p>
 
         <div className="space-y-1.5 text-xs font-semibold">
-          {payload.map(
-            (entry: { name: string; value: number; color: string }) => (
+          {visibleEntries.map(
+            (entry: { name?: string; value?: number; color?: string }) => (
               <div
-                key={entry.name}
+                key={entry.name || ""}
                 className="flex items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-2">
                   <span
                     className="h-2 w-2 rounded-sm shrink-0"
-                    style={{ backgroundColor: entry.color }}
+                    style={{ backgroundColor: entry.color || "" }}
                   />
                   <span className="text-gray-500 font-medium">
-                    {entry.name}
+                    {entry.name || ""}
                   </span>
                 </div>
                 <span className="font-bold text-gray-900">
-                  {entry.value} items
+                  {entry.value || 0} items
                 </span>
               </div>
             ),
@@ -78,10 +79,14 @@ const CustomTooltip = ({
 const computeYDomain = (
   data: ContentOutputData[],
   keys: string[],
+  hiddenKeys: string[],
   tickCount = 4,
 ): { domain: [number, number]; ticks: number[] } => {
+  const visibleKeys = keys.filter((k) => !hiddenKeys.includes(k));
   const rawMax = Math.max(
-    ...data.flatMap((d) => keys.map((key) => Number(d[key]) || 0)),
+    ...data.map((d) =>
+      visibleKeys.reduce((sum, key) => sum + (Number(d[key]) || 0), 0)
+    ),
     0,
   );
 
@@ -93,8 +98,10 @@ const computeYDomain = (
   const niceMax = Math.ceil(rawMax / magnitude) * magnitude;
 
   const step = niceMax / tickCount;
-  const ticks = Array.from({ length: tickCount + 1 }, (_, i) =>
-    Math.round(i * step),
+  const ticks = Array.from(
+    new Set(
+      Array.from({ length: tickCount + 1 }, (_, i) => Math.round(i * step))
+    )
   );
 
   return { domain: [0, niceMax], ticks };
@@ -105,12 +112,23 @@ export function ContentOutput({
   title = "Content Output Over Time",
   headerAction,
 }: ContentOutputProps) {
+  const [hiddenKeys, setHiddenKeys] = useState<string[]>([]);
+
   const keys = useMemo(() => {
     if (data.length === 0) return [];
-    return Object.keys(data[0]).filter((k) => k !== "month" && k !== "year");
+    return Object.keys(data[0]).filter(
+      (k) =>
+        k !== "month" &&
+        k !== "year" &&
+        k !== "Assigned" &&
+        k !== "Review" &&
+        k !== "Revision"
+    );
   }, [data]);
 
-  const { domain, ticks: yTicks } = computeYDomain(data, keys);
+  const { domain, ticks: yTicks } = useMemo(() => {
+    return computeYDomain(data, keys, hiddenKeys);
+  }, [data, keys, hiddenKeys]);
 
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {};
@@ -122,6 +140,12 @@ export function ContentOutput({
     });
     return config;
   }, [keys]);
+
+  const toggleKey = (key: string) => {
+    setHiddenKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6">
@@ -149,62 +173,71 @@ export function ContentOutput({
         ) : (
           <>
             <ChartContainer config={chartConfig} className="h-55 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                   data={data}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                  barGap={4}
-                >
-                  <CartesianGrid
-                    vertical={false}
-                    strokeDasharray="3 3"
-                    className="stroke-gray-100"
-                  />
+              <BarChart
+                data={data}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid
+                  vertical={false}
+                  strokeDasharray="3 3"
+                  className="stroke-gray-100"
+                />
 
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    className="text-xs font-medium text-gray-400"
-                    dy={12}
-                  />
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-xs font-medium text-gray-400"
+                  dy={12}
+                />
 
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    domain={domain}
-                    ticks={yTicks}
-                    className="text-xs font-medium text-gray-400"
-                  />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  domain={domain}
+                  ticks={yTicks}
+                  className="text-xs font-medium text-gray-400"
+                />
 
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={{ fill: "transparent" }}
-                  />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ fill: "transparent" }}
+                />
 
-                  {keys.map((key) => (
-                    <Bar
-                      key={key}
-                      dataKey={key}
-                      fill={chartConfig[key]?.color}
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={16}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+                {keys.map((key) => (
+                  <Bar
+                    key={key}
+                    dataKey={key}
+                    stackId="a"
+                    fill={chartConfig[key]?.color}
+                    hide={hiddenKeys.includes(key)}
+                    maxBarSize={20}
+                  />
+                ))}
+              </BarChart>
             </ChartContainer>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-500 mt-4 pt-2 border-t border-gray-50">
-              {keys.map((key) => (
-                <div key={key} className="flex items-center gap-2">
-                  <span
-                    className="h-3 w-3 rounded"
-                    style={{ backgroundColor: chartConfig[key]?.color }}
-                  />
-                  <span>{key}</span>
-                </div>
-              ))}
+              {keys.map((key) => {
+                const isHidden = hiddenKeys.includes(key);
+                return (
+                  <button
+                    key={key}
+                    onClick={() => toggleKey(key)}
+                    className={`flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-85 focus:outline-none ${
+                      isHidden ? "opacity-35" : ""
+                    }`}
+                  >
+                    <span
+                      className="h-3 w-3 rounded shrink-0"
+                      style={{ backgroundColor: chartConfig[key]?.color }}
+                    />
+                    <span className={isHidden ? "line-through text-gray-400 font-medium" : "text-gray-600"}>
+                      {key}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </>
         )}

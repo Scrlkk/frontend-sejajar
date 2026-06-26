@@ -35,14 +35,13 @@ export function ActiveContracts({
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}
         </CardTitle>
-        <Link to="/contracts">
-          <button
-            onClick={onViewAll}
-            className="text-sm font-bold text-red-800 hover:text-red-900 flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            View all
-            <ArrowRight className="h-4 w-4" />
-          </button>
+        <Link
+          to="/contracts"
+          onClick={onViewAll}
+          className="text-sm font-bold text-red-800 hover:text-red-900 flex items-center gap-1.5 transition-colors cursor-pointer"
+        >
+          View all
+          <ArrowRight className="h-4 w-4" />
         </Link>
       </CardHeader>
 
@@ -63,8 +62,9 @@ export function ActiveContracts({
         ) : (
           <div className="flex items-stretch gap-4 overflow-x-auto pb-2 pt-1 select-none scroll-smooth scrollbar-none [&::-webkit-scrollbar]:hidden">
             {contracts.map((contract) => {
-              const progressPercentage =
-                (contract.currentProgress / contract.targetProgress) * 100;
+              const progressPercentage = contract.targetProgress > 0
+                ? (contract.currentProgress / contract.targetProgress) * 100
+                : 0;
 
               return (
                 <Card
@@ -110,8 +110,12 @@ export function ActiveContracts({
                       </span>
                     </div>
                     <Progress
-                      value={progressPercentage}
-                      className="h-1.5 bg-gray-100 [&>div]:bg-red-800"
+                      value={progressPercentage === 0 ? 100 : progressPercentage}
+                      className={`h-1.5 bg-gray-100 ${
+                        progressPercentage === 0
+                          ? "[&>div]:bg-gray-300"
+                          : "[&>div]:bg-red-800"
+                      }`}
                     />
                   </div>
 
