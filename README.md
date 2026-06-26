@@ -105,44 +105,62 @@ react-sejajar/
 
 ## 🚀 Getting Started
 
+Follow the instructions below to set up and run the frontend client application locally.
+
 ### 📋 Prerequisites
 
 Ensure you have the following installed on your machine:
 
-- [Node.js](https://nodejs.org/) (version `v18.x` or later recommended)
-- [npm](https://www.npmjs.com/) (version `v9.x` or later)
+- **Node.js** (version `v18.x` or later recommended)
+- **npm** (version `v9.x` or later)
 
-### 📥 Installation
+---
 
-Clone the repository and install the dependencies:
+### 📥 Installation & Setup
 
-```bash
-# Clone the repository
-git clone https://github.com/YourUsername/react-sejajar.git
+1. **Clone and navigate to the project directory**:
 
-# Navigate into the project folder
-cd react-sejajar
+   ```bash
+   git clone https://github.com/YourUsername/react-sejajar.git
+   cd react-sejajar
+   ```
 
-# Install packages
-npm install
-```
+2. **Install package dependencies**:
 
-### ⚙️ Environment Configuration
+   ```bash
+   npm install
+   ```
 
-Create a `.env` file in the root directory and specify your variables:
+3. **Configure Environment Variables**:
 
-```env
-VITE_API_URL=http://localhost:8000/api
-```
+   Create a `.env` file in the root directory:
 
-### 💻 Scripts & Commands
+   ```env
+   VITE_API_URL=http://localhost:3000
+   ```
+
+   > [!NOTE]
+   > `VITE_API_URL` should point to your active local backend API instance. Refer to the backend repository documentation for instructions on setting up the API.
+
+4. **Start the Development Server**:
+
+   ```bash
+   npm run dev
+   ```
+
+   The application will compile and start locally. You can access it in your browser at [http://localhost:5173](http://localhost:5173).
+
+---
+
+### 💻 Scripts & Commands Reference
 
 | Command | Action |
 | :--- | :--- |
-| `npm run dev` | Launch local development server on [http://localhost:5173](http://localhost:5173). |
-| `npm run build` | Compile TypeScript and bundle production files in `/dist`. |
-| `npm run preview` | Run the compiled production build locally for testing. |
-| `npm run lint` | Inspect code formatting and syntax errors with ESLint. |
+| `npm run dev` | Launch local Vite development server on [http://localhost:5173](http://localhost:5173). |
+| `npm run build` | Compile TypeScript and bundle production files in `/dist` folder. |
+| `npm run preview` | Run the compiled production build locally for verification. |
+| `npm run lint` | Inspect code style, formatting, and syntax errors using ESLint. |
+| `npx tsc --noEmit` | Validate type-safety using the TypeScript compiler. |
 
 ---
 
@@ -167,4 +185,4 @@ The styles are configured directly inside [globals.css](file:///c:/laragon/www/r
 
 ---
 
-Developed with ❤️ by the **Sejajar Creative Team**.
+Developed by the **Sejajar Creative Team**.
