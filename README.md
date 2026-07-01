@@ -185,4 +185,4 @@ The styles are configured directly inside [globals.css](file:///c:/laragon/www/r
 
 ---
 
-Developed by the **Sejajar Creative Team**.
+Developed by the **Scrlkk**.
