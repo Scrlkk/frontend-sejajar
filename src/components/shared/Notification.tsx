@@ -15,16 +15,24 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useEffect } from "react";
+import { useNotificationStore } from "@/hooks/useNotificationStore";
 
 export function Notification() {
   const {
     notifications,
     unreadCount,
+    fetchNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-  } = useNotifications();
+  } = useNotificationStore();
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   const hasUnread = unreadCount > 0;
 
@@ -98,7 +106,7 @@ export function Notification() {
         );
       default:
         return (
-          <div className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-150 text-gray-500 flex items-center justify-center shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 flex items-center justify-center shrink-0">
             <Bell className="h-4 w-4 stroke-2" />
           </div>
         );
@@ -121,9 +129,8 @@ export function Notification() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-88 sm:w-96 bg-white border border-gray-150 shadow-2xl rounded-2xl p-0 flex flex-col overflow-hidden outline-none z-50"
+        className="w-88 sm:w-96 bg-white border border-gray-200 shadow-2xl rounded-2xl p-0 flex flex-col overflow-hidden outline-none z-50"
       >
-        {/* Header */}
         <div className="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2">
             <span className="font-bold text-gray-900 text-sm">
@@ -145,7 +152,6 @@ export function Notification() {
           )}
         </div>
 
-        {/* List */}
         <div className="max-h-87.5 overflow-y-auto divide-y divide-gray-100 scrollbar-none">
           {notifications.length > 0 ? (
             notifications.map((notif) => (
@@ -171,7 +177,6 @@ export function Notification() {
                   </p>
                 </div>
 
-                {/* Actions container shown on hover */}
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   {!notif.isRead && (
                     <button
@@ -197,7 +202,6 @@ export function Notification() {
                   </button>
                 </div>
 
-                {/* Default dot indicators when not hovering */}
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 group-hover:opacity-0 transition-opacity">
                   {!notif.isRead ? (
                     <span className="h-2 w-2 bg-red-600 rounded-full block animate-pulse"></span>
@@ -209,7 +213,7 @@ export function Notification() {
             ))
           ) : (
             <div className="py-12 text-center flex flex-col items-center justify-center">
-              <div className="h-10 w-10 rounded-full bg-slate-100 border border-gray-150 flex items-center justify-center text-gray-400 mb-2.5">
+              <div className="h-10 w-10 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center text-gray-400 mb-2.5">
                 <Bell className="h-5 w-5 stroke-[1.5]" />
               </div>
               <p className="text-xs font-bold text-gray-800">

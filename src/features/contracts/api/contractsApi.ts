@@ -2,42 +2,8 @@ import { api } from '@/services/api';
 import { ENDPOINTS } from '@/services/endpoints';
 import { getContractStatusConfig } from '../constants/statusConfig';
 import { formatCurrencyIDR, formatDate } from '@/utils/helpers';
-import type { ContractCardItem } from '../components/Contracts';
-
-export interface ContractPlatform {
-  id: number;
-  platform_name: string;
-}
-
-export interface ContractTeamUser {
-  id: number;
-  full_name: string;
-  roles: string[];
-  is_online?: boolean;
-}
-
-export interface Contract {
-  id: number;
-  client_id: number;
-  contract_code: string;
-  contract_name: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  revenue: string;
-  status: string;
-  created_by: number;
-  lead_by: number;
-  created_by_name: string;
-  lead_by_name: string;
-  platforms: ContractPlatform[];
-  teams: ContractTeamUser[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  client_name?: string;
-  company_name?: string;
-}
+import type { Contract, ContractPlatform, ContractTeamUser, ContractCardItem } from '../types';
+export type { Contract, ContractPlatform, ContractTeamUser, ContractCardItem };
 
 export interface GetContractsParams {
   limit?: number;
@@ -145,6 +111,7 @@ export const mapContractToCardItem = (
     statusBg: statusCfg.bg,
     statusDot: statusCfg.dot,
     createdBy: c.lead_by_name,
+    createdByUserId: c.created_by,
     deletedAt: c.is_active ? null : (c.updated_at || new Date().toISOString()),
   };
 };

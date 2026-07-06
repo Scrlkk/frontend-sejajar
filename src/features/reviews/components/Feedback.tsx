@@ -71,7 +71,6 @@ export function Feedback({
             </div>
           ))
         ) : (
-          /* State Tampilan Jika Kosong */
           <div className="text-center py-10 text-gray-400 text-sm border border-dashed border-gray-100 rounded-2xl">
             No feedback messages received.
           </div>

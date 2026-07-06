@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getFileUrl } from "@/utils/helpers";
 import { Send, Play, X, Video, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,16 +131,7 @@ interface ModalPreviewPublishProps {
   canPublish?: boolean;
 }
 
-const getFileUrl = (url?: string | null) => {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  let apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
-  if (apiBase.endsWith("/api")) {
-    apiBase = apiBase.substring(0, apiBase.length - 4);
-  }
-  const path = url.startsWith("/") ? url : `/${url}`;
-  return `${apiBase}${path}`;
-};
+
 
 export function ModalPreviewPublish({
   isOpen,
@@ -308,7 +300,7 @@ export function ModalPreviewPublish({
                         setUrlInput(displayItem.content_url || "");
                         setIsEditingUrl(true);
                       }}
-                      className="text-[10px] text-red-800 hover:text-red-950 font-bold underline cursor-pointer"
+                      className="text-[10px] text-red-800 hover:text-red-900 font-bold underline cursor-pointer"
                     >
                       Edit Link
                     </button>
@@ -415,7 +407,7 @@ export function ModalPreviewPublish({
                     </button>
                   </div>
                 ) : isItemVideo ? (
-                  <div className="w-full h-full bg-slate-950 relative overflow-hidden group">
+                  <div className="w-full h-full bg-slate-900 relative overflow-hidden group">
                     <video
                       src={streamUrl}
                       preload="metadata"
@@ -425,9 +417,9 @@ export function ModalPreviewPublish({
                     />
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 group-hover:text-white transition-colors pointer-events-none">
                       <div className="h-10 w-10 rounded-full bg-red-800/10 border border-red-800/30 flex items-center justify-center mb-1.5 shadow-md">
-                        <Video className="h-4.5 w-4.5 text-red-650" />
+                        <Video className="h-4.5 w-4.5 text-red-600" />
                       </div>
-                      <span className="text-[10px] font-bold tracking-wider text-slate-350 uppercase">
+                      <span className="text-[10px] font-bold tracking-wider text-slate-300 uppercase">
                         Video Production
                       </span>
                     </div>
@@ -512,7 +504,7 @@ export function ModalPreviewPublish({
                             setUrlInput(displayItem.content_url || "");
                             setIsEditingUrl(true);
                           }}
-                          className="text-[10px] text-red-800 hover:text-red-950 font-bold underline cursor-pointer"
+                          className="text-[10px] text-red-800 hover:text-red-900 font-bold underline cursor-pointer"
                         >
                           Edit Link
                         </button>

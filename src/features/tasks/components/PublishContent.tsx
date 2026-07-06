@@ -120,7 +120,6 @@ export function PublishContent({
       isPublishable: isPublishable,
     };
 
-    // Trigger side effect outside the state updater
     onCaption?.(updatedItem);
 
     setLocalItems((prev) =>
@@ -131,7 +130,6 @@ export function PublishContent({
     toast.success("Caption berhasil disimpan!");
   };
 
-  // Publish preview modal states
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [itemToPublish, setItemToPublish] = useState<QueueItem | null>(null);
   const [publishModalMode, setPublishModalMode] = useState<
@@ -234,7 +232,6 @@ export function PublishContent({
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg">
       <div className="flex flex-col gap-3 p-4 border-b border-gray-100">
-        {/* Row 2: Search + Caption Button */}
         <div className="flex items-center gap-3 justify-end">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -255,7 +252,6 @@ export function PublishContent({
           </Button>
         </div>
 
-        {/* Row 1: Filter Tabs */}
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -415,7 +411,7 @@ export function PublishContent({
                               size="sm"
                               variant="outline"
                               onClick={handleCancelEdit}
-                              className="h-8 text-xs font-semibold rounded-lg px-3 hover:bg-gray-50 shadow-none border-gray-250 cursor-pointer"
+                              className="h-8 text-xs font-semibold rounded-lg px-3 hover:bg-gray-50 shadow-none border-gray-200 cursor-pointer"
                             >
                               Cancel
                             </Button>
@@ -427,7 +423,7 @@ export function PublishContent({
                     if (isReadOnly) {
                       return item.caption ? (
                         <div className="w-full bg-slate-50/50 border border-gray-200 rounded-xl p-3 text-sm text-gray-500 font-normal select-none">
-                          <p className="w-full text-sm text-gray-650 font-normal line-clamp-2">
+                          <p className="w-full text-sm text-gray-600 font-normal line-clamp-2">
                             {item.caption}
                           </p>
                         </div>

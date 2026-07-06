@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getPillarsApi } from "@/features/pillars/api/pillarsApi";
 import { getColorToken } from "@/features/pillars/constants/colorPalette";
 
+import { pillarKeys } from "@/features/pillars/api/pillarKeys";
+
 interface PillarsContentProps {
   /** Array of selected pillar names */
   pillars: string[];
@@ -16,7 +18,7 @@ export const PillarsContent = ({
   error,
 }: PillarsContentProps) => {
   const { data: apiPillars = [] } = useQuery({
-    queryKey: ["pillars"],
+    queryKey: pillarKeys.all,
     queryFn: () => getPillarsApi({ limit: 100 }),
   });
 

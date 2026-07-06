@@ -31,19 +31,16 @@ interface SystemLogsSummary {
 }
 
 export const SystemlogsPage = () => {
-  // Fetch summary widget stats
   const { data: summary, isLoading: loadingSummary } = useQuery<SystemLogsSummary>({
     queryKey: ["system-logs-summary"],
     queryFn: () => getDashboardWidgetApi<SystemLogsSummary>("system-logs-summary"),
   });
 
-  // Fetch activity logs list
   const { data: rawLogs = [], isLoading: loadingLogs } = useQuery({
     queryKey: ["activity-logs"],
     queryFn: () => getActivityLogsApi({ limit: 100 }),
   });
 
-  // Map summary stats into card layouts
   const cards = useMemo(() => {
     return AUDIT_CARDS_TEMPLATE.map((card) => {
       let value = "0";
@@ -71,7 +68,6 @@ export const SystemlogsPage = () => {
     });
   }, [summary]);
 
-  // Map API activity logs to UI expectations
   const logs = useMemo<ActivityLogItem[]>(() => {
     return rawLogs.map((log) => {
       const initials = getInitials(log.user_name || "System");

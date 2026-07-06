@@ -13,7 +13,7 @@ import {
 } from "@/features/dashboard/api/dashboardApi";
 import { RevisionDashboard } from "@/features/reviews/components/RevisionDashboard";
 import { getUsersApi, type User } from "@/features/users/api/usersApi";
-import { getInitials, getAvatarBg, getRoleBg, type DeadlineTask, mapTaskToDeadlineItem } from "@/utils/formatter";
+import { getInitials, getAvatarBg, getRoleBg, type DeadlineTask, mapTaskToDeadlineItem, isTaskOverdue } from "@/utils/formatter";
 import { formatDate } from "@/utils/helpers";
 import { getRoleLabel } from "@/features/users/constants/roleColors";
 import { STAFF_CARDS_TEMPLATE } from "@/features/dashboard/constants/cardConfig";
@@ -95,32 +95,29 @@ export const ContentEditorPage = () => {
     }
   };
 
-  // Fetch dashboard summary
   const { data: summaryData } = useQuery<StaffSummary>({
-    queryKey: ["staffSummary"],
-    queryFn: () => getDashboardSummaryApi<StaffSummary>(),
+    queryKey: ["staffSummary", "content_editor"],
+    queryFn: () => getDashboardSummaryApi<StaffSummary>("content_editor"),
   });
 
-  // Fetch comments revision widget/chart
   const { data: commentsRevisionData } = useQuery<CommentsRevisionResponse>({
-    queryKey: ["dashboard-charts", "comments_revision"],
+    queryKey: ["dashboard-charts", "comments_revision", "content_editor"],
     queryFn: () =>
       getDashboardChartsApi<CommentsRevisionResponse>({
         metric: "comments_revision",
         limit: 10,
+        role: "content_editor",
       }),
   });
 
-  // Fetch deadlines widget
   const { data: deadlinesWidget = { tasks: [] } } = useQuery<{
     tasks: DeadlineTask[];
   }>({
-    queryKey: ["dashboard-widget", "upcoming-deadlines"],
+    queryKey: ["dashboard-widget", "upcoming-deadlines", "content_editor"],
     queryFn: () =>
-      getDashboardWidgetApi<{ tasks: DeadlineTask[] }>("upcoming-deadlines"),
+      getDashboardWidgetApi<{ tasks: DeadlineTask[] }>("upcoming-deadlines", { role: "content_editor" }),
   });
 
-  // Find latest revision task if any
   const revisionTasks = useMemo(() => {
     return (deadlinesWidget.tasks || []).filter((t) => t.status === "revision");
   }, [deadlinesWidget.tasks]);
@@ -146,27 +143,25 @@ export const ContentEditorPage = () => {
     };
   }, [latestRevisionTask, latestRevisionComment]);
 
-  // Fetch calendar widget
   const { data: calendarData = { contents: [], tasks: [] } } =
     useQuery<CalendarDataResponse>({
-      queryKey: ["dashboard-widget", "calendar"],
-      queryFn: () => getDashboardWidgetApi<CalendarDataResponse>("calendar"),
+      queryKey: ["dashboard-widget", "calendar", "content_editor"],
+      queryFn: () => getDashboardWidgetApi<CalendarDataResponse>("calendar", { role: "content_editor" }),
     });
 
-  // Fetch users to resolve role details for comments
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: () => getUsersApi(),
   });
 
-  // Fetch recent comments widget
   const { data: commentsWidget = { comments: [] } } = useQuery<{
     comments: CommentWidgetData[];
   }>({
-    queryKey: ["dashboard-widget", "recent-comments"],
+    queryKey: ["dashboard-widget", "recent-comments", "content_editor"],
     queryFn: () =>
       getDashboardWidgetApi<{ comments: CommentWidgetData[] }>(
         "recent-comments",
+        { role: "content_editor" }
       ),
   });
 
@@ -244,7 +239,7 @@ export const ContentEditorPage = () => {
         assignee: "",
         assigneeInitials: "",
         assigneeBg: "",
-        isOverdue: t.deadline ? new Date(t.deadline) < new Date() && t.status !== "approved" : false,
+        isOverdue: isTaskOverdue(t.deadline || null, t.status),
       };
     });
   }, [calendarData.tasks]);

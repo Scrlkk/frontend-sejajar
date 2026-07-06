@@ -132,10 +132,10 @@ export const sidebarMenuGroups: SidebarMenuGroup[] = [
     group: "System",
     items: [
       {
-        title: "User & Roles",
+        title: "Users & Roles",
         to: "/user-roles",
         icon: Shield,
-        subtitle: "Manage users, roles and permissions",
+        subtitle: "Manage users and view role permissions",
       },
       {
         title: "System Logs",
@@ -157,7 +157,7 @@ const ROLE_DASHBOARDS: Record<UserRole, SidebarMenuItem> = {
     title: "Super Admin",
     to: "/dashboard/superadmin",
     icon: ShieldUser,
-    subtitle: "Manage system and roles",
+    subtitle: "Manage users and system logs",
   },
   owner: {
     title: "Owner",
@@ -210,10 +210,10 @@ const ITEM_GROUPS: Record<string, "CORES" | "SYSTEM"> = {
 const ROLE_ITEMS: Record<UserRole, SidebarMenuItem[]> = {
   superadmin: [
     {
-      title: "User & Roles",
+      title: "Users & Roles",
       to: "/user-roles",
       icon: Shield,
-      subtitle: "Manage users, roles and permissions",
+      subtitle: "Manage users and view role permissions",
     },
     {
       title: "System Logs",
@@ -361,7 +361,6 @@ export const getSidebarGroupsForUser = (
 
   const groups: SidebarMenuGroup[] = [];
 
-  // 1. Dashboards group (always display dashboard(s) for the user's role(s))
   const dashboardItems: SidebarMenuItem[] = [];
   user.roles.forEach((r) => {
     const db = ROLE_DASHBOARDS[r];
@@ -377,7 +376,6 @@ export const getSidebarGroupsForUser = (
     });
   }
 
-  // 2. CORES and SYSTEM groups
   const coresItemsMap = new Map<string, SidebarMenuItem>();
   const systemItemsMap = new Map<string, SidebarMenuItem>();
 

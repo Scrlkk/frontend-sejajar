@@ -1,4 +1,4 @@
-import type { TaskBoardItem } from "@/features/tasks/components/TasksContent";
+import type { TaskBoardItem } from "@/features/tasks/types";
 import { useNavigate } from "react-router-dom";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { formatDateEN } from "@/utils/helpers";

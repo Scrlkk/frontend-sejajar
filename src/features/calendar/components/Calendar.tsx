@@ -76,7 +76,7 @@ export function ContentCalendar({
 }: ContentCalendarProps) {
   const { roles } = usePermissions();
   const showContentVsTaskLegend = useMemo(() => {
-    const allowed = ["owner", "content_lead", "superadmin"];
+    const allowed = ["owner", "content_lead", "superadmin", "admin_social_media"];
     return roles.some((r) => allowed.includes(r));
   }, [roles]);
 
@@ -273,7 +273,7 @@ export function ContentCalendar({
             {platformsLegend.length > 4 && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="text-[11px] font-bold text-red-800 hover:text-red-950 underline cursor-pointer">
+                  <button className="text-[11px] font-bold text-red-800 hover:text-red-900 underline cursor-pointer">
                     +{platformsLegend.length - 4} more
                   </button>
                 </PopoverTrigger>
@@ -351,14 +351,10 @@ export function ContentCalendar({
                   </span>
                 </div>
 
-                {/* Event indicators (Colored Dots) */}
                 <div className="flex flex-wrap items-center justify-center gap-1 mt-1.5 mb-0.5 min-h-3">
                   {isCurrentMonth &&
                     dayEvents.slice(0, 3).map((event) => {
                       const token = getColorToken(event.platform, event.platformColorKey);
-                      const dotColor = token.dot;
-                      const borderColor = token.dot;
-
                       const isTask = event.id.toString().startsWith("t_");
                       const drawAsTask = showContentVsTaskLegend && isTask;
 
@@ -370,9 +366,14 @@ export function ContentCalendar({
                               ? `${isTask ? "Task (Deadline)" : "Content (Schedule)"}${event.time ? ` • ${event.time}` : ""} • ${event.title}`
                               : `${event.time ? `${event.time} • ` : ""}${event.title}`
                           }
-                          className={`h-2 w-2 rounded-full ${
-                            drawAsTask ? `bg-transparent border-2 ${borderColor}` : dotColor
-                          } transition-transform hover:scale-130 shadow-sm`}
+                          className={`h-2 w-2 rounded-full transition-transform hover:scale-130 shadow-sm ${
+                            drawAsTask ? "bg-transparent border-2" : token.dot
+                          }`}
+                          style={
+                            drawAsTask
+                              ? { borderColor: token.hex }
+                              : undefined
+                          }
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedDay(day);

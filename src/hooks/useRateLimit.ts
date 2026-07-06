@@ -12,7 +12,7 @@ export function useRateLimit(): UseRateLimitResult {
   useEffect(() => {
     const handleRateLimit = (event: Event) => {
       const customEvent = event as CustomEvent<{ retryAfter: number }>;
-      const seconds = customEvent.detail.retryAfter || 60; // default to 60s
+      const seconds = customEvent.detail.retryAfter || 60; 
       setRetryAfter(seconds);
     };
 
@@ -22,7 +22,6 @@ export function useRateLimit(): UseRateLimitResult {
     };
   }, []);
 
-  // Countdown timer for rate limiting
   useEffect(() => {
     if (retryAfter === null || retryAfter <= 0) return;
 

@@ -8,10 +8,8 @@ import {
   CalendarSchedules,
   type MiniScheduleItem,
 } from "@/features/calendar/components/CalendarSchedules";
-import {
-  SchedulesContent,
-  type ScheduledContentItem,
-} from "@/features/tasks/components/SchedulesContent";
+import { SchedulesContent } from "@/features/tasks/components/SchedulesContent";
+import type { ScheduledContentItem } from "@/features/tasks/types";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -91,7 +89,6 @@ export const CalendarPage = () => {
     return format(currentDate, "yyyy-MM");
   }, [currentDate]);
 
-  // Fetch calendar widget parameterized by active month
   const { data: calendarData = { contents: [], tasks: [] } } =
     useQuery<CalendarDataResponse>({
       queryKey: ["calendar-widget", monthParam],
@@ -156,13 +153,11 @@ export const CalendarPage = () => {
   });
 
   const getTaskIdForContent = async (contentId: number): Promise<number> => {
-    // 1. Try to find in calendarData.tasks
     const localTask = (calendarData.tasks || []).find(
       (t) => Number(t.content_id) === contentId,
     );
     if (localTask) return localTask.id;
 
-    // 2. Fetch from API
     const tasks = await getTasksApi({ content_id: contentId, limit: 100 });
     if (tasks && tasks.length > 0) {
       return tasks[0].id;
@@ -192,7 +187,6 @@ export const CalendarPage = () => {
         item.status.toLowerCase() === "approved" ? "scheduled" : "published";
       const deadline = date && time ? `${date}T${time}:00` : undefined;
 
-      // Append hashtags if provided
       const existingCaption = item.caption || "";
       const updatedCaption = hashtags
         ? `${existingCaption} ${hashtags}`.trim()
@@ -225,7 +219,6 @@ export const CalendarPage = () => {
     return "";
   };
 
-  // Map contents & tasks from calendar API response to unified CalendarEvent structures
   const mappedEvents = useMemo((): CalendarEvent[] => {
     const contents = isStaffOnly
       ? []
@@ -272,12 +265,10 @@ export const CalendarPage = () => {
     return [...contents, ...tasks];
   }, [calendarData, isStaffOnly]);
 
-  // Filter events for the selected day
   const dailyEvents = selectedDay
     ? mappedEvents.filter((event) => isSameDay(event.date, selectedDay))
     : [];
 
-  // Map CalendarEvent to MiniScheduleItem for the sidebar
   const dailySchedules: MiniScheduleItem[] = dailyEvents.map((event) => {
     const statusCfg = event.status
       ? event.id.toString().startsWith("c_")
@@ -323,7 +314,6 @@ export const CalendarPage = () => {
     return `${months[date.getMonth()]} ${date.getDate()}`;
   };
 
-  // Calculate stats dynamically from calendar monthly data
   const cardCounts = useMemo(() => {
     const counts = { Instagram: 0, YouTube: 0, TikTok: 0, Total: 0 };
     if (!isStaffOnly) {
@@ -378,7 +368,6 @@ export const CalendarPage = () => {
     },
   ];
 
-  // Map calendarData contents and tasks to SchedulesContent table items
   const mappedSchedulesList = useMemo(() => {
     const contents = isStaffOnly
       ? []

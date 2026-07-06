@@ -17,7 +17,6 @@ export const PillarsCard = ({
   className,
   colorKey,
 }: PillarsCardProps) => {
-  // Prefer numeric id (stable) over name (may change) for color hashing
   const color = getColorToken(categoryId ?? category, colorKey);
 
   return (

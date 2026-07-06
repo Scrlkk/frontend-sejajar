@@ -9,25 +9,21 @@ export const NotFound = () => {
 
   const handleDashboardRedirect = () => {
     if (isAuthenticated && user) {
-      switch (user.role) {
-        case "superadmin":
-          navigate("/dashboard/superadmin");
-          break;
-        case "admin_social_media":
-          navigate("/dashboard/social-media");
-          break;
-        case "content_lead":
-          navigate("/dashboard/content-lead");
-          break;
-        case "owner":
-          navigate("/dashboard/owner");
-          break;
-        case "script_writer":
-          navigate("/dashboard/script-writer");
-          break;
-        case "content_editor":
-          navigate("/dashboard/content-editor");
-          break;
+      const roles = user.roles || (user.role ? [user.role] : []);
+      if (roles.includes("superadmin")) {
+        navigate("/dashboard/superadmin");
+      } else if (roles.includes("admin_social_media")) {
+        navigate("/dashboard/social-media");
+      } else if (roles.includes("content_lead")) {
+        navigate("/dashboard/content-lead");
+      } else if (roles.includes("owner")) {
+        navigate("/dashboard/owner");
+      } else if (roles.includes("script_writer")) {
+        navigate("/dashboard/script-writer");
+      } else if (roles.includes("content_editor")) {
+        navigate("/dashboard/content-editor");
+      } else {
+        navigate("/login");
       }
     } else {
       navigate("/login");
@@ -69,7 +65,7 @@ export const NotFound = () => {
         </h2>
         <p className="text-gray-500 text-sm md:text-base leading-relaxed mb-10 max-w-md mx-auto">
           Maaf, halaman yang kamu cari tidak tersedia atau mungkin sudah
-          dipindahkan. Silakan kembali ke dashboard.
+          dipindahkan. Silakan kembali ke {isAuthenticated ? "dashboard" : "halaman login"}.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -78,7 +74,7 @@ export const NotFound = () => {
             className="h-11 px-6 bg-red-800 hover:bg-red-900 text-white rounded-xl font-semibold text-sm gap-2 shadow-lg shadow-red-800/20 transition-all hover:shadow-xl hover:shadow-red-800/30 cursor-pointer"
           >
             <Home className="w-4 h-4" />
-            Ke Dashboard
+            {isAuthenticated ? "Ke Dashboard" : "Ke Halaman Login"}
           </Button>
           <Button
             variant="ghost"

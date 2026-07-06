@@ -10,7 +10,6 @@ export const getClientsCards = (
   const activeClients = clients.filter(c => c.is_active);
   const totalClients = activeClients.length;
   
-  // Calculate new clients created in the current month/year
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   const newClients = activeClients.filter(c => {

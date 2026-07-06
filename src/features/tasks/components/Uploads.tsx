@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getFileUrl } from "@/utils/helpers";
 import { Search, Upload, AlertTriangle, Video, Play, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,45 +8,9 @@ import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeCon
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const getFileUrl = (url?: string | null) => {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  let apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
-  if (apiBase.endsWith("/api")) {
-    apiBase = apiBase.substring(0, apiBase.length - 4);
-  }
-  const path = url.startsWith("/") ? url : `/${url}`;
-  return `${apiBase}${path}`;
-};
 
-export interface AssignerInfo {
-  name: string;
-  role: string;
-  initials: string;
-}
 
-export interface UploadedMediaItem {
-  id: string | number;
-  latest_output_id?: number;
-  title: string;
-  type: "video" | "image";
-  durationText?: string;
-  platform: "TikTok" | "Instagram" | "YouTube" | string;
-  platformColorKey?: string | null;
-  platformBg: string;
-  fileSizeText: string;
-  uploadedTimeText: string;
-  status: "Approved" | "Revision" | "Uploading" | "Pending" | string;
-  statusBg: string;
-  statusDot: string;
-  revisionNote?: string;
-  assigner?: AssignerInfo;
-  isOverdue?: boolean;
-  content_id?: number;
-  task_id?: number;
-  file_url?: string;
-  deadline?: string | null;
-}
+import type { UploadedMediaItem } from "@/features/tasks/types";
 
 export type UploadedVideoItem = UploadedMediaItem;
 
@@ -241,8 +206,7 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
                             : filenameWithExt;
                         const streamUrl = `${(import.meta.env.VITE_API_URL || "").replace(/\/$/, "")}/stream-media/${basename}`;
                         return (
-                          <div className="w-full h-full bg-slate-950 relative overflow-hidden group">
-                            {/* Video First Frame Thumbnail */}
+                          <div className="w-full h-full bg-slate-900 relative overflow-hidden group">
                             <video
                               src={streamUrl}
                               preload="metadata"
@@ -250,19 +214,17 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
                               playsInline
                               className="w-full h-full object-cover opacity-40 transition-transform duration-300 group-hover:scale-105"
                             />
-                            {/* Overlaid Info */}
                             <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 group-hover:text-white transition-colors pointer-events-none">
                               <div className="h-10 w-10 rounded-full bg-red-800/10 border border-red-800/30 flex items-center justify-center mb-1.5 shadow-md">
-                                <Video className="h-4.5 w-4.5 text-red-650" />
+                                <Video className="h-4.5 w-4.5 text-red-600" />
                               </div>
-                              <span className="text-[10px] font-bold tracking-wider text-slate-350 uppercase">
+                              <span className="text-[10px] font-bold tracking-wider text-slate-300 uppercase">
                                 Video Production
                               </span>
                               <span className="text-[8px] text-slate-500 mt-0.5 truncate max-w-40 font-medium">
                                 {filenameWithExt}
                               </span>
                             </div>
-                            {/* Play button overlay */}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-10">
                               <button
                                 type="button"
@@ -285,7 +247,6 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
                           alt={item.title}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                        {/* Preview button overlay */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-10">
                           <button
                             type="button"
@@ -301,7 +262,7 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
                       </div>
                     )
                   ) : (
-                    <div className="flex flex-col items-center justify-center text-center p-4 w-full h-full bg-linear-to-b from-slate-900 to-slate-950 text-slate-400 group-hover:text-slate-200 transition-colors">
+                    <div className="flex flex-col items-center justify-center text-center p-4 w-full h-full bg-linear-to-b from-slate-900 to-slate-900 text-slate-400 group-hover:text-slate-200 transition-colors">
                       <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs flex items-center justify-center mb-2 transition-all group-hover:scale-110 group-hover:bg-white/10 group-hover:border-white/20 shadow-lg">
                         <Upload className="h-5 w-5 text-white/80" />
                       </div>
@@ -362,9 +323,10 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
                   </div>
                 </div>
 
-                {item.status === "Revision" && item.revisionNote && (
+                {item.status === "Revision" && (
                   <div className="w-full bg-red-50/40 border border-red-100 rounded-xl p-3 text-xs md:text-sm text-red-800 font-medium leading-relaxed">
-                    {item.revisionNote}
+                    File ini memerlukan revisi. Silakan melihat detail
+                    feedback lengkap di kolom diskusi.
                   </div>
                 )}
               </div>
@@ -381,7 +343,7 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
             </Card>
           ))
         ) : filteredUploads.length === 0 && !searchQuery ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-250 bg-slate-50/20 rounded-2xl">
+          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-200 bg-slate-50/20 rounded-2xl">
             <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-800 shadow-sm mb-4">
               <Upload className="h-6 w-6 stroke-[1.5]" />
             </div>

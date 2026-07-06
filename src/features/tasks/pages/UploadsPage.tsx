@@ -8,8 +8,9 @@ import {
   Uploads,
   type UploadedVideoItem,
 } from "@/features/tasks/components/Uploads";
+import { taskKeys } from "@/features/tasks/api/taskKeys";
 import { Upload, Loader2 } from "lucide-react";
-import { SpesificDrawer } from "@/features/tasks/components/SpesificDrawer";
+import { UnifiedTaskDrawer } from "@/features/tasks/components/UnifiedTaskDrawer";
 import {
   ContentPickerModal,
   type AssignedContentPlan,
@@ -48,20 +49,15 @@ export const UploadsPage = () => {
   const { roles } = usePermissions();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const isLeadOrOwner =
-    roles.includes("content_lead") ||
-    roles.includes("owner") ||
-    roles.includes("superadmin");
+  const isSuperadmin = roles.includes("superadmin");
 
-  // Fetch tasks
   const { data: apiTasks = [] } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: () => getTasksApi(),
+    queryKey: taskKeys.list(isSuperadmin ? "all" : user?.id),
+    queryFn: () => getTasksApi(isSuperadmin ? {} : { assigned_to: Number(user?.id) }),
   });
 
-  // Fetch task outputs across all tasks
   const { data: allOutputs = [], isLoading: loadingOutputs } = useQuery({
-    queryKey: ["all-task-outputs", apiTasks.map((t) => t.id)],
+    queryKey: taskKeys.allOutputs(apiTasks.map((t) => t.id)),
     queryFn: async () => {
       if (apiTasks.length === 0) return [];
       const promises = apiTasks.map(async (t) => {
@@ -78,14 +74,11 @@ export const UploadsPage = () => {
     enabled: apiTasks.length > 0,
   });
 
-  // Map API data → UploadedVideoItem
   const uploads = useMemo<UploadedVideoItem[]>(() => {
-    // Filter tasks based on role/ID
-    const userTasks = isLeadOrOwner
+    const userTasks = isSuperadmin
       ? apiTasks
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
-    // Filter userTasks to only include upload tasks (non-Script tasks) and exclude 'to_do'
     const uploadTasks = userTasks.filter((t) => {
       const role = t.assignee_roles?.[0] ?? "content_editor";
       return getTaskTypeConfig(role).label !== "Script" && t.status !== "to_do";
@@ -106,9 +99,10 @@ export const UploadsPage = () => {
         t.platform_name?.toLowerCase() === "youtube";
 
       if (latestOutput) {
+        const fileUrl = latestOutput.file_url || "";
         const isOutputVideo =
-          latestOutput.file_url.endsWith(".mp4") ||
-          latestOutput.file_url.toLowerCase().includes("video");
+          fileUrl.endsWith(".mp4") ||
+          fileUrl.toLowerCase().includes("video");
 
         items.push({
           id: t.id,
@@ -130,7 +124,6 @@ export const UploadsPage = () => {
           status: statusVisual.label === "Review" ? "Pending" : statusVisual.label,
           statusBg: statusVisual.bg,
           statusDot: statusVisual.dot,
-          revisionNote: latestOutput.caption || undefined,
           isOverdue: overdue,
           assigner: {
             name: assignerName,
@@ -160,7 +153,6 @@ export const UploadsPage = () => {
           status: statusVisual.label === "Review" ? "Pending" : statusVisual.label,
           statusBg: statusVisual.bg,
           statusDot: statusVisual.dot,
-          revisionNote: t.description || undefined,
           isOverdue: overdue,
           assigner: {
             name: assignerName,
@@ -179,9 +171,8 @@ export const UploadsPage = () => {
       if (!b.deadline) return -1;
       return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
     });
-  }, [allOutputs, apiTasks, isLeadOrOwner, user]);
+  }, [allOutputs, apiTasks, isSuperadmin, user]);
 
-  // Dynamically calculate metrics
   const cardData = useMemo(() => {
     const total = uploads.length;
     const onProgress = uploads.filter((u) => u.status === "On Progress").length;
@@ -259,8 +250,8 @@ export const UploadsPage = () => {
   const startUploadTaskMutation = useMutation({
     mutationFn: (taskId: number) => updateTaskApi(taskId, { status: "on_progress" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["all-task-outputs"] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      queryClient.invalidateQueries({ queryKey: taskKeys.allOutputs() });
       setIsPickerModalOpen(false);
     },
   });
@@ -299,7 +290,7 @@ export const UploadsPage = () => {
         />
       )}
 
-      <SpesificDrawer
+      <UnifiedTaskDrawer
         key={selectedUpload?.id ?? "new"}
         isOpen={isDrawerOpen}
         onClose={() => {

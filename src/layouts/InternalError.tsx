@@ -5,14 +5,39 @@ import {
 } from "react-router-dom";
 import { Home, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export const InternalError = () => {
   const navigate = useNavigate();
   const error = useRouteError();
+  const { isAuthenticated, user } = useAuth();
 
   const isRouteError = isRouteErrorResponse(error);
   const statusCode = isRouteError ? error.status : 500;
   const statusText = isRouteError ? error.statusText : "Internal Server Error";
+
+  const handleDashboardRedirect = () => {
+    if (isAuthenticated && user) {
+      const roles = user.roles || (user.role ? [user.role] : []);
+      if (roles.includes("superadmin")) {
+        navigate("/dashboard/superadmin");
+      } else if (roles.includes("admin_social_media")) {
+        navigate("/dashboard/social-media");
+      } else if (roles.includes("content_lead")) {
+        navigate("/dashboard/content-lead");
+      } else if (roles.includes("owner")) {
+        navigate("/dashboard/owner");
+      } else if (roles.includes("script_writer")) {
+        navigate("/dashboard/script-writer");
+      } else if (roles.includes("content_editor")) {
+        navigate("/dashboard/content-editor");
+      } else {
+        navigate("/login");
+      }
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-6 relative overflow-hidden">
@@ -50,7 +75,7 @@ export const InternalError = () => {
         </h2>
         <p className="text-gray-500 text-sm md:text-base leading-relaxed mb-4 max-w-md mx-auto">
           Maaf, terjadi kesalahan pada sistem. Silakan coba muat ulang halaman
-          atau kembali ke dashboard.
+          atau kembali ke {isAuthenticated ? "dashboard" : "halaman login"}.
         </p>
 
         {import.meta.env.DEV && !!error && (
@@ -79,12 +104,12 @@ export const InternalError = () => {
             Muat Ulang
           </Button>
           <Button
-            onClick={() => navigate("/dashboard")}
+            onClick={handleDashboardRedirect}
             variant="outline"
             className="h-11 px-6 text-gray-700 hover:text-gray-900 border-gray-200 hover:bg-gray-50 rounded-xl font-medium text-sm gap-2 cursor-pointer"
           >
             <Home className="w-4 h-4" />
-            Ke Dashboard
+            {isAuthenticated ? "Ke Dashboard" : "Ke Halaman Login"}
           </Button>
           <Button
             variant="ghost"

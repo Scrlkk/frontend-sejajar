@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { api } from './api';
 import { storage } from '../utils/storage';
 import { ENDPOINTS } from './endpoints';
@@ -23,7 +24,6 @@ const processQueue = (error: unknown, token: string | null = null) => {
 };
 
 export const setupInterceptors = () => {
-  // Request Interceptor
   api.interceptors.request.use(
     (config) => {
       const accessToken = storage.getAccessToken();
@@ -35,7 +35,6 @@ export const setupInterceptors = () => {
     (error) => Promise.reject(error)
   );
 
-  // Response Interceptor
   api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -46,12 +45,10 @@ export const setupInterceptors = () => {
         ends_with_login: originalRequest?.url?.endsWith(ENDPOINTS.AUTH.LOGIN),
       });
 
-      // 1. Handle 429 Too Many Requests
       if (error.response?.status === 429) {
         const retryAfterHeader = error.response.headers['retry-after'];
         const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 0;
 
-        // Dispatch CustomEvent to be consumed by useRateLimit hook in Phase 3
         const rateLimitEvent = new CustomEvent('api-rate-limit', {
           detail: { retryAfter },
         });
@@ -60,13 +57,11 @@ export const setupInterceptors = () => {
         return Promise.reject(error);
       }
 
-      // 2. Handle 401 Unauthorized (exclude Login endpoint)
       if (
         error.response?.status === 401 &&
         !originalRequest._retry &&
         !originalRequest.url?.includes('/auth/login')
       ) {
-        // If the refresh request itself fails with 401, clear all and redirect
         if (originalRequest.url?.includes('/auth/refresh')) {
           storage.clearAll();
           window.location.href = '/login';
@@ -97,15 +92,12 @@ export const setupInterceptors = () => {
         }
 
         try {
-          // Use plain axios instance to avoid circular calls with the interceptor api instance
           const response = await axios.post(
             `${import.meta.env.VITE_API_URL}${ENDPOINTS.AUTH.REFRESH}`,
             { refresh_token: refreshToken },
             { headers: { 'Content-Type': 'application/json' } }
           );
 
-          // Access nested data.data as per response wrapper schema from backend:
-          // { status: "success", message: "...", data: { accessToken, refreshToken } }
           const { accessToken, refreshToken: newRefreshToken } = response.data.data;
 
           storage.setTokens(accessToken, newRefreshToken);
@@ -120,10 +112,19 @@ export const setupInterceptors = () => {
         } catch (refreshError) {
           processQueue(refreshError, null);
           isRefreshing = false;
+          
+          if (axios.isAxiosError(refreshError) && refreshError.response?.status === 429) {
+            return Promise.reject(refreshError);
+          }
+
           storage.clearAll();
           window.location.href = '/login';
           return Promise.reject(refreshError);
         }
+      }
+      if (error.response && error.response.status >= 400 && error.response.status !== 401 && error.response.status !== 429) {
+        const message = error.response.data?.message || "Terjadi kesalahan pada server.";
+        toast.error(message);
       }
 
       return Promise.reject(error);

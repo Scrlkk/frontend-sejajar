@@ -23,7 +23,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
+import type { ContentPlanCardItem } from "@/features/contents/types";
 import { useNavigate } from "react-router-dom";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { PriorityCard } from "@/features/pillars/components/PriorityCard";
@@ -48,7 +48,6 @@ interface ContentBoardProps {
   ) => void;
 }
 
-// Filtered statuses to display as columns
 const activeStatuses: ContentPlanCardItem["status"][] = [
   "Draft",
   "Assigned",
@@ -60,7 +59,6 @@ const activeStatuses: ContentPlanCardItem["status"][] = [
   "Published",
 ];
 
-// Helper to get styling for status columns/dots
 const getStatusStyle = (status: ContentPlanCardItem["status"]) => {
   switch (status) {
     case "Draft":
@@ -132,7 +130,7 @@ const getStatusStyle = (status: ContentPlanCardItem["status"]) => {
         dot: "bg-gray-400",
         text: "text-gray-500",
         bg: "bg-gray-50/50",
-        border: "border-gray-350",
+        border: "border-gray-300",
         cardBorder: "border-gray-300 hover:border-gray-400",
       };
     default:
@@ -178,7 +176,6 @@ export function ContentBoard({
 
         return (
           <div key={status} className="w-60 shrink-0 flex flex-col gap-3">
-            {/* Column Header */}
             <div
               className={`rounded-xl p-3 flex items-center justify-between border ${style.bg} ${style.border}`}
             >
@@ -195,7 +192,6 @@ export function ContentBoard({
               </span>
             </div>
 
-            {/* Column Cards Container */}
             <div className="flex flex-col gap-3 min-h-37.5">
               {columnsCards.map((card) => {
                 const overdueDays = card.overdue
@@ -213,7 +209,6 @@ export function ContentBoard({
                         : style.cardBorder
                     }`}
                   >
-                    {/* More action menu */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -313,7 +308,7 @@ export function ContentBoard({
                                         <DropdownMenuItem
                                           key={st}
                                           disabled={card.status === st}
-                                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-850 transition-colors"
+                                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             onUpdateStatus?.(card.id, st);
@@ -350,7 +345,6 @@ export function ContentBoard({
 
                             {!isClient && (
                               <>
-                                {/* View Published URL — only for Published cards with a URL */}
                                 {card.status === "Published" &&
                                   card.fileUrl && (
                                     <DropdownMenuItem
@@ -386,39 +380,31 @@ export function ContentBoard({
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* Title */}
                     <h4 className="text-sm max-w-50 font-semibold text-slate-900 leading-snug line-clamp-2 pr-6">
                       {card.title}
                     </h4>
 
-                    {/* Meta Tags Row */}
                     <div className="flex flex-wrap gap-1.5 items-center">
-                      {/* Category Badge */}
                       <PillarsCard category={card.category} colorKey={card.categoryColorKey} />
-                      {/* Platform Badge */}
                       <PlatformBadge
                         platform={card.platform}
                         colorKey={card.platformColorKey}
                         className="rounded-lg px-2 py-0.5 text-[10px]"
                         showDot={false}
                       />
-                      {/* Content Pillar Badges — multi-pillar */}
                       {(card.pillars && card.pillars.length > 0
                         ? card.pillars
                         : card.pillar ? [{ id: 0, pillar_name: card.pillar, color_key: null }] : []
                       ).map((p) => (
                         <PillarsCard key={p.id || p.pillar_name} category={p.pillar_name} categoryId={p.id || undefined} colorKey={p.color_key} />
                       ))}
-                      {/* Format Badge */}
                       <FormatBadgeContent format={card.format} />
                     </div>
 
-                    {/* Priority Badge */}
                     <div className="flex items-center">
                       <PriorityCard priority={card.priority} />
                     </div>
 
-                    {/* Revision Feedback text */}
                     {card.feedback && (
                       <div
                         className={`w-full text-left p-2 rounded-lg mt-0.5 border ${
@@ -436,7 +422,6 @@ export function ContentBoard({
                       </div>
                     )}
 
-                    {/* Due Date & Overdue Alert Bar */}
                     {isOverdue ? (
                       <div className="flex items-center justify-between p-2 rounded-lg bg-red-50/50 border border-red-105 text-[10px] mt-1">
                         <div className="flex items-center gap-1 text-red-800 font-bold">
@@ -459,7 +444,6 @@ export function ContentBoard({
                       </div>
                     )}
 
-                    {/* Card Footer: Assignees & Feedback */}
                     <div className="pt-2 border-t border-gray-300/70 flex flex-col gap-2">
                       {card.assignedTeam && card.assignedTeam.length > 0 ? (
                         <div className="flex flex-col gap-2 w-full">
@@ -473,7 +457,6 @@ export function ContentBoard({
                                 }
                               }}
                             >
-                              {/* Stacked Avatars */}
                               <div className="flex -space-x-1.5 overflow-hidden shrink-0">
                                 {card.assignedTeam.map((team, idx) => (
                                   <div
@@ -490,7 +473,6 @@ export function ContentBoard({
                               </span>
                             </div>
 
-                            {/* Task Progress Badge */}
                             {card.taskStats && card.taskStats.total > 0 && (
                               <span
                                 className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase border shrink-0 ${style.bg} ${style.text} ${style.border} ${
@@ -583,7 +565,6 @@ export function ContentBoard({
                 );
               })}
 
-              {/* Add Content Plan Button (Only in Draft column) */}
               {status === "Draft" && !isClient && (
                 <Button
                   variant="outline"

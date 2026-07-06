@@ -41,7 +41,7 @@ export interface ManualEngagementEntry {
 }
 import toast from "react-hot-toast";
 import { EngagementModal } from "@/features/analytics/components/EngagementModal";
-import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { DeleteModal } from "@/components/shared/DeleteModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTopContentsApi, recordEngagementApi, deleteEngagementApi } from "@/features/analytics/api/analyticsApi";
 
@@ -74,25 +74,21 @@ export function Engagement({
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [editingItem, setEditingItem] = useState<ManualEngagementEntry | null>(
     null,
   );
 
-  // Delete modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] =
     useState<ManualEngagementEntry | null>(null);
 
-  // Live Query for top contents
   const { data: topContents = [] } = useQuery({
     queryKey: ["top-contents"],
     queryFn: () => getTopContentsApi({ limit: 50 }),
   });
 
-  // Map backend TopContent objects to ManualEngagementEntry shape
   const entries = useMemo(() => {
     return topContents
       .map((item) => ({
@@ -114,7 +110,6 @@ export function Engagement({
       );
   }, [topContents]);
 
-  // Live Mutation to record engagement
   const recordMutation = useMutation({
     mutationFn: async (payload: {
       content_id: number;
@@ -202,7 +197,6 @@ export function Engagement({
     comments: number;
     shares: number;
   }) => {
-    // Find if the currently selected content already has metrics in our list (either editing or another one)
     const existing = entries.find((e) => e.id === data.contentId);
 
     const currentViews = existing ? existing.views : 0;
@@ -406,7 +400,6 @@ export function Engagement({
                 </TableRow>
               ))
             ) : entries.length === 0 ? (
-              /* Empty state - no data */
               <TableRow>
                 <TableCell
                   colSpan={8}
@@ -426,7 +419,6 @@ export function Engagement({
                 </TableCell>
               </TableRow>
             ) : (
-              /* Empty state - no search results */
               <TableRow>
                 <TableCell
                   colSpan={8}
@@ -505,7 +497,6 @@ export function Engagement({
         </div>
       </div>
 
-      {/* Engagement Create/Edit Modal */}
       <EngagementModal
         key={
           isModalOpen
@@ -522,7 +513,6 @@ export function Engagement({
         onSave={handleModalSave}
       />
 
-      {/* Delete Confirmation Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

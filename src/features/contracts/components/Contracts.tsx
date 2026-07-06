@@ -26,29 +26,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PillarsContract } from "@/features/pillars/components/PillarsContract";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
 
-export interface ContractCardItem {
-  id: string | number;
-  code: string;
-  title: string;
-  brand: string;
-  description: string;
-  platforms: string[];
-  currentProgress: number;
-  targetProgress: number;
-  startDate: string;
-  endDate: string;
-  rawStartDate?: string;
-  rawEndDate?: string;
-  valueAmount: string;
-  value?: number;
-  status: "Completed" | "Active" | "Overdue" | string;
-  statusBg: string;
-  statusDot: string;
-  year?: number;
-  createdBy?: string;
-  deletedAt?: string | null;
-}
+import type { ContractCardItem } from "../types";
+export type { ContractCardItem };
 
 interface ContractsProps {
   contracts: ContractCardItem[];
@@ -69,6 +50,7 @@ export function Contracts({
   onRestoreClick,
   onStatusChange,
 }: ContractsProps) {
+  const { user } = useAuth();
   const { can } = usePermissions();
   const canManageContracts = can(["owner", "superadmin"]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,7 +66,6 @@ export function Contracts({
 
     if (activeTab === "deleted") return matchesSearch && isDeleted;
 
-    // Semua tab selain "deleted" hanya tampilkan yang belum dihapus
     if (isDeleted) return false;
 
     if (activeTab === "active")
@@ -210,8 +191,7 @@ export function Contracts({
                 {item.deletedAt && (
                   <div className="absolute inset-0 rounded-xl pointer-events-none border border-dashed border-red-300/60" />
                 )}
-                {/* Actions Dropdown replacing simple '>' button */}
-                {canManageContracts && (
+                {canManageContracts && (user?.roles?.includes("superadmin") || Number(item.createdByUserId) === Number(user?.id)) && (
                   <div
                     className="absolute right-5 top-6 z-10"
                     onClick={(e) => e.stopPropagation()}
@@ -221,17 +201,16 @@ export function Contracts({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-gray-400 hover:text-red-logo hover:bg-gray-150/50 rounded-lg cursor-pointer transition-colors"
+                          className="h-8 w-8 text-gray-400 hover:text-red-logo hover:bg-gray-200/50 rounded-lg cursor-pointer transition-colors"
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="w-44 bg-white border border-gray-250/80 shadow-md rounded-xl p-1 z-50"
+                        className="w-44 bg-white border border-gray-200/80 shadow-md rounded-xl p-1 z-50"
                       >
                         {item.deletedAt ? (
-                          // Kontrak sudah dihapus: tampilkan opsi Restore saja
                           <DropdownMenuItem
                             className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
                             onClick={() => onRestoreClick?.(item.id)}
@@ -283,7 +262,7 @@ export function Contracts({
                               className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
                               onClick={() => onDeleteClick?.(item.id)}
                             >
-                              <Trash2 className="h-3.5 w-3.5 text-red-550 shrink-0" />
+                              <Trash2 className="h-3.5 w-3.5 text-red-500 shrink-0" />
                               <span>Delete</span>
                             </DropdownMenuItem>
                           </>

@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
+import type { ContentPlanCardItem } from "@/features/contents/types";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -90,16 +90,16 @@ export function RequestRevision({
     switch (prio) {
       case "High":
         return isSelected
-          ? "border-red-650 bg-red-50/20 text-red-700 ring-1 ring-red-500/20 shadow-sm"
-          : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50";
+          ? "border-red-600 bg-red-50/20 text-red-700 ring-1 ring-red-500/20 shadow-sm"
+          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50";
       case "Medium":
         return isSelected
           ? "border-amber-600 bg-amber-50/20 text-amber-700 ring-1 ring-amber-500/20 shadow-sm"
-          : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50";
+          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50";
       case "Low":
         return isSelected
           ? "border-blue-500 bg-blue-50/20 text-blue-700 ring-1 ring-blue-500/20 shadow-sm"
-          : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50";
+          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50";
     }
   };
 
@@ -115,13 +115,11 @@ export function RequestRevision({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Scrollable Content */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col flex-1 overflow-hidden"
         >
           <div className="flex-1 overflow-y-auto py-2 pr-1.5 space-y-5 scrollbar-none">
-            {/* Dropdown to select content plan (if cardsList is provided) */}
             {cardsList.length > 0 && (
               <div className="space-y-1.5 flex flex-col relative">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -129,7 +127,6 @@ export function RequestRevision({
                 </Label>
 
                 <div className="relative">
-                  {/* Trigger Input / Search */}
                   <div
                     className={`relative flex items-center ${isDropdownOpen ? "z-40" : "z-10"}`}
                   >
@@ -155,7 +152,7 @@ export function RequestRevision({
                           ? `${selectedCard.title} (${selectedCard.status})`
                           : "Search or choose a content plan..."
                       }
-                      className="w-full rounded-xl border border-gray-250 bg-gray-50/50 pl-3.5 pr-10 py-2.5 text-left text-xs font-semibold focus:outline-none focus:border-red-800 focus:bg-white focus:ring-0 transition-all cursor-pointer"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-3.5 pr-10 py-2.5 text-left text-xs font-semibold focus:outline-none focus:border-red-800 focus:bg-white focus:ring-0 transition-all cursor-pointer"
                     />
                     <button
                       type="button"
@@ -172,10 +169,8 @@ export function RequestRevision({
                     </button>
                   </div>
 
-                  {/* Dropdown Panel overlay */}
                   {isDropdownOpen && (
                     <>
-                      {/* Backdrop to close when clicking outside */}
                       <div
                         className="fixed inset-0 z-30"
                         onClick={() => {
@@ -184,9 +179,7 @@ export function RequestRevision({
                         }}
                       />
 
-                      {/* Dropdown Panel Content */}
-                      <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-white border border-gray-250 shadow-xl rounded-lg flex flex-col overflow-hidden max-h-60 animate-in fade-in slide-in-from-top-1 duration-150">
-                        {/* Scrollable list of plans */}
+                      <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-white border border-gray-200 shadow-xl rounded-lg flex flex-col overflow-hidden max-h-60 animate-in fade-in slide-in-from-top-1 duration-150">
                         <div className="overflow-y-auto p-1 scrollbar-none">
                           {filteredCards.length > 0 ? (
                             filteredCards.map((c) => {
@@ -227,7 +220,6 @@ export function RequestRevision({
               </div>
             )}
 
-            {/* Content Plan Preview Card */}
             {selectedCard ? (
               <ContentPlanPreviewCard card={selectedCard} />
             ) : (
@@ -238,7 +230,6 @@ export function RequestRevision({
               </div>
             )}
 
-            {/* Revision Notes */}
             <div className="space-y-1.5 flex flex-col">
               <Label
                 htmlFor="notes"
@@ -257,7 +248,6 @@ export function RequestRevision({
               />
             </div>
 
-            {/* Revision Priority Selector */}
             <div className="space-y-2.5 flex flex-col">
               <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                 Revision Priority
@@ -278,7 +268,6 @@ export function RequestRevision({
               </div>
             </div>
 
-            {/* Change Status Selector (Only when viewing revision) */}
             {isViewingRevision && (
               <div className="space-y-1.5 flex flex-col">
                 <Label
@@ -313,7 +302,6 @@ export function RequestRevision({
             )}
           </div>
 
-          {/* Footer actions */}
           <DialogFooter className="pt-3 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0 shrink-0">
             <Button
               type="button"

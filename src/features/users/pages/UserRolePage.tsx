@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { useMemo } from "react";
 import {
   getUsersApi,
   createUserApi,
@@ -13,15 +14,36 @@ import { getRolePermissionsData } from "@/features/users/constants/rolePermissio
 import { UserManagement } from "@/features/users/components/UserMangement";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { RolePermissions } from "@/features/users/components/RolePermissions";
+import { EmployeePerformance } from "@/features/contracts/components/EmployeePerformance";
+import { getDashboardChartsApi } from "@/features/dashboard/api/dashboardApi";
+import { useAuth } from "@/hooks/useAuth";
+import { getInitialsAndBg } from "@/utils/formatter";
 import toast from "react-hot-toast";
 import type { UserFormValues } from "@/features/users/components/ModalUsers";
 
-import { FORM_TO_API_ROLE } from "@/features/users/constants/roleColors";
+import {
+  FORM_TO_API_ROLE,
+  ROLE_LABELS,
+} from "@/features/users/constants/roleColors";
+
+interface UserTaskStats {
+  id: number;
+  full_name: string;
+  tasks: Record<string, number>;
+  total: number;
+}
+
+interface UsersByTasksResponse {
+  metric: string;
+  users: UserTaskStats[];
+}
 
 export const UserRolePage = () => {
   const queryClient = useQueryClient();
 
-  // 1. Fetch Users
+  const { user } = useAuth();
+  const isOwner = user?.roles?.includes("owner") || false;
+
   const {
     data: apiUsers = [],
     isLoading,
@@ -31,14 +53,53 @@ export const UserRolePage = () => {
     queryFn: () => getUsersApi({ all: true, limit: 100 }),
   });
 
-  // 2. Map to UI format
   const uiUsers = apiUsers.map(mapUserToUserData);
 
-  // 3. Get metrics and role permissions
   const usersCards = getUsersCards(apiUsers);
   const rolePermissions = getRolePermissionsData(uiUsers);
 
-  // 4. Mutations
+  const { data: usersByTasksChart } = useQuery<UsersByTasksResponse>({
+    queryKey: ["dashboard-charts", "users_by_tasks"],
+    queryFn: () =>
+      getDashboardChartsApi<UsersByTasksResponse>({
+        metric: "users_by_tasks",
+      }),
+    enabled: isOwner,
+  });
+
+  const userRoleMap = useMemo(() => {
+    const map = new Map<number, string>();
+    apiUsers.forEach((u) => {
+      map.set(u.id, u.role);
+    });
+    return map;
+  }, [apiUsers]);
+
+  const employeePerformanceData = useMemo(() => {
+    if (!usersByTasksChart?.users) return [];
+    return usersByTasksChart.users.map((item) => {
+      const name = item.full_name;
+      const { initials, avatarBg } = getInitialsAndBg(name);
+      const rawRole = userRoleMap.get(item.id) || "content_editor";
+      const displayRole = ROLE_LABELS[rawRole] || rawRole;
+      const approvedCount = item.tasks?.approved || 0;
+      const total = item.total || 0;
+      const completionRate =
+        total > 0 ? Math.round((approvedCount / total) * 100) : 0;
+      return {
+        id: item.id,
+        name,
+        role: displayRole,
+        initials,
+        tasksCount: total,
+        completionRate,
+        avatarBg,
+        month: "",
+        year: new Date().getFullYear(),
+      };
+    });
+  }, [usersByTasksChart, userRoleMap]);
+
   const createMutation = useMutation({
     mutationFn: createUserApi,
     onSuccess: () => {
@@ -93,7 +154,6 @@ export const UserRolePage = () => {
     },
   });
 
-  // 5. Action handlers
   const handleSaveUser = (data: UserFormValues & { id?: number }) => {
     const apiRoles = data.role.map(
       (r) => FORM_TO_API_ROLE[r] || r.toLowerCase().replace(" ", "_"),
@@ -108,7 +168,6 @@ export const UserRolePage = () => {
     if (data.id) {
       updateMutation.mutate({ id: data.id, payload });
 
-      // Handle isActive changes
       const previousUser = apiUsers.find((u) => u.id === data.id);
       if (previousUser) {
         if (data.isActive && !previousUser.is_active) {
@@ -160,6 +219,7 @@ export const UserRolePage = () => {
         onDeleteUser={handleDeleteUser}
         onReactivateUser={handleReactivateUser}
       />
+      {isOwner && <EmployeePerformance data={employeePerformanceData} />}
       <RolePermissions roles={rolePermissions} />
     </div>
   );

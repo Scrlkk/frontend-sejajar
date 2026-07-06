@@ -121,13 +121,11 @@ const renderCardDelta = (key: string, currentVal: number, prevVal: number) => {
 };
 
 export const AnalyticsPage = () => {
-  // Fetch contracts list
   const { data: contractsList = [] } = useQuery({
     queryKey: ["contracts"],
     queryFn: () => getContractsApi(),
   });
 
-  // Calculate available years dynamically from contracts
   const availableYears = useMemo(() => {
     if (contractsList.length === 0) {
       return [new Date().getFullYear()];
@@ -151,9 +149,7 @@ export const AnalyticsPage = () => {
   const [activeMetric, setActiveMetric] = useState<"views" | "likes" | "comments" | "shares">("views");
   const [activeGranularity, setActiveGranularity] = useState<"daily" | "weekly" | "monthly">("daily");
 
-  // --- Live Queries ---
 
-  // Fetch engagement charts (trends & total metrics)
   const { data: trendChart } = useQuery<EngagementChartResponse>({
     queryKey: ["dashboard-charts", "engagement", activeYear],
     queryFn: () =>
@@ -164,7 +160,6 @@ export const AnalyticsPage = () => {
       }),
   });
 
-  // Fetch per-platform engagement for the trend chart
   const { data: platformEngagementChart } = useQuery<EngagementByPlatformChartResponse>({
     queryKey: ["dashboard-charts", "engagement_by_platform", activeYear, activeMetric, activeGranularity],
     queryFn: () =>
@@ -177,13 +172,11 @@ export const AnalyticsPage = () => {
       }),
   });
 
-  // Fetch top performing contents
   const { data: topContents = [] } = useQuery({
     queryKey: ["top-contents"],
     queryFn: () => getTopContentsApi({ limit: 10 }),
   });
 
-  // Fetch content output date chart
   const { data: outputChartData } = useQuery<ContentOutputChartResponse>({
     queryKey: ["dashboard-charts", "content_by_status_date", activeYear],
     queryFn: () =>
@@ -194,13 +187,11 @@ export const AnalyticsPage = () => {
       }),
   });
 
-  // Fetch pillars usage chart
   const { data: pillarsUsageChart } = useQuery<PillarsUsageChartResponse>({
     queryKey: ["dashboard-charts", "pillars_usage"],
     queryFn: () => getDashboardChartsApi<PillarsUsageChartResponse>({ metric: "pillars_usage" }),
   });
 
-  // --- Dynamic Mappers ---
 
   const cardData = useMemo(() => {
     const totals = trendChart?.totals || { views: 0, likes: 0, comments: 0, shares: 0 };
@@ -356,7 +347,6 @@ export const AnalyticsPage = () => {
     });
 
     if (performancePeriod === "month") {
-      // Simulate/mock "This Month" top content by showing top 3 contents
       return list.slice(0, 3).map((item, index) => ({
         ...item,
         rank: index + 1,

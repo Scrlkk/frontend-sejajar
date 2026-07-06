@@ -1,35 +1,46 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { AuthLayout } from "@/layouts/AuthLayout";
-import { LoginPage } from "@/features/auth/pages/LoginPage";
-import { DashboardLayout } from "@/layouts/DashboardLayout";
-import { ForgotPasswordPage } from "@/features/auth/pages/ForgotPasswordPage";
-import { SuperadminPage } from "@/features/dashboard/pages/SuperadminPage";
-import { UserRolePage } from "@/features/users/pages/UserRolePage";
-import { ProfilePage } from "@/features/users/pages/ProfilePage";
-import { SystemlogsPage } from "@/features/audit/pages/SystemlogsPage";
-import { PublishPage } from "@/features/tasks/pages/PublishPage";
-import { AdminSocialMediaPage } from "@/features/dashboard/pages/AdminSocialMediaPage";
-import { CalendarPage } from "@/features/calendar/pages/CalendarPage";
-import { NotFound } from "@/layouts/NotFound";
-import { InternalError } from "@/layouts/InternalError";
-import { AnalyticsPage } from "@/features/analytics/pages/AnalyticsPage";
-import { EngagementPage } from "@/features/analytics/pages/EngagementPage";
-import { ContentLeadPage } from "@/features/dashboard/pages/ContentLeadPage";
-import { ContractPage } from "@/features/contracts/pages/ContractPage";
-import { TasksPage } from "@/features/tasks/pages/TasksPage";
-import { OwnerPage } from "@/features/dashboard/pages/OwnerPage";
-import { ScriptWriterPage } from "@/features/dashboard/pages/ScriptWriterPage";
-import { ContentEditorPage } from "@/features/dashboard/pages/ContentEditorPage";
-import { UploadsPage } from "@/features/tasks/pages/UploadsPage";
-import { DraftsPage } from "@/features/tasks/pages/DraftsPage";
-import { ContractContentPage } from "@/features/contracts/pages/ContractContentPage";
-import { ClientsPage } from "@/features/clients/pages/ClientsPage";
-import { PillarsPage } from "@/features/pillars/pages/PillarsPage";
+import { PageLoader } from "@/components/shared/PageLoader";
 
-// Route guard wrappers
+// Layouts and Routes (synchronous)
+import { AuthLayout } from "@/layouts/AuthLayout";
+import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { GuestRoute } from "@/routes/GuestRoute";
 import { RoleRoute } from "@/routes/RoleRoute";
+import { NotFound } from "@/layouts/NotFound";
+import { InternalError } from "@/layouts/InternalError";
+
+// Lazy Loaded Pages
+const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage").then(m => ({ default: m.LoginPage })));
+const ForgotPasswordPage = lazy(() => import("@/features/auth/pages/ForgotPasswordPage").then(m => ({ default: m.ForgotPasswordPage })));
+const SuperadminPage = lazy(() => import("@/features/dashboard/pages/SuperadminPage").then(m => ({ default: m.SuperadminPage })));
+const UserRolePage = lazy(() => import("@/features/users/pages/UserRolePage").then(m => ({ default: m.UserRolePage })));
+const ProfilePage = lazy(() => import("@/features/users/pages/ProfilePage").then(m => ({ default: m.ProfilePage })));
+const SystemlogsPage = lazy(() => import("@/features/audit/pages/SystemlogsPage").then(m => ({ default: m.SystemlogsPage })));
+const PublishPage = lazy(() => import("@/features/tasks/pages/PublishPage").then(m => ({ default: m.PublishPage })));
+const AdminSocialMediaPage = lazy(() => import("@/features/dashboard/pages/AdminSocialMediaPage").then(m => ({ default: m.AdminSocialMediaPage })));
+const CalendarPage = lazy(() => import("@/features/calendar/pages/CalendarPage").then(m => ({ default: m.CalendarPage })));
+const AnalyticsPage = lazy(() => import("@/features/analytics/pages/AnalyticsPage").then(m => ({ default: m.AnalyticsPage })));
+const EngagementPage = lazy(() => import("@/features/analytics/pages/EngagementPage").then(m => ({ default: m.EngagementPage })));
+const ContentLeadPage = lazy(() => import("@/features/dashboard/pages/ContentLeadPage").then(m => ({ default: m.ContentLeadPage })));
+const ContractPage = lazy(() => import("@/features/contracts/pages/ContractPage").then(m => ({ default: m.ContractPage })));
+const TasksPage = lazy(() => import("@/features/tasks/pages/TasksPage").then(m => ({ default: m.TasksPage })));
+const OwnerPage = lazy(() => import("@/features/dashboard/pages/OwnerPage").then(m => ({ default: m.OwnerPage })));
+const ScriptWriterPage = lazy(() => import("@/features/dashboard/pages/ScriptWriterPage").then(m => ({ default: m.ScriptWriterPage })));
+const ContentEditorPage = lazy(() => import("@/features/dashboard/pages/ContentEditorPage").then(m => ({ default: m.ContentEditorPage })));
+const UploadsPage = lazy(() => import("@/features/tasks/pages/UploadsPage").then(m => ({ default: m.UploadsPage })));
+const DraftsPage = lazy(() => import("@/features/tasks/pages/DraftsPage").then(m => ({ default: m.DraftsPage })));
+const ContractContentPage = lazy(() => import("@/features/contracts/pages/ContractContentPage").then(m => ({ default: m.ContractContentPage })));
+const ClientsPage = lazy(() => import("@/features/clients/pages/ClientsPage").then(m => ({ default: m.ClientsPage })));
+const PillarsPage = lazy(() => import("@/features/pillars/pages/PillarsPage").then(m => ({ default: m.PillarsPage })));
+
+// Helper to wrap pages with Suspense & PageLoader
+const lazyLoad = (Component: React.ComponentType) => (
+  <Suspense fallback={<PageLoader />}>
+    <Component />
+  </Suspense>
+);
 
 export const router = createBrowserRouter([
   {
@@ -39,8 +50,8 @@ export const router = createBrowserRouter([
         element: <AuthLayout />,
         errorElement: <InternalError />,
         children: [
-          { path: "/login", element: <LoginPage /> },
-          { path: "/forgot-password", element: <ForgotPasswordPage /> },
+          { path: "/login", element: lazyLoad(LoginPage) },
+          { path: "/forgot-password", element: lazyLoad(ForgotPasswordPage) },
         ],
       },
     ],
@@ -52,13 +63,12 @@ export const router = createBrowserRouter([
         element: <DashboardLayout />,
         errorElement: <InternalError />,
         children: [
-          // --- Role-specific Dashboards ---
           {
             element: <RoleRoute allowedRoles={["superadmin"]} />,
             children: [
               {
                 path: "/dashboard/superadmin",
-                element: <SuperadminPage />,
+                element: lazyLoad(SuperadminPage),
               },
             ],
           },
@@ -67,7 +77,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/dashboard/social-media",
-                element: <AdminSocialMediaPage />,
+                element: lazyLoad(AdminSocialMediaPage),
               },
             ],
           },
@@ -76,7 +86,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/dashboard/content-lead",
-                element: <ContentLeadPage />,
+                element: lazyLoad(ContentLeadPage),
               },
             ],
           },
@@ -85,7 +95,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/dashboard/owner",
-                element: <OwnerPage />,
+                element: lazyLoad(OwnerPage),
               },
             ],
           },
@@ -94,7 +104,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/dashboard/script-writer",
-                element: <ScriptWriterPage />,
+                element: lazyLoad(ScriptWriterPage),
               },
             ],
           },
@@ -103,26 +113,24 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/dashboard/content-editor",
-                element: <ContentEditorPage />,
+                element: lazyLoad(ContentEditorPage),
               },
             ],
           },
-
-          // --- Shared/Authenticated Pages ---
           {
             element: <RoleRoute allowedRoles={["owner"]} />,
             children: [
               {
                 path: "/clients",
-                element: <ClientsPage />,
+                element: lazyLoad(ClientsPage),
               },
               {
                 path: "/analytics",
-                element: <AnalyticsPage />,
+                element: lazyLoad(AnalyticsPage),
               },
               {
                 path: "/employee",
-                element: <UserRolePage />,
+                element: lazyLoad(UserRolePage),
               },
             ],
           },
@@ -131,15 +139,15 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/contracts",
-                element: <ContractPage />,
+                element: lazyLoad(ContractPage),
               },
               {
                 path: "/contracts/:id",
-                element: <ContractContentPage />,
+                element: lazyLoad(ContractContentPage),
               },
               {
                 path: "/metadata",
-                element: <PillarsPage />,
+                element: lazyLoad(PillarsPage),
               },
             ],
           },
@@ -157,7 +165,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/tasks",
-                element: <TasksPage />,
+                element: lazyLoad(TasksPage),
               },
             ],
           },
@@ -176,7 +184,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/calendar",
-                element: <CalendarPage />,
+                element: lazyLoad(CalendarPage),
               },
             ],
           },
@@ -185,7 +193,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/drafts",
-                element: <DraftsPage />,
+                element: lazyLoad(DraftsPage),
               },
             ],
           },
@@ -194,7 +202,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/uploads",
-                element: <UploadsPage />,
+                element: lazyLoad(UploadsPage),
               },
             ],
           },
@@ -203,26 +211,24 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/publish",
-                element: <PublishPage />,
+                element: lazyLoad(PublishPage),
               },
               {
                 path: "/engagement",
-                element: <EngagementPage />,
+                element: lazyLoad(EngagementPage),
               },
             ],
           },
           {
             path: "/profile",
-            element: <ProfilePage />,
+            element: lazyLoad(ProfilePage),
           },
-
-          // --- Restricted Pages ---
           {
             element: <RoleRoute allowedRoles={["superadmin", "owner"]} />,
             children: [
               {
                 path: "/user-roles",
-                element: <UserRolePage />,
+                element: lazyLoad(UserRolePage),
               },
             ],
           },
@@ -231,7 +237,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/system-logs",
-                element: <SystemlogsPage />,
+                element: lazyLoad(SystemlogsPage),
               },
             ],
           },

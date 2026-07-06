@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
-import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
+import type { ContentPlanCardItem } from "@/features/contents/types";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
@@ -57,7 +57,6 @@ export function TasksModalAdd({
   card,
   onSaveSingle,
 }: TasksModalAddProps) {
-  // State to store task title, description, and deadline for each member.
   const [memberTasks, setMemberTasks] = useState<
     Record<number, { title: string; description: string; deadline: string }>
   >(() => {
@@ -83,7 +82,6 @@ export function TasksModalAdd({
     return initialTasks;
   });
 
-  // Track initial tasks to compare and detect changes
   const [initialTasksState, setInitialTasksState] = useState<
     Record<number, { title: string; description: string; deadline: string; exists: boolean }>
   >(() => {
@@ -112,7 +110,6 @@ export function TasksModalAdd({
 
   const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({});
 
-  // Early return after hook declarations to follow Rules of Hooks
   if (!card) return null;
 
   const handleTaskChange = (
@@ -183,17 +180,14 @@ export function TasksModalAdd({
           </p>
         </DialogHeader>
 
-        {/* Scrollable Container */}
         <div className="flex flex-col flex-1 overflow-hidden min-h-0">
           <div className="flex-1 overflow-y-auto space-y-6 py-4 pr-1.5 scrollbar-none">
-            {/* Content Plan Preview Card */}
             <div>
               <ContentPlanPreviewCard card={card} />
             </div>
 
-            <hr className="border-gray-150" />
+            <hr className="border-gray-200" />
 
-            {/* Member Tasks Section */}
             <div className="space-y-5">
               <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Team Tasks Assignment
@@ -228,7 +222,6 @@ export function TasksModalAdd({
                         key={idx}
                         className="p-4 rounded-xl border border-gray-300 bg-slate-50/40 space-y-4"
                       >
-                        {/* Member Header */}
                         <div className="flex items-center gap-2.5">
                           <div
                             className={`h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-white shrink-0 ${member.avatarBg}`}
@@ -245,7 +238,6 @@ export function TasksModalAdd({
                           </div>
                         </div>
 
-                        {/* Title, Deadline, and Description Inputs */}
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1.5 flex flex-col">
@@ -312,7 +304,6 @@ export function TasksModalAdd({
                           </div>
                         </div>
 
-                        {/* Card Submit Action */}
                         <div className="flex justify-end pt-1">
                           <Button
                             type="button"
@@ -342,7 +333,6 @@ export function TasksModalAdd({
             </div>
           </div>
 
-          {/* Footer actions */}
           <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0 shrink-0 mt-2">
             <Button
               type="button"

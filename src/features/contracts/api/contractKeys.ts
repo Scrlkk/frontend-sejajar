@@ -28,4 +28,6 @@ export const platformKeys = {
 export const contentKeys = {
   all: ["contents"] as const,
   byFilter: (filter: object) => [...contentKeys.all, filter] as const,
+  details: () => ["content"] as const,
+  detail: (id: number | string) => [...contentKeys.details(), id] as const,
 };

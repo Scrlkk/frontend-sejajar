@@ -10,8 +10,9 @@ import {
   ModalPreviewPublish,
   type PreviewPublishItem,
 } from "@/features/tasks/components/ModalPreviewPublish";
-import { getTasksApi, updateTaskApi, getTaskByIdApi, type Task } from "@/features/tasks/api/tasksApi";
-import { getTaskOutputsApi, createTaskOutputApi, type TaskOutput } from "@/features/tasks/api/taskOutputsApi";
+import { getTasksApi, updateTaskApi, getTaskByIdApi } from "@/features/tasks/api/tasksApi";
+import { getTaskOutputsApi, createTaskOutputApi } from "@/features/tasks/api/taskOutputsApi";
+import type { Task, TaskOutput } from "@/features/tasks/types";
 import { useAuth } from "@/hooks/useAuth";
 import { getTaskTypeConfig } from "@/features/tasks/constants/typeConfig";
 import { publishContentApi, updateContentApi, getContentByIdApi } from "@/features/contents/api/contentsApi";
@@ -58,7 +59,6 @@ export function PostSchedule({
     setItems(schedules);
   }
 
-  // Preview modal states & actions
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [itemToPreview, setItemToPreview] = useState<PreviewPublishItem | null>(null);
   const [modalMode, setModalMode] = useState<"preview" | "publish">("preview");
@@ -127,7 +127,6 @@ export function PostSchedule({
         }
       }
 
-      // Fetch all outputs for all tasks in parallel
       const tasksToFetch: Partial<Task>[] =
         tasksList.length > 0 ? tasksList : taskId > 0 ? [{ id: taskId }] : [];
       const allOutputsRes = await Promise.all(
@@ -142,7 +141,6 @@ export function PostSchedule({
       );
       const outputsFlat = allOutputsRes.flat();
 
-      // Find caption: prefer selected task, fallback to any task in content
       const mainTaskOutputs = outputsFlat.filter((o) => o.task.id === taskId);
       const mainCaptionOut = mainTaskOutputs.find((o) => !!o.caption);
       let caption = mainCaptionOut?.caption || "";
@@ -154,7 +152,6 @@ export function PostSchedule({
         }
       }
 
-      // Find hashtag: prefer selected task, fallback to any task in content
       const mainHashtagOut = mainTaskOutputs.find((o) => !!o.hashtag);
       let hashtag = mainHashtagOut?.hashtag || "";
 
@@ -165,7 +162,6 @@ export function PostSchedule({
         }
       }
 
-      // Find file URL: prefer non-script media outputs
       const mediaOutputs = outputsFlat.filter(
         (o) => !!o.file_url && isMediaFile(o.file_url),
       );
@@ -178,7 +174,6 @@ export function PostSchedule({
         nonScriptMediaOutputs.length > 0 ? nonScriptMediaOutputs : mediaOutputs;
       let mediaOut = candidates[0];
 
-      // If content format is video, prioritize video file types
       const isVideoFormat = tasksList.some(
         (t) => t.content_format?.toLowerCase() === "video",
       );
@@ -247,7 +242,6 @@ export function PostSchedule({
     }
     setItemToPreview(detailedItem);
     setModalMode("preview");
-    // Open in next tick to allow any click triggers to complete cleanly
     setTimeout(() => {
       setIsPreviewModalOpen(true);
     }, 100);
@@ -477,7 +471,6 @@ export function PostSchedule({
         )}
       </CardContent>
 
-       {/* Separated Preview Publish Modal */}
       <ModalPreviewPublish
         key={itemToPreview?.id ?? "preview-closed"}
         isOpen={isPreviewModalOpen}

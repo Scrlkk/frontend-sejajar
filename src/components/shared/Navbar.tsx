@@ -91,7 +91,7 @@ export const Navbar = () => {
                 <p className="font-semibold text-gray-900 text-sm leading-tight truncate">
                   {userName}
                 </p>
-                <p className="text-[11px] text-gray-500 font-medium truncate mt-0.5">
+                <p className="w-30 text-[11px] text-gray-500 font-medium truncate mt-0.5">
                   {userRoleDisplay}
                 </p>
               </div>

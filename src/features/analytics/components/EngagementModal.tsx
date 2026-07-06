@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
-import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
+import type { ContentPlanCardItem } from "@/features/contents/types";
 import { type ManualEngagementEntry } from "@/features/analytics/components/Engagement";
 import { useQuery } from "@tanstack/react-query";
 import { getContentsApi, type Content } from "@/features/contents/api/contentsApi";
@@ -40,14 +40,12 @@ export function EngagementModal({
   existingEntries = [],
   onSave,
 }: EngagementModalProps) {
-  // Fetch published contents from API
   const { data: contents = [] } = useQuery<Content[]>({
     queryKey: ["published-contents"],
     queryFn: () => getContentsApi({ status: "published" }),
     enabled: isOpen,
   });
 
-  // Map API contents to options format
   const contentOptions = useMemo(() => {
     const apiOptions = contents.map((c) => ({
       id: c.id,
@@ -81,7 +79,7 @@ export function EngagementModal({
             pillarDot: "bg-slate-500",
             status: "Published",
             statusBg: "bg-cyan-50 text-cyan-700",
-            statusDot: "bg-cyan-550",
+            statusDot: "bg-cyan-500",
           },
         ];
       }
@@ -89,7 +87,6 @@ export function EngagementModal({
     return apiOptions;
   }, [contents, editingItem]);
 
-  // States
   const [selectedTitle, setSelectedTitle] = useState(
     editingItem ? editingItem.contentTitle : "",
   );
@@ -133,7 +130,6 @@ export function EngagementModal({
     return contentOptions.find((c) => c.title === selectedTitle) || null;
   }, [contentOptions, selectedTitle]);
 
-  // Find if the currently selected content already has metrics in our list
   const existingMetrics = useMemo(() => {
     if (!selectedContent) return null;
     return existingEntries.find((e) => e.id === selectedContent.id) || null;
@@ -220,7 +216,6 @@ export function EngagementModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-3 text-left">
-          {/* Select Content */}
           {!editingItem ? (
             <div className="space-y-1.5 flex flex-col relative">
               <label className="text-xs font-bold text-gray-700 block">
@@ -228,7 +223,6 @@ export function EngagementModal({
               </label>
 
               <div className="relative">
-                {/* Trigger Input / Search */}
                 <div
                   className={`relative flex items-center ${isDropdownOpen ? "z-40" : "z-10"}`}
                 >
@@ -267,7 +261,6 @@ export function EngagementModal({
                   </button>
                 </div>
 
-                {/* Dropdown Panel overlay */}
                 {isDropdownOpen && (
                   <>
                     <div
@@ -278,7 +271,7 @@ export function EngagementModal({
                       }}
                     />
 
-                    <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-white border border-gray-250 shadow-xl rounded-lg flex flex-col overflow-hidden max-h-60 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-white border border-gray-300 shadow-xl rounded-lg flex flex-col overflow-hidden max-h-60 animate-in fade-in slide-in-from-top-1 duration-150">
                       <div className="overflow-y-auto p-1 scrollbar-none">
                         {filteredOptions.length > 0 ? (
                           filteredOptions.map((c, i) => {
@@ -365,7 +358,6 @@ export function EngagementModal({
             )
           )}
 
-          {/* Platform & Date */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700 block">
@@ -387,12 +379,11 @@ export function EngagementModal({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-250 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9"
+                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9"
               />
             </div>
           </div>
 
-          {/* Metrics: Views & Likes */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
@@ -410,7 +401,7 @@ export function EngagementModal({
                 value={views}
                 onChange={(e) => setViews(e.target.value)}
                 onFocus={(e) => e.target.value === "0" && e.target.select()}
-                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-250 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               {isViewsLower && (
                 <p className="text-[10px] text-amber-600 font-medium mt-1 leading-tight">
@@ -434,7 +425,7 @@ export function EngagementModal({
                 value={likes}
                 onChange={(e) => setLikes(e.target.value)}
                 onFocus={(e) => e.target.value === "0" && e.target.select()}
-                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-250 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               {isLikesLower && (
                 <p className="text-[10px] text-amber-600 font-medium mt-1 leading-tight">
@@ -449,7 +440,6 @@ export function EngagementModal({
             </div>
           </div>
 
-          {/* Metrics: Comments & Shares */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
@@ -467,7 +457,7 @@ export function EngagementModal({
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
                 onFocus={(e) => e.target.value === "0" && e.target.select()}
-                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-250 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               {isCommentsLower && (
                 <p className="text-[10px] text-amber-600 font-medium mt-1 leading-tight">
@@ -491,7 +481,7 @@ export function EngagementModal({
                 value={shares}
                 onChange={(e) => setShares(e.target.value)}
                 onFocus={(e) => e.target.value === "0" && e.target.select()}
-                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-250 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               {isSharesLower && (
                 <p className="text-[10px] text-amber-600 font-medium mt-1 leading-tight">
@@ -501,13 +491,12 @@ export function EngagementModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 mt-2">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="rounded-md border-gray-250 hover:bg-gray-50 text-gray-700 px-5 text-xs font-semibold cursor-pointer h-9 shadow-sm"
+              className="rounded-md border-gray-300 hover:bg-gray-50 text-gray-700 px-5 text-xs font-semibold cursor-pointer h-9 shadow-sm"
             >
               Batal
             </Button>

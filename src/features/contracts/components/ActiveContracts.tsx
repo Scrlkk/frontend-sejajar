@@ -5,17 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 
-export interface ContractItem {
-  id: string | number;
-  code: string;
-  title: string;
-  brand: string;
-  platforms: string[];
-  currentProgress: number;
-  targetProgress: number;
-  date: string;
-  statusText?: string;
-}
+import type { ContractItem } from "../types";
 
 interface ActiveContractsProps {
   contracts: ContractItem[];

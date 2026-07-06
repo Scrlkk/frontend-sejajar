@@ -14,7 +14,7 @@ import {
   isSameMonth,
   isSameDay,
 } from "date-fns";
-import type { TaskBoardItem } from "@/features/tasks/components/TasksContent";
+import type { TaskBoardItem } from "@/features/tasks/types";
 
 interface TaskCalendarProps {
   tasks: TaskBoardItem[];
@@ -69,7 +69,6 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     if (dayTasks.length === 0)
       return "bg-transparent text-gray-700 hover:bg-gray-100";
 
-    // Find the highest priority task on this day
     let maxVal = 0;
     dayTasks.forEach((t) => {
       const p = t.priority?.toLowerCase() || "low";

@@ -68,8 +68,8 @@ export const SuperadminPage = () => {
   });
 
   const { data: summaryData } = useQuery({
-    queryKey: ["dashboardSummary"],
-    queryFn: () => getDashboardSummaryApi<SuperadminSummary>(),
+    queryKey: ["dashboardSummary", "superadmin"],
+    queryFn: () => getDashboardSummaryApi<SuperadminSummary>("superadmin"),
   });
 
   const { data: systemData } = useQuery({
@@ -77,13 +77,11 @@ export const SuperadminPage = () => {
     queryFn: () => getDashboardSystemApi<SystemHealthResponse>(),
   });
 
-  // Fetch activity logs
   const { data: rawLogs = [] } = useQuery({
     queryKey: ["activity-logs"],
     queryFn: () => getActivityLogsApi({ limit: 100 }),
   });
 
-  // Mutations
   const createMutation = useMutation({
     mutationFn: createUserApi,
     onSuccess: () => {
@@ -141,7 +139,6 @@ export const SuperadminPage = () => {
     },
   });
 
-  // Action handlers
   const handleSaveUser = (data: UserFormValues & { id?: number }) => {
     const apiRoles = data.role.map(
       (r) => FORM_TO_API_ROLE[r] || r.toLowerCase().replace(" ", "_"),
@@ -156,7 +153,6 @@ export const SuperadminPage = () => {
     if (data.id) {
       updateMutation.mutate({ id: data.id, payload });
 
-      // Handle isActive changes
       const previousUser = apiUsers.find((u) => u.id === data.id);
       if (previousUser) {
         if (data.isActive && !previousUser.is_active) {

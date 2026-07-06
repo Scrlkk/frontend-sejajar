@@ -95,7 +95,6 @@ export const ContentLeadPage = () => {
   const handleViewAll = () =>
     navigate("/contracts");
 
-  // Fetch contracts
   const { data: contractsList = [] } = useQuery({
     queryKey: ["contracts"],
     queryFn: () => getContractsApi(),
@@ -116,7 +115,6 @@ export const ContentLeadPage = () => {
     });
   }, [contractsList]);
 
-  // Calculate available years dynamically from contracts
   const availableYears = useMemo(() => {
     if (contractsList.length === 0) {
       return [new Date().getFullYear()];
@@ -134,54 +132,47 @@ export const ContentLeadPage = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const activeYear = availableYears.includes(selectedYear) ? selectedYear : availableYears[0];
 
-  // Fetch dashboard summary
   const { data: summaryData } = useQuery<ContentLeadSummary>({
-    queryKey: ["contentLeadSummary"],
-    queryFn: () => getDashboardSummaryApi<ContentLeadSummary>(),
+    queryKey: ["contentLeadSummary", "content_lead"],
+    queryFn: () => getDashboardSummaryApi<ContentLeadSummary>("content_lead"),
   });
 
-  // Fetch content progress
   const { data: contentsProgress = [] } = useQuery({
     queryKey: ["contentsProgress"],
     queryFn: () => getContentsForProgressApi(),
   });
 
-  // Fetch content output date chart
   const { data: outputChartData } = useQuery<ContentOutputChartResponse>({
-    queryKey: ["dashboard-charts", "content_by_status_date", activeYear],
+    queryKey: ["dashboard-charts", "content_by_status_date", activeYear, "content_lead"],
     queryFn: () =>
       getDashboardChartsApi<ContentOutputChartResponse>({
         metric: "content_by_status_date",
         from: `${activeYear}-01-01`,
         to: `${activeYear}-12-31`,
+        role: "content_lead",
       }),
   });
 
-  // Fetch pillars usage chart
   const { data: pillarsUsageChart } = useQuery<PillarsUsageChartResponse>({
-    queryKey: ["dashboard-charts", "pillars_usage"],
-    queryFn: () => getDashboardChartsApi<PillarsUsageChartResponse>({ metric: "pillars_usage" }),
+    queryKey: ["dashboard-charts", "pillars_usage", "content_lead"],
+    queryFn: () => getDashboardChartsApi<PillarsUsageChartResponse>({ metric: "pillars_usage", role: "content_lead" }),
   });
 
-  // Fetch users to resolve role details for comments
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: () => getUsersApi(),
   });
 
-  // Fetch reviews list widget
   const { data: reviewsWidget = { reviews: [], total: 0 } } = useQuery<{ reviews: ReviewWidgetData[]; total: number }>({
-    queryKey: ["dashboard-widget", "reviews-list"],
-    queryFn: () => getDashboardWidgetApi<{ reviews: ReviewWidgetData[]; total: number }>("reviews-list"),
+    queryKey: ["dashboard-widget", "reviews-list", "content_lead"],
+    queryFn: () => getDashboardWidgetApi<{ reviews: ReviewWidgetData[]; total: number }>("reviews-list", { role: "content_lead" }),
   });
 
-  // Fetch recent comments widget
   const { data: commentsWidget = { comments: [] } } = useQuery<{ comments: CommentWidgetData[] }>({
-    queryKey: ["dashboard-widget", "recent-comments"],
-    queryFn: () => getDashboardWidgetApi<{ comments: CommentWidgetData[] }>("recent-comments"),
+    queryKey: ["dashboard-widget", "recent-comments", "content_lead"],
+    queryFn: () => getDashboardWidgetApi<{ comments: CommentWidgetData[] }>("recent-comments", { role: "content_lead" }),
   });
 
-  // Map metric cards from summaryData
   const cards = CONTENT_LEAD_CARDS_TEMPLATE.map((tpl) => {
     let value: string | number = "0";
     if (summaryData) {
@@ -205,7 +196,6 @@ export const ContentLeadPage = () => {
     };
   });
 
-  // Map active contracts slider
   const activeContractsData = useMemo(() => {
     return contractsList
       .filter((c) => c.status === "active")
@@ -232,11 +222,31 @@ export const ContentLeadPage = () => {
       });
   }, [contractsList, contentsProgress]);
 
-  // Aggregate daily dates to monthly buckets for ContentOutput component
   const filteredOutputData = useMemo(() => {
-    const buckets: Record<number, { Published: number; Scheduled: number; Draft: number }> = {};
+    const buckets: Record<
+      number,
+      {
+        Draft: number;
+        Assigned: number;
+        "On Progress": number;
+        Review: number;
+        Revision: number;
+        Approved: number;
+        Scheduled: number;
+        Published: number;
+      }
+    > = {};
     for (let m = 0; m < 12; m++) {
-      buckets[m] = { Published: 0, Scheduled: 0, Draft: 0 };
+      buckets[m] = {
+        Draft: 0,
+        Assigned: 0,
+        "On Progress": 0,
+        Review: 0,
+        Revision: 0,
+        Approved: 0,
+        Scheduled: 0,
+        Published: 0,
+      };
     }
 
     const series = outputChartData?.series || [];
@@ -244,13 +254,14 @@ export const ContentLeadPage = () => {
       const d = new Date(s.date);
       if (d.getFullYear() === activeYear) {
         const monthIndex = d.getMonth();
-        const Published = (s.statuses?.published || 0) + (s.statuses?.approved || 0);
-        const Scheduled = s.statuses?.scheduled || 0;
-        const Draft = s.statuses?.draft || 0;
-
-        buckets[monthIndex].Published += Published;
-        buckets[monthIndex].Scheduled += Scheduled;
-        buckets[monthIndex].Draft += Draft;
+        buckets[monthIndex].Draft += s.statuses?.draft || 0;
+        buckets[monthIndex].Assigned += s.statuses?.assigned || 0;
+        buckets[monthIndex]["On Progress"] += s.statuses?.on_progress || 0;
+        buckets[monthIndex].Review += s.statuses?.review || s.statuses?.pending || 0;
+        buckets[monthIndex].Revision += s.statuses?.revision || 0;
+        buckets[monthIndex].Approved += s.statuses?.approved || 0;
+        buckets[monthIndex].Scheduled += s.statuses?.scheduled || 0;
+        buckets[monthIndex].Published += s.statuses?.published || 0;
       }
     });
 
@@ -268,13 +279,17 @@ export const ContentLeadPage = () => {
       .map(([mIdx, counts]) => ({
         month: MONTH_NAMES[Number(mIdx)],
         year: activeYear,
-        Published: counts.Published,
-        Scheduled: counts.Scheduled,
         Draft: counts.Draft,
+        Assigned: counts.Assigned,
+        "On Progress": counts["On Progress"],
+        Review: counts.Review,
+        Revision: counts.Revision,
+        Approved: counts.Approved,
+        Scheduled: counts.Scheduled,
+        Published: counts.Published,
       }));
   }, [outputChartData, activeYear]);
 
-  // Map content pillar usage data
   const mappedPillarsData = useMemo(() => {
     const pillars = pillarsUsageChart?.pillars || [];
     return pillars.map((item: PillarUsage, idx: number) => {

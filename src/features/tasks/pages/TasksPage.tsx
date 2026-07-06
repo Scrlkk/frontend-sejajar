@@ -1,25 +1,23 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { TASKS_CARD_CONFIG } from "@/features/tasks/constants/cardConfig";
-import { getTasksApi, deleteTaskApi, restoreTaskApi, getTaskByIdApi } from "@/features/tasks/api/tasksApi";
+import { getTaskByIdApi } from "@/features/tasks/api/tasksApi";
 import { getTaskTypeConfig } from "@/features/tasks/constants/typeConfig";
 import { getInitialsAndBg, isTaskOverdue } from "@/utils/formatter";
 import { TaskBoard } from "@/features/tasks/components/TasksBoard";
 import { TasksFilter } from "@/features/tasks/components/TasksFilter";
-import { TasksDrawer } from "@/features/tasks/components/TasksDrawer";
-import type { TaskBoardItem } from "@/features/tasks/components/TasksContent";
+import { UnifiedTaskDrawer } from "@/features/tasks/components/UnifiedTaskDrawer";
+import type { TaskBoardItem } from "@/features/tasks/types";
+import { useTasks, useDeleteTaskMutation, useRestoreTaskMutation } from "@/features/tasks/hooks/useTasks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "react-hot-toast";
-import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { DeleteModal } from "@/components/shared/DeleteModal";
 import { RotateCcw } from "lucide-react";
 
 export const TasksPage = () => {
   const { roles } = usePermissions();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const isLeadOrOwner =
     roles.includes("content_lead") ||
     roles.includes("owner") ||
@@ -37,36 +35,19 @@ export const TasksPage = () => {
     action: "delete",
   });
 
-  const { data: apiTasks = [] } = useQuery({
-    queryKey: ["tasks", { status: showDeleted ? "deleted" : undefined }],
-    queryFn: () => getTasksApi({ status: showDeleted ? "deleted" : undefined, limit: 1000 }),
+  const { data: apiTasks = [] } = useTasks({
+    status: showDeleted ? "deleted" : undefined,
+    limit: 1000,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (taskId: number) => deleteTaskApi(taskId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Tugas berhasil dihapus");
-      setConfirmModal({ isOpen: false, task: null, action: "delete" });
-    },
-    onError: () => {
-      toast.error("Gagal menghapus tugas");
-    },
+  const deleteMutation = useDeleteTaskMutation(() => {
+    setConfirmModal({ isOpen: false, task: null, action: "delete" });
   });
 
-  const restoreMutation = useMutation({
-    mutationFn: (taskId: number) => restoreTaskApi(taskId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Tugas berhasil dikembalikan");
-      setConfirmModal({ isOpen: false, task: null, action: "restore" });
-    },
-    onError: () => {
-      toast.error("Gagal mengembalikan tugas");
-    },
+  const restoreMutation = useRestoreTaskMutation(() => {
+    setConfirmModal({ isOpen: false, task: null, action: "restore" });
   });
 
-  // Map DB Task → TaskBoardItem for the Kanban board
   const tasks = useMemo<TaskBoardItem[]>(() => {
     const rawTasks = isLeadOrOwner
       ? apiTasks
@@ -95,6 +76,9 @@ export const TasksPage = () => {
         assignee: t.assignee_name ?? "Unassigned",
         assigneeInitials: initials,
         assigneeBg: avatarBg,
+        assigneeId: t.assigned_to,
+        contractCreatedBy: t.contract_created_by,
+        leadId: t.lead_id,
         status: statusKey,
         isOverdue: overdue,
         date: t.deadline ? new Date(t.deadline) : new Date(),
@@ -144,7 +128,6 @@ export const TasksPage = () => {
 
   const lastProcessedIdRef = useRef<string | null>(null);
 
-  // Intercept the 'id' parameter to auto-open the drawer on route navigation
   useEffect(() => {
     if (taskIdParam) {
       if (lastProcessedIdRef.current !== taskIdParam) {
@@ -157,7 +140,6 @@ export const TasksPage = () => {
           }, 0);
           return () => clearTimeout(timer);
         } else {
-          // Fallback: fetch directly from API
           const idNum = Number(taskIdParam);
           if (!isNaN(idNum)) {
             getTaskByIdApi(idNum)
@@ -213,7 +195,8 @@ export const TasksPage = () => {
     const matchesSearch =
       task.title.toLowerCase().includes(query) ||
       (task.content_title?.toLowerCase().includes(query) ?? false) ||
-      (task.contract_name?.toLowerCase().includes(query) ?? false);
+      (task.contract_name?.toLowerCase().includes(query) ?? false) ||
+      (task.assignee?.toLowerCase().includes(query) ?? false);
 
     let matchesType: boolean;
     if (activeTypeFilter === "all") {
@@ -264,7 +247,6 @@ export const TasksPage = () => {
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false);
     setSelectedTask(null);
-    // Clear search param once closed
     if (searchParams.has("id")) {
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("id");
@@ -303,12 +285,12 @@ export const TasksPage = () => {
             newParams.set("id", String(task.id));
             setSearchParams(newParams, { replace: true });
           }}
-          onDeleteTask={isLeadOrOwner ? handleDeleteTask : undefined}
-          onRestoreTask={isLeadOrOwner ? handleRestoreTask : undefined}
+          onDeleteTask={handleDeleteTask}
+          onRestoreTask={handleRestoreTask}
         />
       </div>
 
-      <TasksDrawer
+      <UnifiedTaskDrawer
         key={selectedTask?.id ?? "none"}
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}
@@ -346,7 +328,7 @@ export const TasksPage = () => {
         }
         iconBgColor={confirmModal.action === "delete" ? undefined : "bg-emerald-50"}
         iconBorderColor={
-          confirmModal.action === "delete" ? undefined : "border-emerald-150"
+          confirmModal.action === "delete" ? undefined : "border-emerald-100"
         }
         iconTextColor={confirmModal.action === "delete" ? undefined : "text-emerald-800"}
         cancelText="Batal"

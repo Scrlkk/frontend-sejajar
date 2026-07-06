@@ -6,7 +6,7 @@ export const PILLAR_COLOR_PRESETS = [
   '#8b5cf6', // Purple
   '#dc2626', // Red
   '#06b6d4', // Cyan
-  '#d946ef'  // Magenta
+  '#d946ef'  
 ];
 
 export const getPillarColor = (index: number): string => {

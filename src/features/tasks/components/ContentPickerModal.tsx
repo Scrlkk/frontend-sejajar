@@ -61,7 +61,6 @@ export function ContentPickerModal({
   });
 
   const assignedPlans = useMemo<AssignedContentPlan[]>(() => {
-    // For upload, draft, and caption, show tasks that are in 'to_do' status.
     let filteredTasks = apiTasks.filter((t) => t.status === "to_do");
 
     if (!isLeadOrOwner) {
@@ -70,16 +69,14 @@ export function ContentPickerModal({
       );
     }
 
-    // Filter by task type
     filteredTasks = filteredTasks.filter((t) => {
       const role = t.assignee_roles?.[0] ?? "content_editor";
       const label = getTaskTypeConfig(role).label;
       if (itemType === "draft") return label === "Script";
       if (itemType === "caption") return label === "Caption";
-      return label !== "Script" && label !== "Caption"; // upload
+      return label !== "Script" && label !== "Caption"; 
     });
 
-    // Exclude tasks whose content plans already have drafts/uploads/captions if excluded
     if (excludeContentIds.length > 0) {
       filteredTasks = filteredTasks.filter(
         (t) => !excludeContentIds.includes(Number(t.content_id))
@@ -121,7 +118,6 @@ export function ContentPickerModal({
           </p>
         </DialogHeader>
 
-        {/* List scrollable container */}
         <div className="flex-1 overflow-y-auto py-4 space-y-3.5 scrollbar-none min-h-0 flex flex-col justify-center">
           {assignedPlans.length > 0 ? (
             assignedPlans.map((plan) => (
@@ -134,7 +130,7 @@ export function ContentPickerModal({
                 className="group border border-gray-200 hover:border-red-800 bg-white hover:bg-slate-50/30 p-4 rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 <div className="space-y-1.5 min-w-0">
-                  <h4 className="text-sm font-bold text-gray-900 group-hover:text-red-950 transition-colors leading-tight truncate">
+                  <h4 className="text-sm font-bold text-gray-900 group-hover:text-red-900 transition-colors leading-tight truncate">
                     {plan.title}
                   </h4>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -147,7 +143,6 @@ export function ContentPickerModal({
                   </div>
                 </div>
 
-                {/* Assigner details */}
                 <div className="flex items-center gap-2.5 shrink-0 border-t md:border-t-0 md:border-l border-gray-100 pt-3 md:pt-0 md:pl-4 min-w-44">
                   <div className="h-7 w-7 rounded-full bg-slate-100 border border-gray-200 text-[10px] font-bold flex items-center justify-center text-gray-600 shadow-sm shrink-0">
                     {plan.assignedBy.initials}
@@ -165,7 +160,7 @@ export function ContentPickerModal({
             ))
           ) : (
             <div className="py-12 text-center flex flex-col items-center justify-center bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl px-6">
-              <div className="h-12 w-12 rounded-full bg-slate-100 border border-gray-150 flex items-center justify-center text-gray-400 mb-3.5 shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-slate-100 border border-gray-100 flex items-center justify-center text-gray-400 mb-3.5 shadow-sm">
                 <ClipboardList className="h-6 w-6 stroke-2" />
               </div>
               <h5 className="text-sm font-bold text-gray-800">

@@ -19,6 +19,7 @@ export const getDashboardChartsApi = async <T = unknown>(
     limit?: number;
     chartMetric?: string;
     granularity?: string;
+    role?: string;
   }
 ): Promise<T> => {
   const response = await api.get<{ data: T }>(ENDPOINTS.DASHBOARD.CHARTS, {
@@ -27,8 +28,10 @@ export const getDashboardChartsApi = async <T = unknown>(
   return response.data.data;
 };
 
-export const getDashboardSummaryApi = async <T = unknown>(): Promise<T> => {
-  const response = await api.get<{ data: T }>(ENDPOINTS.DASHBOARD.SUMMARY);
+export const getDashboardSummaryApi = async <T = unknown>(role?: string): Promise<T> => {
+  const response = await api.get<{ data: T }>(ENDPOINTS.DASHBOARD.SUMMARY, {
+    params: role ? { role } : undefined,
+  });
   return response.data.data;
 };
 

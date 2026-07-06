@@ -6,6 +6,8 @@ import { PostSchedule } from "@/features/tasks/components/PostSchedules";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
 import {
   getDashboardWidgetApi,
   getDashboardSummaryApi,
@@ -59,57 +61,69 @@ interface CommentsRevisionResponse {
 
 export const AdminSocialMediaPage = () => {
   const navigate = useNavigate();
+  const { roles } = usePermissions();
+  const { user } = useAuth();
+  const isSuperadmin = roles.includes("superadmin");
 
-  // Fetch dashboard summary
   const { data: summaryData } = useQuery<StaffSummary>({
-    queryKey: ["staffSummary"],
-    queryFn: () => getDashboardSummaryApi<StaffSummary>(),
+    queryKey: ["staffSummary", "admin_social_media"],
+    queryFn: () => getDashboardSummaryApi<StaffSummary>("admin_social_media"),
   });
 
-  // Fetch comments revision widget/chart
   const { data: commentsRevisionData } = useQuery<CommentsRevisionResponse>({
-    queryKey: ["dashboard-charts", "comments_revision"],
+    queryKey: ["dashboard-charts", "comments_revision", "admin_social_media"],
     queryFn: () =>
       getDashboardChartsApi<CommentsRevisionResponse>({
         metric: "comments_revision",
         limit: 10,
+        role: "admin_social_media",
       }),
   });
 
-  // Fetch deadlines widget
   const { data: deadlinesWidget = { tasks: [] } } = useQuery<{
     tasks: DeadlineTask[];
   }>({
-    queryKey: ["dashboard-widget", "upcoming-deadlines"],
+    queryKey: ["dashboard-widget", "upcoming-deadlines", "admin_social_media"],
     queryFn: () =>
-      getDashboardWidgetApi<{ tasks: DeadlineTask[] }>("upcoming-deadlines"),
+      getDashboardWidgetApi<{ tasks: DeadlineTask[] }>("upcoming-deadlines", { role: "admin_social_media" }),
   });
 
-  // Fetch scheduled and approved contents for PostSchedule
   const { data: scheduledContents = [] } = useQuery({
     queryKey: ["contents", { status: "scheduled" }],
     queryFn: () => getContentsApi({ status: "scheduled", limit: 50 }),
   });
 
-  const { data: approvedTasks = [] } = useQuery({
-    queryKey: ["tasks", { status: "approved" }],
-    queryFn: () => getTasksApi({ status: "approved", limit: 100 }),
+  const { data: myTasks = [] } = useQuery({
+    queryKey: ["tasks", { assigned_to: isSuperadmin ? undefined : user?.id }],
+    queryFn: () =>
+      getTasksApi(
+        isSuperadmin ? { limit: 1000 } : { assigned_to: Number(user?.id), limit: 1000 }
+      ),
   });
 
-  // Fetch users to resolve role details for comments
+  const { data: approvedTasks = [] } = useQuery({
+    queryKey: ["tasks", { status: "approved", assigned_to: isSuperadmin ? undefined : user?.id }],
+    queryFn: () =>
+      getTasksApi(
+        isSuperadmin
+          ? { status: "approved", limit: 100 }
+          : { status: "approved", assigned_to: Number(user?.id), limit: 100 }
+      ),
+  });
+
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: () => getUsersApi(),
   });
 
-  // Fetch recent comments widget
   const { data: commentsWidget = { comments: [] } } = useQuery<{
     comments: CommentWidgetData[];
   }>({
-    queryKey: ["dashboard-widget", "recent-comments"],
+    queryKey: ["dashboard-widget", "recent-comments", "admin_social_media"],
     queryFn: () =>
       getDashboardWidgetApi<{ comments: CommentWidgetData[] }>(
         "recent-comments",
+        { role: "admin_social_media" }
       ),
   });
 
@@ -121,7 +135,6 @@ export const AdminSocialMediaPage = () => {
     }
   };
 
-  // Find latest revision task if any
   const revisionTasks = useMemo(() => {
     return (deadlinesWidget.tasks || []).filter((t) => t.status === "revision");
   }, [deadlinesWidget.tasks]);
@@ -208,7 +221,12 @@ export const AdminSocialMediaPage = () => {
   }, [approvedTasks]);
 
   const mappedSchedules = useMemo(() => {
-    const scheduledMapped = scheduledContents.map((c) => {
+    const myContentIds = new Set(myTasks.map((t) => Number(t.content_id)));
+    const myScheduledContents = isSuperadmin
+      ? scheduledContents
+      : scheduledContents.filter((c) => myContentIds.has(Number(c.id)));
+
+    const scheduledMapped = myScheduledContents.map((c) => {
       const schedDate = c.scheduled_at ? new Date(c.scheduled_at) : null;
       const time = schedDate
         ? schedDate
@@ -266,7 +284,7 @@ export const AdminSocialMediaPage = () => {
           if (!item.postDateRaw) return false;
           const pubDate = new Date(item.postDateRaw);
           const today = new Date();
-          today.setHours(0, 0, 0, 0); // Start of today
+          today.setHours(0, 0, 0, 0); 
           return pubDate.getTime() >= today.getTime();
         }
         return true;
@@ -274,13 +292,12 @@ export const AdminSocialMediaPage = () => {
 
     const combined = [...scheduledMapped, ...approvedMapped];
 
-    // Sort by date/time ascending
     return combined.sort((a, b) => {
       const dateA = new Date(a.postDateRaw || 0).getTime();
       const dateB = new Date(b.postDateRaw || 0).getTime();
       return dateA - dateB;
     });
-  }, [scheduledContents, approvedCaptionTasks]);
+  }, [scheduledContents, approvedCaptionTasks, myTasks, isSuperadmin]);
 
   return (
     <div className="space-y-4">

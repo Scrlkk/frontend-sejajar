@@ -29,7 +29,6 @@ export const getNotificationsApi = async (params?: GetNotificationsParams): Prom
 };
 
 export const getUnreadCountApi = async (): Promise<number> => {
-  // Directly returns the wrapped success data (e.g. response.data.data = 5)
   const response = await api.get<{ data: number }>(ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT);
   return response.data.data;
 };

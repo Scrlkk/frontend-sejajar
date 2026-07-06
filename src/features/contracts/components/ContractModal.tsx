@@ -43,7 +43,6 @@ interface ContractModalFormProps {
   contractsList: ContractCardItem[];
 }
 
-// Get custom selection classes (focus border / background) depending on Content Lead name
 function getLeadSelectedClasses(leadName: string) {
   const colors = [
     "border-indigo-500 bg-indigo-50/40 text-indigo-900 ring-2 ring-indigo-500/20",
@@ -87,11 +86,9 @@ function ContractModalForm({
     () => parseInitialValue(initialData?.valueAmount) ?? "",
   );
 
-  // Client autocomplete state
   const [brand, setBrand] = React.useState(initialData?.brand ?? "");
   const [isClientListOpen, setIsClientListOpen] = React.useState(false);
 
-  // Creator / Owner autocomplete state (starts empty on create)
   const [createdBy, _setCreatedBy] = React.useState(
     initialData?.createdBy ?? "",
   );
@@ -114,7 +111,6 @@ function ContractModalForm({
 
   const [isLeadListOpen, setIsLeadListOpen] = React.useState(false);
 
-  // Status (Active / Cancel)
   const [status, setStatus] = React.useState<string>(
     initialData?.status ?? "Active",
   );
@@ -184,7 +180,6 @@ function ContractModalForm({
     const currentProgress = initialData?.currentProgress ?? 0;
     const targetProgress = initialData?.targetProgress ?? 0;
 
-    // Auto calculate completed or overdue
     let finalStatus = status;
 
     if (currentProgress >= targetProgress && targetProgress > 0) {
@@ -202,7 +197,6 @@ function ContractModalForm({
       }
     }
 
-    // Map style helper for status badge
     let statusBg = "bg-green-50 text-green-600 border border-green-100";
     let statusDot = "bg-green-500";
     if (finalStatus === "Completed") {
@@ -254,7 +248,6 @@ function ContractModalForm({
       className="flex flex-col flex-1 overflow-hidden"
     >
       <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-1.5 scrollbar-none">
-        {/* Contract Title */}
         <div className="space-y-1.5 flex flex-col">
           <Label
             htmlFor="title"
@@ -278,9 +271,7 @@ function ContractModalForm({
           )}
         </div>
 
-        {/* Client & Content Lead */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Client Selection (Autocomplete/Search field) */}
           <div className="space-y-1.5 flex flex-col relative">
             <Label
               htmlFor="brand"
@@ -330,7 +321,6 @@ function ContractModalForm({
             )}
           </div>
 
-          {/* Creator / Owner Selection (Autocomplete/Search field) */}
           <div className="space-y-1.5 flex flex-col relative">
             <Label
               htmlFor="createdBy"
@@ -441,7 +431,6 @@ function ContractModalForm({
           </div>
         </div>
 
-        {/* Start Date & End Date */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5 flex flex-col">
             <Label
@@ -490,7 +479,6 @@ function ContractModalForm({
           </div>
         </div>
 
-        {/* Value Amount / Revenue & Status Selection buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5 flex flex-col">
             <Label
@@ -515,7 +503,6 @@ function ContractModalForm({
             )}
           </div>
 
-          {/* Status Selection Buttons (only for Edit mode, Active vs Cancel) */}
           <div className="space-y-1.5 flex flex-col">
             <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Status
@@ -561,7 +548,6 @@ function ContractModalForm({
           </div>
         </div>
 
-        {/* Platforms Selection Buttons */}
         <div className="space-y-2 flex flex-col">
           <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
             Platforms <span className="text-red-500">*</span>
@@ -575,7 +561,7 @@ function ContractModalForm({
                 const token = getColorToken(platform.platform_name, platform.color_key);
 
                 const activeStyle = isSelected
-                  ? `${token.badge} ring-2 ring-offset-1 ring-gray-950/10 font-bold`
+                  ? `${token.badge} ring-2 ring-offset-1 ring-gray-900/10 font-bold`
                   : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700";
 
                 return (
@@ -607,7 +593,6 @@ function ContractModalForm({
           )}
         </div>
 
-        {/* Description */}
         <div className="space-y-1.5 flex flex-col">
           <Label
             htmlFor="description"
@@ -637,7 +622,7 @@ function ContractModalForm({
           type="button"
           variant="outline"
           onClick={onClose}
-          className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-755 px-5"
+          className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-700 px-5"
         >
           Cancel
         </Button>

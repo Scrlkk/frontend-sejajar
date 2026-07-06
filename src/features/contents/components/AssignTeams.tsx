@@ -11,7 +11,7 @@ import { Check } from "lucide-react";
 import type {
   ContentPlanCardItem,
   TeamMember,
-} from "@/features/contents/components/ContentPlan";
+} from "@/features/contents/types";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
 import { AvatarUser } from "@/features/users/components/AvatarUser";
 import { useQuery } from "@tanstack/react-query";
@@ -138,12 +138,9 @@ export function AssignTeams({
           </p>
         </DialogHeader>
 
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto pb-2 pr-1.5 space-y-4 scrollbar-none">
-          {/* Content Plan Preview Card */}
           <ContentPlanPreviewCard card={card} />
 
-          {/* Grouped Team Candidates in 3 Columns */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch min-h-60 max-h-100">
             {roles.map((roleInfo) => {
               const membersInRole = AVAILABLE_MEMBERS.filter(
@@ -152,9 +149,8 @@ export function AssignTeams({
               return (
                 <div
                   key={roleInfo.name}
-                  className="flex flex-col space-y-3 bg-gray-50/50 border border-gray-150/70 rounded-xl p-3 flex-1 min-w-0"
+                  className="flex flex-col space-y-3 bg-gray-50/50 border border-gray-200/70 rounded-xl p-3 flex-1 min-w-0"
                 >
-                  {/* Category Header */}
                   <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60 shrink-0">
                     <div className="flex items-center gap-2">
                       <span
@@ -164,12 +160,11 @@ export function AssignTeams({
                         {roleInfo.name}
                       </span>
                     </div>
-                    <span className="text-[10px] font-bold text-gray-400 bg-white border border-gray-150 rounded px-1.5 py-0.5">
+                    <span className="text-[10px] font-bold text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5">
                       {membersInRole.length}
                     </span>
                   </div>
 
-                  {/* Candidates Cards Stacked Vertically */}
                   <div className="flex flex-col gap-2 overflow-y-auto pr-1 flex-1 min-h-0 scrollbar-none">
                     {membersInRole.length === 0 ? (
                       <div className="text-[10px] text-gray-400 italic py-8 text-center">
@@ -189,13 +184,11 @@ export function AssignTeams({
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              {/* Avatar */}
                               <AvatarUser
                                 initials={member.initials}
                                 avatarBg={member.avatarBg}
                                 size="md"
                               />
-                              {/* Details */}
                               <div className="min-w-0">
                                 <h5 className="text-[11px] font-semibold text-slate-800 truncate leading-tight">
                                   {member.name}
@@ -206,7 +199,6 @@ export function AssignTeams({
                               </div>
                             </div>
 
-                            {/* Selected Check Indicator */}
                             {isSelected ? (
                               <div
                                 className={`h-4.5 w-4.5 rounded-full flex items-center justify-center border border-current bg-white shadow-sm shrink-0 ${roleInfo.activeTextClass}`}
@@ -227,7 +219,6 @@ export function AssignTeams({
           </div>
         </div>
 
-        {/* Footer actions */}
         <DialogFooter className="pt-3 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0 shrink-0">
           <Button
             type="button"

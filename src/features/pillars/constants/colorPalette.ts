@@ -129,7 +129,7 @@ function hashToIndex(key: string | number): number {
   }
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 31 + key.charCodeAt(i)) >>> 0; // keep unsigned 32-bit
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0; 
   }
   return hash % PALETTE.length;
 }

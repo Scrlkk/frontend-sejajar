@@ -37,7 +37,6 @@ export function AssignMembers({
   const allCandidates = useMemo(() => {
     return usersList
       .filter((u) => {
-        // Exclude users with superadmin, owner, or content_lead roles
         const excludedRoles = ["superadmin", "owner", "content_lead"];
         return !u.roles.some((r) => excludedRoles.includes(r));
       })
@@ -77,7 +76,6 @@ export function AssignMembers({
     onSave(selectedMembers);
   };
 
-  // Filter and search logic
   const filteredCandidates = useMemo(() => {
     return allCandidates.filter((candidate) => {
       const matchesSearch = candidate.name
@@ -89,7 +87,6 @@ export function AssignMembers({
     });
   }, [allCandidates, searchQuery, selectedRole]);
 
-  // Helper to determine styling based on role
   const getRoleStyles = (role: string) => {
     switch (role) {
       case "Script Writer":
@@ -110,7 +107,7 @@ export function AssignMembers({
       default:
         return {
           activeBorder: "border-indigo-500 bg-indigo-50/10 ring-1 ring-indigo-500/10",
-          activeText: "text-indigo-650",
+          activeText: "text-indigo-600",
         };
     }
   };
@@ -124,9 +121,7 @@ export function AssignMembers({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Search & Filter Section */}
         <div className="shrink-0 pt-4 space-y-4">
-          {/* Search Box */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <Input
@@ -137,7 +132,6 @@ export function AssignMembers({
             />
           </div>
 
-          {/* Role Filter Tabs */}
           <div className="flex flex-wrap gap-2 pb-1">
             {["All", "Script Writer", "Editor", "Admin Social Media"].map((role) => {
               const isSelected = selectedRole === role;
@@ -158,7 +152,6 @@ export function AssignMembers({
           </div>
         </div>
 
-        {/* Scrollable Members List */}
         <div className="flex-1 overflow-y-auto py-2 pr-1.5 space-y-3 scrollbar-none min-h-[44vh]">
           {filteredCandidates.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
@@ -176,13 +169,11 @@ export function AssignMembers({
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      {/* Avatar */}
                       <AvatarUser
                         initials={candidate.initials}
                         avatarBg={candidate.avatarBg}
                         size="lg"
                       />
-                      {/* Details */}
                       <div className="min-w-0">
                         <h5 className="text-xs font-semibold text-slate-800 truncate leading-snug">
                           {candidate.name}
@@ -193,7 +184,6 @@ export function AssignMembers({
                       </div>
                     </div>
 
-                    {/* Selected Check Indicator */}
                     {isSelected ? (
                       <div
                         className={`h-5 w-5 rounded-full flex items-center justify-center border border-current bg-white shadow-sm shrink-0 ${roleStyle.activeText}`}
@@ -216,7 +206,6 @@ export function AssignMembers({
           )}
         </div>
 
-        {/* Footer actions */}
         <DialogFooter className="pt-3 border-t border-gray-100 flex items-center justify-between gap-3 sm:space-x-0 shrink-0">
           <span className="text-xs text-slate-500 font-medium">
             {selectedNames.length} members selected

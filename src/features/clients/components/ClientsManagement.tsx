@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ClientData } from "@/features/clients/pages/ClientsPage";
+import type { ClientData } from "@/features/clients/types";
 import {
   Plus,
   Trash2,
@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ClientsModal } from "@/features/clients/components/ClientsModal";
-import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { DeleteModal } from "@/components/shared/DeleteModal";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDateEN } from "@/utils/helpers";
 
@@ -46,11 +46,9 @@ export function ClientsManagement({
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientData | null>(null);
 
-  // Delete confirmation dialog states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ClientData | null>(null);
 
@@ -100,7 +98,6 @@ export function ClientsManagement({
     );
   };
 
-  // Avatar backgrounds themed harmoniously
   const getAvatarBg = (companyName: string) => {
     const index = companyName.charCodeAt(0) % 5;
     const colors = [
@@ -141,7 +138,6 @@ export function ClientsManagement({
     }
   };
 
-  // Reactivate confirmation dialog states
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
   const [clientToReactivate, setClientToReactivate] =
     useState<ClientData | null>(null);
@@ -271,7 +267,7 @@ export function ClientsManagement({
           <Button
             variant="outline"
             onClick={() => setSearchQuery("")}
-            className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-755 text-xs font-bold cursor-pointer h-9 px-4"
+            className="rounded-xl border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold cursor-pointer h-9 px-4"
           >
             Reset Pencarian
           </Button>
@@ -356,7 +352,7 @@ export function ClientsManagement({
                             variant="ghost"
                             size="icon"
                             onClick={() => handleOpenEditModal(client)}
-                            className="h-8 w-8 text-red-550 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
+                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
                           >
                             <UserRoundPen className="h-4 w-4" />
                           </Button>
@@ -435,7 +431,6 @@ export function ClientsManagement({
         </>
       )}
 
-      {/* Modal Add/Edit Client */}
       {isModalOpen && (
         <ClientsModal
           key={selectedClient ? `edit-${selectedClient.client_id}` : "add-new"}
@@ -446,7 +441,6 @@ export function ClientsManagement({
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
@@ -460,7 +454,7 @@ export function ClientsManagement({
         description={
           <>
             Apakah Anda yakin ingin menonaktifkan klien{" "}
-            <span className="font-semibold text-gray-950">
+            <span className="font-semibold text-gray-900">
               {clientToDelete?.client_name}
             </span>
             ? Status klien akan berubah menjadi{" "}
@@ -472,7 +466,6 @@ export function ClientsManagement({
         confirmText="Non-Aktifkan"
       />
 
-      {/* Reactivate Confirmation Dialog */}
       <DeleteModal
         isOpen={isReactivateModalOpen}
         onClose={() => {
@@ -486,7 +479,7 @@ export function ClientsManagement({
         description={
           <>
             Apakah Anda yakin ingin mengaktifkan kembali klien{" "}
-            <span className="font-semibold text-gray-950">
+            <span className="font-semibold text-gray-900">
               {clientToReactivate?.client_name}
             </span>
             ? Akses klien akan dipulihkan kembali.

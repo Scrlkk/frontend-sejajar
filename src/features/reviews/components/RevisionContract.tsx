@@ -23,14 +23,12 @@ export function RevisionContract({
   if (!hasRevision) {
     return (
       <Card className="w-full bg-slate-50/40 rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4">
-        {/* Header */}
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2 text-slate-400 font-bold text-xs tracking-wider uppercase">
             <span>No Revision Needed</span>
           </div>
         </div>
 
-        {/* Empty State Inner Box */}
         <div className="w-full h-full bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center py-7 text-center gap-2">
           <FileText className="h-8 w-8 text-gray-300 shrink-0" />
           <div className="flex flex-col">
@@ -48,7 +46,6 @@ export function RevisionContract({
 
   return (
     <Card className="w-full bg-red-50/50 rounded-xl border border-red-100 outline outline-red-200/40 shadow-lg p-6 flex flex-col gap-4">
-      {/* Alert Header */}
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2 text-red-600 font-bold text-xs tracking-wider uppercase">
           <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
@@ -61,7 +58,6 @@ export function RevisionContract({
         )}
       </div>
 
-      {/* Inner Box Scrollable Container */}
       <div className="flex flex-col gap-3 overflow-y-auto max-h-56 pr-1 scrollbar-none">
         {items.map((item) => (
           <div
@@ -72,7 +68,7 @@ export function RevisionContract({
               {item.title}
             </h3>
             <p className="text-xs text-red-500 font-semibold">
-              {item.platform} <span className="text-slate-350 font-medium mx-1">•</span> {item.dueDate}
+              {item.platform} <span className="text-slate-300 font-medium mx-1">•</span> {item.dueDate}
             </p>
           </div>
         ))}

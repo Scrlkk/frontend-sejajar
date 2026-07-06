@@ -1,21 +1,8 @@
 import { api } from '@/services/api';
 import { ENDPOINTS } from '@/services/endpoints';
 
-export interface Pillar {
-  id: number;
-  pillar_name: string;
-  description?: string;
-  color_key?: string | null;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface GetPillarsParams {
-  limit?: number;
-  offset?: number;
-  include_inactive?: boolean;
-}
+import type { Pillar, GetPillarsParams } from '../types';
+export type { Pillar, GetPillarsParams };
 
 export const getPillarsApi = async (params?: GetPillarsParams): Promise<Pillar[]> => {
   const response = await api.get<{ data: Pillar[] }>(ENDPOINTS.PILLARS.BASE, {

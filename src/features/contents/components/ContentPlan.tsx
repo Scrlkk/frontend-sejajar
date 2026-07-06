@@ -3,13 +3,12 @@ import { Button } from "@/components/ui/button";
 import { TriangleAlert } from "lucide-react";
 import { ContentModal } from "@/features/contents/components/ContentModal";
 import type { ContentFormValues } from "@/features/contents/components/ContentModal";
-import type { ContentPillar } from "@/features/contents/api/contentsApi";
 import { ContentDetailModal } from "@/features/contents/components/ContentDetailModal";
 import { AssignTeams } from "@/features/contents/components/AssignTeams";
 import { RequestRevision } from "@/features/reviews/components/RequestRevision";
 import { TasksModalAdd } from "@/features/tasks/components/TasksModalAdd";
 import { ContentBoard } from "@/features/contents/components/ContentBoard";
-import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { DeleteModal } from "@/components/shared/DeleteModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getContentsApi,
@@ -36,51 +35,7 @@ import { getInitials, getAvatarBg } from "@/utils/formatter";
 import toast from "react-hot-toast";
 import { createReviewApi } from "@/features/reviews/api/reviewsApi";
 
-export interface TeamMember {
-  name: string;
-  initials: string;
-  avatarBg: string;
-  role?: string;
-}
-
-export interface ContentPlanCardItem {
-  id: string;
-  contractId?: number;
-  title: string;
-  category: string;
-  categoryBg?: string; // Optional custom Tailwind classes for badge styling
-  categoryColorKey?: string | null;
-  platform: string;
-  platformColorKey?: string | null;
-  format: string; // e.g. "Video", "Image", etc.
-  priority: "High" | "Medium" | "Low";
-  dueDate: string;
-  overdue?: boolean; // Set to true if card is overdue
-  feedback?: string; // Optional feedback text for revisions
-  assignedTeam?: TeamMember[];
-  status:
-    | "Draft"
-    | "Assigned"
-    | "On Progress"
-    | "Review"
-    | "Revision"
-    | "Approved"
-    | "Scheduled"
-    | "Published"
-    | "Deleted";
-  objective?: string;
-  targetAudience?: string;
-  pillar?: string;          // first pillar name (backward compat)
-  pillars?: ContentPillar[]; // full multi-pillar array
-  notes?: string;
-  tasks?: Record<number, { title: string; description: string; deadline?: string | null }>;
-  taskStats?: {
-    total: number;
-    approved: number;
-    pending: number;
-  };
-  fileUrl?: string; // Optional published content URL
-}
+import type { ContentPlanCardItem, TeamMember } from "@/features/contents/types";
 
 import { useParams } from "react-router-dom";
 
@@ -95,7 +50,7 @@ export interface ContentPlanProps {
 interface FilterOption {
   label: string;
   status: ContentPlanCardItem["status"] | "All";
-  colorClass: string; // Tailwind dot class
+  colorClass: string; 
 }
 
 const FILTER_OPTIONS: FilterOption[] = [
@@ -166,7 +121,6 @@ export function ContentPlan({
     });
   };
 
-  // 1. Queries
   const { data: activeContents = [] } = useQuery({
     queryKey: ["contents", "active", { contract_id: resolvedContractId }],
     queryFn: () =>
@@ -213,7 +167,6 @@ export function ContentPlan({
     queryFn: () => getUsersApi(),
   });
 
-  // 2. Mapped Cards from contents and tasks
   const cards = useMemo(() => {
     return contents.map((c) => {
       const tasksForContent = tasksList.filter((t) => t.content_id === c.id);
@@ -257,7 +210,6 @@ export function ContentPlan({
     });
   }, [contents, tasksList]);
 
-  // 3. Mutations
   const createMutation = useMutation({
     mutationFn: createContentApi,
     onSuccess: () => {
@@ -323,7 +275,6 @@ export function ContentPlan({
         .map((member) => usersList.find((u) => u.full_name === member.name)?.id)
         .filter((id): id is number => id !== undefined);
 
-      // Update status if transitioned between draft & assigned
       const card = cards.find((c) => c.id === cardId);
       let newStatus: string | undefined;
       if (card) {
@@ -393,7 +344,6 @@ export function ContentPlan({
         });
       }
 
-      // Transition content status to 'on_progress' if currently in Draft or Assigned
       if (card.status === "Draft" || card.status === "Assigned") {
         await updateContentApi(contentId, {
           status: "on_progress",
@@ -491,7 +441,6 @@ export function ContentPlan({
     null,
   );
 
-  // Register the open-modal function with the parent
   useEffect(() => {
     if (onRegisterOpenModal) {
       onRegisterOpenModal(() => {
@@ -501,7 +450,6 @@ export function ContentPlan({
     }
   }, [onRegisterOpenModal]);
 
-  // Register the feedback-modal function with the parent
   useEffect(() => {
     if (onRegisterFeedbackModal) {
       onRegisterFeedbackModal(() => {
@@ -562,7 +510,6 @@ export function ContentPlan({
     const plat = platformsList.find((p) => p.platform_name === data.platform);
     const cat = categoriesList.find((c) => c.type_name === data.category);
 
-    // Resolve pillar IDs from selected pillar names array
     const selectedPillarIds = (data.pillars ?? [])
       .map((name) => pillarsList.find((p) => p.pillar_name === name)?.id)
       .filter((id): id is number => id !== undefined);
@@ -665,7 +612,6 @@ export function ContentPlan({
     restoreMutation.mutate(Number(cardId));
   };
 
-  // Get count of cards for each status dynamically
   const getStatusCount = (status: ContentPlanCardItem["status"] | "All") => {
     const baseCards = showOverdue ? cards.filter((c) => c.overdue) : cards;
     if (status === "All")
@@ -675,7 +621,6 @@ export function ContentPlan({
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {/* Content Modal */}
       <ContentModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -686,7 +631,6 @@ export function ContentPlan({
         initialData={editingItem}
         contractId={resolvedContractId}
       />
-      {/* Content Detail Modal */}
       <ContentDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => {
@@ -695,7 +639,6 @@ export function ContentPlan({
         }}
         card={detailCard}
       />
-      {/* Assign Teams Modal */}
       <AssignTeams
         key={
           isAssignModalOpen ? (assigningCard?.id ?? "assign") : "assign-closed"
@@ -709,7 +652,6 @@ export function ContentPlan({
         contractId={resolvedContractId}
         onSave={handleAssignSave}
       />
-      {/* Request Revision Modal */}
       <RequestRevision
         key={
           isRevisionModalOpen
@@ -725,7 +667,6 @@ export function ContentPlan({
         cardsList={revisingCard ? undefined : cards}
         onSave={handleRevisionSave}
       />
-      {/* Add Tasks Modal */}
       <TasksModalAdd
         key={
           isTasksAddModalOpen
@@ -740,7 +681,6 @@ export function ContentPlan({
         card={tasksAddCard}
         onSaveSingle={handleTasksAddSaveSingle}
       />
-      {/* Delete Confirmation Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -760,7 +700,6 @@ export function ContentPlan({
         }
         onConfirm={handleDeleteConfirm}
       />
-      {/* Loopable Filter Bar - SaaS/iOS Premium Design */}
       <div className="w-full bg-slate-50/90 backdrop-blur-md rounded-2xl border border-slate-200/60 p-2.5 flex flex-wrap gap-4 items-center justify-between shadow-xs">
         <div className="flex flex-wrap gap-1 items-center bg-slate-200/50 p-1 rounded-xl border border-slate-200/30">
           {FILTER_OPTIONS.map((opt) => {
@@ -776,14 +715,12 @@ export function ContentPlan({
                   isSelected ? "border" : "border-transparent bg-transparent"
                 } ${activeClass}`}
               >
-                {/* Dot indicator (if not 'All') */}
                 {opt.status !== "All" && (
                   <span
                     className={`h-1.5 w-1.5 rounded-full shrink-0 ${opt.colorClass}`}
                   />
                 )}
                 <span className="leading-none">{opt.label}</span>
-                {/* Count Badge */}
                 <span
                   className={`text-[10px] font-semibold leading-none transition-all ${
                     isSelected ? "opacity-100" : "text-slate-400 opacity-80"
@@ -817,7 +754,6 @@ export function ContentPlan({
         </Button>
       </div>
 
-      {/* Kanban Board */}
       <ContentBoard
         cards={showOverdue ? cards.filter((c) => c.overdue) : cards}
         selectedFilter={selectedFilter}

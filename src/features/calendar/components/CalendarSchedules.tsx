@@ -34,7 +34,7 @@ export function CalendarSchedules({
 }: CalendarSchedulesProps) {
   const { roles } = usePermissions();
   const showContentVsTaskType = useMemo(() => {
-    const allowed = ["owner", "content_lead", "superadmin"];
+    const allowed = ["owner", "content_lead", "superadmin", "admin_social_media"];
     return roles.some((r) => allowed.includes(r));
   }, [roles]);
 
@@ -52,7 +52,7 @@ export function CalendarSchedules({
           {dateTitle}
         </CardTitle>
         {schedules.length > 0 && (
-          <div className="text-xs font-bold text-gray-500 bg-gray-50 border border-gray-150 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
+          <div className="text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
             {showContentVsTaskType ? (
               <>
                 {taskCount > 0 && (
@@ -117,7 +117,7 @@ export function CalendarSchedules({
                 />
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-gray-150/60">
+              <div className="space-y-2 pt-2 border-t border-gray-200/60">
                 <div className="text-[10px] font-medium text-gray-500 flex items-center gap-1.5">
                   <span className="text-gray-400">Platform:</span>
                   <span className="font-semibold text-gray-700">{item.platform}</span>

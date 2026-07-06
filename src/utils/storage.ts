@@ -4,10 +4,12 @@ const KEYS = {
   ACCESS_TOKEN: 'accessToken',
   REFRESH_TOKEN: 'refreshToken',
   USER: 'user',
+  REMEMBERED_EMAIL: 'remembered_email',
+  USE_LOCAL_STORAGE: 'use_local_storage',
 };
 
 const getStorage = () => {
-  const useLocal = localStorage.getItem("use_local_storage") === "true";
+  const useLocal = localStorage.getItem(KEYS.USE_LOCAL_STORAGE) === "true";
   return useLocal ? localStorage : sessionStorage;
 };
 
@@ -36,11 +38,16 @@ export const storage = {
   setUser: (user: AuthenticatedUser) => {
     getStorage().setItem(KEYS.USER, JSON.stringify(user));
   },
+  getRememberedEmail: () => localStorage.getItem(KEYS.REMEMBERED_EMAIL),
+  setRememberedEmail: (email: string) => localStorage.setItem(KEYS.REMEMBERED_EMAIL, email),
+  clearRememberedEmail: () => localStorage.removeItem(KEYS.REMEMBERED_EMAIL),
+  getUseLocalStorage: () => localStorage.getItem(KEYS.USE_LOCAL_STORAGE) === "true",
+  setUseLocalStorage: (val: boolean) => localStorage.setItem(KEYS.USE_LOCAL_STORAGE, String(val)),
+  clearUseLocalStorage: () => localStorage.removeItem(KEYS.USE_LOCAL_STORAGE),
   clearAll: () => {
     Object.values(KEYS).forEach((k) => {
       localStorage.removeItem(k);
       sessionStorage.removeItem(k);
     });
-    localStorage.removeItem("use_local_storage");
   },
 };

@@ -1,63 +1,8 @@
 import { api } from "@/services/api";
 import { ENDPOINTS } from "@/services/endpoints";
-import type { ContentPlanCardItem } from "../components/ContentPlan";
+import type { Content, ContentPillar, ContentTeamUser, GetContentsParams, ContentPlanCardItem } from '../types';
+export type { Content, ContentPillar, ContentTeamUser, GetContentsParams, ContentPlanCardItem };
 import { getCategoryBg } from "../constants/categoryConfig";
-
-export interface ContentTeamUser {
-  id: number;
-  full_name: string;
-  roles: string[];
-  is_online?: boolean;
-}
-
-export interface ContentPillar {
-  id: number;
-  pillar_name: string;
-  color_key?: string | null;
-}
-
-export interface Content {
-  id: number;
-  contract_id: number;
-  contract_name?: string;
-  contract_code?: string;
-  platform_id: number;
-  platform_name?: string;
-  platform_color_key?: string | null;
-  content_category_id: number;
-  category_name?: string;
-  category_color_key?: string | null;
-  /** Array of pillars — replaces single pillar_id/pillar_name */
-  pillars: ContentPillar[];
-  title: string;
-  content_url?: string | null;
-  description?: string | null;
-  objective?: string | null;
-  target_audience?: string | null;
-  due_date?: string | null;
-  scheduled_at?: string | null;
-  priority: string;
-  status: string;
-  published_at?: string | null;
-  created_at: string;
-  updated_at?: string;
-  latest_feedback?: string | null;
-  is_active?: boolean;
-  deleted_at?: string | null;
-  format?: string | null;
-  teams?: ContentTeamUser[];
-}
-
-export interface GetContentsParams {
-  limit?: number;
-  offset?: number;
-  contract_id?: number;
-  status?: string;
-  platform_id?: number;
-  content_category_id?: number;
-  pillar_id?: number;
-  priority?: string;
-}
 
 export interface CreateContentPayload {
   contract_id: number;
@@ -154,7 +99,6 @@ export const mapContentToCardItem = (
   assignedTeam: ContentPlanCardItem["assignedTeam"] = [],
   tasks?: ContentPlanCardItem["tasks"],
 ): ContentPlanCardItem => {
-  // Map standard priority & status to capitalization expected by UI
   const formatPriority = (p: string): "High" | "Medium" | "Low" => {
     const norm = p.toLowerCase();
     if (norm === "high") return "High";
@@ -181,7 +125,6 @@ export const mapContentToCardItem = (
   };
 
   const pillarsArray: ContentPillar[] = Array.isArray(c.pillars) ? c.pillars : [];
-  // Use first pillar name for backward-compatible `pillar` field & categoryBg
   const firstPillarName = pillarsArray[0]?.pillar_name || "";
 
   return {
@@ -211,9 +154,7 @@ export const mapContentToCardItem = (
     status: formatStatus(c.status, c.is_active, c.deleted_at),
     objective: c.objective || "",
     targetAudience: c.target_audience || "",
-    // Backward compat: first pillar name
     pillar: firstPillarName,
-    // Full pillars array for multi-pillar UI
     pillars: pillarsArray,
     notes: c.description || "",
     fileUrl: c.content_url || "",

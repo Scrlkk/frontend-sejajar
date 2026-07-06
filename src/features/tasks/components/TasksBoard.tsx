@@ -1,9 +1,7 @@
 import { Plus, ClipboardList } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import {
-  TasksContent,
-  type TaskBoardItem,
-} from "@/features/tasks/components/TasksContent";
+import { TasksContent } from "@/features/tasks/components/TasksContent";
+import type { TaskBoardItem } from "@/features/tasks/types";
 import { taskBoardColumns } from "@/features/tasks/constants/boardConfig";
 
 interface TasksBoardProps {

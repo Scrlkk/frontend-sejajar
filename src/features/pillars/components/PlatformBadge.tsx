@@ -37,7 +37,7 @@ const getPlatformStyle = (platform: string, colorKey?: string | null) => {
       };
     default:
       return {
-        bg: "bg-slate-50 text-slate-650 border-slate-150 hover:bg-slate-50",
+        bg: "bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-50",
         dot: "bg-slate-400",
       };
   }

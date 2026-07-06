@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Image as ImageIcon, Video } from "lucide-react";
-import type { TeamMember } from "@/features/contents/components/ContentPlan";
+import type { TeamMember } from "@/features/contents/types";
 import { PillarsContent } from "@/features/pillars/components/PillarsContent";
 import { useQuery } from "@tanstack/react-query";
 import { getPlatformsApi } from "@/features/platforms/api/platformsApi";
@@ -29,8 +29,8 @@ export type ContentFormValues = {
   objective?: string;
   category: string;
   targetAudience?: string;
-  pillars: string[];   // multi-select — replaces single `pillar`
-  pillar?: string;     // kept for backward compat (first pillar name)
+  pillars: string[];   
+  pillar?: string;     
   format: "Video" | "Image" | "";
   platform: string;
   priority: "High" | "Medium" | "Low";
@@ -66,7 +66,6 @@ function ContentModalForm({
 }: ContentModalFormProps) {
   const isEdit = !!initialData;
 
-  // Inisialisasi langsung — tidak perlu useEffect
   const [title, setTitle] = React.useState(initialData?.title ?? "");
   const [objective, setObjective] = React.useState(
     initialData?.objective ?? "",
@@ -75,7 +74,6 @@ function ContentModalForm({
   const [targetAudience, setTargetAudience] = React.useState(
     initialData?.targetAudience ?? "",
   );
-  // Multi-select pillars — init from pillars[] or fall back to single pillar string
   const [pillars, setPillars] = React.useState<string[]>(
     initialData?.pillars && initialData.pillars.length > 0
       ? initialData.pillars
@@ -170,9 +168,7 @@ function ContentModalForm({
       onSubmit={handleSubmit}
       className="flex flex-col flex-1 overflow-hidden"
     >
-      {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto space-y-5 py-4 pr-1.5 scrollbar-none">
-        {/* Content Title */}
         <div className="space-y-1.5 flex flex-col">
           <Label
             htmlFor="title"
@@ -196,7 +192,6 @@ function ContentModalForm({
           )}
         </div>
 
-        {/* Content Objective */}
         <div className="space-y-1.5 flex flex-col">
           <Label
             htmlFor="objective"
@@ -214,7 +209,6 @@ function ContentModalForm({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Content Category */}
           <div className="space-y-1.5 flex flex-col">
             <Label
               htmlFor="category"
@@ -250,7 +244,6 @@ function ContentModalForm({
             )}
           </div>
 
-          {/* Target Audience */}
           <div className="space-y-1.5 flex flex-col">
             <Label
               htmlFor="targetAudience"
@@ -268,16 +261,13 @@ function ContentModalForm({
           </div>
         </div>
 
-        {/* Content Pillar — multi-select */}
         <PillarsContent
           pillars={pillars}
           setPillars={setPillars}
           error={errors.pillars}
         />
 
-        {/* Grid for Content Type (Format) & Platform */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Content Type (Format) */}
           <div className="space-y-2 flex flex-col">
             <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Content Type <span className="text-red-500">*</span>
@@ -289,7 +279,7 @@ function ContentModalForm({
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${
                   format === "Video"
                     ? "border-red-800 bg-red-50/25 text-red-800 ring-1 ring-red-800/10"
-                    : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50"
+                    : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <Video className="h-4 w-4 shrink-0" />
@@ -301,7 +291,7 @@ function ContentModalForm({
                 className={`flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-semibold transition-all cursor-pointer ${
                   format === "Image"
                     ? "border-red-800 bg-red-50/25 text-red-800 ring-1 ring-red-800/10"
-                    : "border-gray-200 bg-white text-gray-655 hover:bg-gray-50"
+                    : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <ImageIcon className="h-4 w-4 shrink-0" />
@@ -315,7 +305,6 @@ function ContentModalForm({
             )}
           </div>
 
-          {/* Platform */}
           <div className="space-y-1.5 flex flex-col">
             <Label
               htmlFor="platform"
@@ -350,9 +339,7 @@ function ContentModalForm({
           </div>
         </div>
 
-        {/* Grid for Priority & Deadline */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Priority */}
           <div className="space-y-1.5 flex flex-col">
             <Label
               htmlFor="priority"
@@ -386,7 +373,6 @@ function ContentModalForm({
             </Select>
           </div>
 
-          {/* Deadline */}
           <div className="space-y-1.5 flex flex-col">
             <Label
               htmlFor="dueDate"
@@ -411,7 +397,6 @@ function ContentModalForm({
           </div>
         </div>
 
-        {/* Production Notes & References */}
         <div className="space-y-1.5 flex flex-col">
           <Label
             htmlFor="notes"
@@ -428,7 +413,6 @@ function ContentModalForm({
           />
         </div>
 
-        {/* Published File URL — only show when status is Published */}
         {status === "Published" && (
           <div className="space-y-1.5 flex flex-col">
             <Label
@@ -452,13 +436,12 @@ function ContentModalForm({
         )}
       </div>
 
-      {/* Footer actions */}
       <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0 shrink-0 mt-2">
         <Button
           type="button"
           variant="outline"
           onClick={onClose}
-          className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-750 px-5"
+          className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-700 px-5"
         >
           Cancel
         </Button>
@@ -474,7 +457,6 @@ function ContentModalForm({
   );
 }
 
-// ─── Shell modal: hanya mengurus Dialog open/close.
 export function ContentModal({
   isOpen,
   onClose,

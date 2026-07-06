@@ -7,7 +7,8 @@ import { getTasksApi } from "@/features/tasks/api/tasksApi";
 import { getTaskTypeConfig } from "@/features/tasks/constants/typeConfig";
 import { getInitialsAndBg, isTaskOverdue } from "@/utils/formatter";
 import { TaskDashboardContent } from "@/features/tasks/components/TasksDashboardContent";
-import type { TaskBoardItem } from "@/features/tasks/components/TasksContent";
+import type { TaskBoardItem } from "@/features/tasks/types";
+import { taskKeys } from "@/features/tasks/api/taskKeys";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -39,19 +40,15 @@ export function TaskDashboard({
 }: TaskDashboardProps) {
   const { roles } = usePermissions();
   const { user } = useAuth();
-  const isLeadOrOwner =
-    roles.includes("content_lead") ||
-    roles.includes("owner") ||
-    roles.includes("superadmin");
+  const isSuperadmin = roles.includes("superadmin");
 
   const { data: apiTasks = [] } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: () => getTasksApi(),
+    queryKey: taskKeys.list(isSuperadmin ? "all" : user?.id),
+    queryFn: () => getTasksApi(isSuperadmin ? {} : { assigned_to: Number(user?.id) }),
   });
 
-  // Map API Task → TaskBoardItem (same mapping logic as TasksPage)
   const boardItems = useMemo<TaskBoardItem[]>(() => {
-    const rawTasks = isLeadOrOwner
+    const rawTasks = isSuperadmin
       ? apiTasks
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
@@ -82,9 +79,8 @@ export function TaskDashboard({
         pillars: t.pillars,
       };
     });
-  }, [apiTasks, isLeadOrOwner, user]);
+  }, [apiTasks, isSuperadmin, user]);
 
-  // In dashboard, filter tasks dynamically by type based on the logged-in user's role
   const scriptTasks = useMemo(() => {
     if (user?.role === "content_editor") {
       return boardItems.filter((t) => t.type === "Editor");

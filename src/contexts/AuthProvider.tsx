@@ -19,13 +19,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           storage.setUser(currentUser);
           setIsAuthenticated(true);
         } catch {
-          // If loading current user fails, check if the interceptor was able to refresh token
           const freshToken = storage.getAccessToken();
           if (!freshToken) {
             setUser(null);
             setIsAuthenticated(false);
           } else {
-            // Interceptor resolved it, let's try one more time to fetch user profile
             try {
               const retryUser = await getMeApi();
               setUser(retryUser);

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { ModalUsers } from "@/features/users/components/ModalUsers";
 import type { UserFormValues } from "@/features/users/components/ModalUsers";
-import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { DeleteModal } from "@/components/shared/DeleteModal";
 import {
   Select,
   SelectContent,
@@ -74,14 +74,12 @@ export function UserManagement({
       (isAdmin || role.toLowerCase() !== "owner"),
   );
 
-  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
   const filteredUsers = users.filter((user) => {
     if (user.role === "Super Admin" || user.role === "Superadmin") return false;
 
-    // Specifically for owner role viewing, exclude owner role users
     if (!isAdmin && user.role) {
       const userRolesList = user.role.split(",").map((r) => r.trim().toLowerCase());
       if (userRolesList.includes("owner")) return false;
@@ -138,7 +136,6 @@ export function UserManagement({
     setIsModalOpen(true);
   };
 
-  // Delete confirmation dialog states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
 
@@ -155,7 +152,6 @@ export function UserManagement({
     }
   };
 
-  // Reactivate confirmation dialog states
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
   const [userToReactivate, setUserToReactivate] = useState<UserData | null>(
     null,
@@ -505,7 +501,6 @@ export function UserManagement({
         </div>
       </div>
 
-      {/* Modal Users Component */}
       {isModalOpen && (
         <ModalUsers
           key={selectedUser ? `edit-${selectedUser.id}` : "add-new"}
@@ -516,7 +511,6 @@ export function UserManagement({
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -525,7 +519,7 @@ export function UserManagement({
         description={
           <>
             Are you sure you want to deactivate{" "}
-            <span className="font-semibold text-gray-950">
+            <span className="font-semibold text-gray-900">
               {userToDelete?.name}
             </span>
             ? Their access will be suspended, but you can reactivate this
@@ -536,7 +530,6 @@ export function UserManagement({
         confirmText="Deactivate"
       />
 
-      {/* Reactivate Confirmation Dialog */}
       <DeleteModal
         isOpen={isReactivateModalOpen}
         onClose={() => setIsReactivateModalOpen(false)}
@@ -545,7 +538,7 @@ export function UserManagement({
         description={
           <>
             Are you sure you want to reactivate{" "}
-            <span className="font-semibold text-gray-950">
+            <span className="font-semibold text-gray-900">
               {userToReactivate?.name}
             </span>
             ? Their access will be restored, and they will be able to log in

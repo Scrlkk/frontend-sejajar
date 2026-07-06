@@ -119,7 +119,7 @@ export function PlatformFormModal({
                 }}
                 className={`h-7 px-2.5 rounded-full border text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center ${
                   platformColor === null
-                    ? "bg-gray-900 border-gray-950 text-white shadow-sm ring-2 ring-gray-950/20"
+                    ? "bg-gray-900 border-gray-900 text-white shadow-sm ring-2 ring-gray-900/20"
                     : "bg-white border-gray-200 text-gray-600 hover:border-gray-400"
                 }`}
               >
@@ -138,7 +138,7 @@ export function PlatformFormModal({
                     }}
                     className={`h-7 w-7 rounded-full border border-black/5 transition-all cursor-pointer flex items-center justify-center ${token.dot} ${
                       isSelected
-                        ? "ring-2 ring-offset-2 ring-gray-950 scale-110"
+                        ? "ring-2 ring-offset-2 ring-gray-900 scale-110"
                         : "hover:scale-105"
                     }`}
                     title={colorKey}
@@ -186,7 +186,7 @@ export function PlatformFormModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="rounded-md border-gray-250 hover:bg-gray-50 text-gray-700 px-5 text-xs font-semibold cursor-pointer h-9 shadow-sm"
+              className="rounded-md border-gray-200 hover:bg-gray-50 text-gray-700 px-5 text-xs font-semibold cursor-pointer h-9 shadow-sm"
             >
               Cancel
             </Button>

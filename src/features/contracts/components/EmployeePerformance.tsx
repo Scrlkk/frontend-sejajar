@@ -43,7 +43,7 @@ export function EmployeePerformance({
             <div className="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center mb-4 border border-gray-100 shadow-sm text-gray-400">
               <UserRound className="h-6 w-6 text-gray-300" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-950 mb-1">
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">
               No employee performance data
             </h3>
             <p className="text-xs text-gray-400 text-center max-w-xs leading-normal">
@@ -104,7 +104,7 @@ export function EmployeePerformance({
                   </div>
 
                   <div className="flex flex-col items-end gap-1.5">
-                    <span className="text-xs font-bold text-gray-950">
+                    <span className="text-xs font-bold text-gray-900">
                       {employee.tasksCount} tasks
                     </span>
                     <div className="flex items-center gap-2">

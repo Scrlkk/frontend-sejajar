@@ -80,3 +80,18 @@ export const formatDateEN = (d: string | Date | null) => {
   });
 };
 
+export const getFileUrl = (url?: string | null) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  let apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+  if (apiBase.endsWith("/api")) {
+    apiBase = apiBase.substring(0, apiBase.length - 4);
+  }
+
+  const parts = url.split("/");
+  const filename = parts[parts.length - 1];
+  const dotIndex = filename.lastIndexOf(".");
+  const basename = dotIndex !== -1 ? filename.substring(0, dotIndex) : filename;
+  return `${apiBase}/stream-media/${basename}`;
+};
+

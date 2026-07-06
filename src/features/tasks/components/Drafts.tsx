@@ -12,27 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
-export interface DraftsItem {
-  id: string | number;
-  title: string;
-  category: string;
-  categoryBg: string;
-  status: "Pending" | "Revision" | "Approved" | "Overdue" | string;
-  statusBg: string;
-  statusDot: string;
-  revisionNote?: string;
-  wordCount: number;
-  savedTimeText: string;
-  iconBg: string;
-  iconColor: string;
-  assigner?: {
-    name: string;
-    role: string;
-    initials: string;
-  };
-  content_id?: number;
-  deadline?: string | null;
-}
+import type { DraftsItem } from "@/features/tasks/types";
 
 interface DraftsProps {
   drafts: DraftsItem[];
@@ -214,13 +194,12 @@ export function Drafts({ drafts, onNewDraft, onOpen }: DraftsProps) {
                   </div>
                 </div>
 
-                {(item.status === "Revision" || item.status === "Overdue") &&
-                  item.revisionNote && (
-                    <div className="w-full bg-red-50/40 border border-red-400 rounded-xl p-3 text-xs md:text-sm text-red-800 font-semibold leading-relaxed">
-                      Naskah ini memerlukan revisi. Silakan melihat detail
-                      feedback lengkap di kolom diskusi.
-                    </div>
-                  )}
+                {item.status === "Revision" && (
+                  <div className="w-full bg-red-50/40 border border-red-400 rounded-xl p-3 text-xs md:text-sm text-red-800 font-semibold leading-relaxed">
+                    Naskah ini memerlukan revisi. Silakan melihat detail
+                    feedback lengkap di kolom diskusi.
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-50 text-xs md:text-sm font-bold text-gray-400">
@@ -239,7 +218,7 @@ export function Drafts({ drafts, onNewDraft, onOpen }: DraftsProps) {
             </Card>
           ))
         ) : filteredDrafts.length === 0 && !searchQuery ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-250 bg-slate-50/20 rounded-2xl">
+          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-gray-200 bg-slate-50/20 rounded-2xl">
             <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-800 shadow-sm mb-4">
               <FilePen className="h-6 w-6 stroke-[1.5]" />
             </div>

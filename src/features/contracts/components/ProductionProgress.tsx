@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export interface ProgressStatusItem {
   label: string;
   value: number;
-  dotColor: string; // Tailwind color class for dot, e.g. "bg-blue-600"
-  textColor: string; // Tailwind color class for value text, e.g. "text-blue-600"
+  dotColor: string; 
+  textColor: string; 
 }
 
 export interface ProductionProgressProps {
@@ -24,7 +24,6 @@ export function ProductionProgress({
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6">
-      {/* Header Title */}
       <CardHeader className="p-0 mb-4">
         <CardTitle className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
           {title}
@@ -32,7 +31,6 @@ export function ProductionProgress({
       </CardHeader>
 
       <CardContent className="p-0 flex flex-col">
-        {/* Progress Text and Percentage */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-semibold text-slate-800">
             {current}/{target} content
@@ -42,7 +40,6 @@ export function ProductionProgress({
           </span>
         </div>
 
-        {/* Progress Bar */}
         <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-4">
           <div
             className={`h-full rounded-full transition-all duration-500 ease-out ${
@@ -52,7 +49,6 @@ export function ProductionProgress({
           />
         </div>
 
-        {/* Breakdown Items */}
         <div className="flex flex-col gap-2.5">
           {items.map((item, index) => (
             <div
@@ -61,14 +57,12 @@ export function ProductionProgress({
                 index !== items.length - 1
               }`}
             >
-              {/* Left Side: Dot and Label */}
               <div className="flex items-center gap-2.5">
                 <span
                   className={`h-2.5 w-2.5 rounded-full shrink-0 ${item.dotColor}`}
                 />
                 <span className="text-slate-500 font-medium">{item.label}</span>
               </div>
-              {/* Right Side: Colored Value */}
               <span className={`font-semibold text-right ${item.textColor}`}>
                 {item.value}
               </span>

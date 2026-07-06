@@ -24,7 +24,6 @@ export const CONTRACT_STATUS_CONFIG: Record<string, { bg: string; dot: string; l
 export const getContractStatusConfig = (s: string) => {
   if (!s) return CONTRACT_STATUS_CONFIG.active;
   const normalized = s.toLowerCase();
-  // Handle alias if "cancel" is passed
   if (normalized === "cancel" || normalized === "cancelled") {
     return CONTRACT_STATUS_CONFIG.cancelled;
   }

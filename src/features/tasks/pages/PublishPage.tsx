@@ -13,6 +13,8 @@ import {
   publishContentApi,
   updateContentApi,
 } from "@/features/contents/api/contentsApi";
+import { taskKeys } from "@/features/tasks/api/taskKeys";
+import { contentKeys } from "@/features/contracts/api/contractKeys";
 import {
   getPlatformConfig,
   getInitialsAndBg,
@@ -24,41 +26,37 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
 import { getTasksApi, updateTaskApi, deleteTaskApi } from "@/features/tasks/api/tasksApi";
 import { getTaskOutputsApi, createTaskOutputApi } from "@/features/tasks/api/taskOutputsApi";
-import { SpesificDrawer } from "@/features/tasks/components/SpesificDrawer";
+import { UnifiedTaskDrawer } from "@/features/tasks/components/UnifiedTaskDrawer";
 import {
   ContentPickerModal,
   type AssignedContentPlan,
 } from "@/features/tasks/components/ContentPickerModal";
-import type { DraftsItem } from "@/features/tasks/components/Drafts";
+import type { DraftsItem } from "@/features/tasks/types";
 import { formatDate } from "@/utils/helpers";
 
 export const PublishPage = () => {
   const queryClient = useQueryClient();
   const { roles } = usePermissions();
   const { user } = useAuth();
-  const isLeadOrOwner =
-    roles.includes("content_lead") ||
+  const isSuperadmin = roles.includes("superadmin");
+  const canPublish =
+    roles.includes("admin_social_media") ||
     roles.includes("owner") ||
+    roles.includes("content_lead") ||
     roles.includes("superadmin");
 
-  const canSeeAll =
-    isLeadOrOwner || roles.includes("admin_social_media");
-
-  // Fetch all contents from the backend
   const { data: apiContents = [], isLoading: loadingContents } = useQuery({
-    queryKey: ["contents"],
+    queryKey: contentKeys.all,
     queryFn: () => getContentsApi(),
   });
 
-  // Fetch all tasks from the backend (always needed for caption drawer + staff filtering)
   const { data: apiTasks = [] } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: () => getTasksApi({ limit: 1000 }),
+    queryKey: taskKeys.list(isSuperadmin ? "all" : user?.id),
+    queryFn: () => getTasksApi(isSuperadmin ? { limit: 1000 } : { assigned_to: Number(user?.id), limit: 1000 }),
   });
 
-  // Fetch task outputs across all tasks
   const { data: allOutputs = [], isLoading: loadingOutputs } = useQuery({
-    queryKey: ["all-task-outputs", apiTasks.map((t) => t.id)],
+    queryKey: taskKeys.allOutputs(apiTasks.map((t) => t.id)),
     queryFn: async () => {
       if (apiTasks.length === 0) return [];
       const promises = apiTasks.map(async (t) => {
@@ -75,14 +73,11 @@ export const PublishPage = () => {
     enabled: apiTasks.length > 0,
   });
 
-  // Map API Content → QueueItem for PublishContent component
   const publishData = useMemo<QueueItem[]>(() => {
-    // Filter tasks based on role/ID
-    const userTasks = canSeeAll
+    const userTasks = isSuperadmin
       ? apiTasks
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
-    // Only show tasks of type "Caption" that are active (excluding to_do tasks, just like Drafts/Uploads)
     const captionTasks = userTasks.filter((t) => {
       const role = t.assignee_roles?.[0] ?? "content_editor";
       return (
@@ -96,7 +91,6 @@ export const PublishPage = () => {
       const platform = t.platform_name || "Instagram";
       const config = getPlatformConfig(platform);
 
-      // Map status strings to match QueueItem expectations
       const mapStatus = (status: string, contentStatus?: string): QueueItem["status"] => {
         const norm = status.toLowerCase();
         const contentNorm = contentStatus?.toLowerCase();
@@ -109,7 +103,6 @@ export const PublishPage = () => {
         return "Pending";
       };
 
-      // Find the outputs for this specific task
       const taskOutputs = allOutputs.filter((out) => out.task.id === t.id);
       const latestOutput = taskOutputs[0];
 
@@ -120,8 +113,6 @@ export const PublishPage = () => {
       const hasCaption = !!caption?.trim();
       const isVideo = t.content_format?.toLowerCase() === "video";
 
-      // Find the output with file_url from any task in the same content plan
-      // Exclude script outputs and prefer video files for video formats
       const contentOutputs = allOutputs.filter(
         (out) =>
           Number(out.task?.content_id) === Number(t.content_id) &&
@@ -163,7 +154,6 @@ export const PublishPage = () => {
         dateText = `${isTaskOverdue(t.deadline, t.status) ? "Overdue" : "Due"} ${formatDate(t.deadline)}`;
       }
 
-      // Find the hashtag: prefer this task's output, fallback to any output in same content plan
       let hashtag = latestOutput?.hashtag || "";
       if (!hashtag) {
         const anyHashtagOutput = allOutputs.find(
@@ -203,9 +193,8 @@ export const PublishPage = () => {
         content_url: contentUrl || undefined,
       };
     });
-  }, [apiTasks, allOutputs, canSeeAll, user, apiContents]);
+  }, [apiTasks, allOutputs, isSuperadmin, user, apiContents]);
 
-  // Dynamically calculate metrics
   const cardData = useMemo(() => {
     const total = publishData.length;
     const onProgress = publishData.filter(
@@ -240,7 +229,6 @@ export const PublishPage = () => {
     });
   }, [publishData]);
 
-  // Mutations
   const publishMutation = useMutation({
     mutationFn: async ({
       contentId,
@@ -281,9 +269,9 @@ export const PublishPage = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contents"] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["all-task-outputs"] });
+      queryClient.invalidateQueries({ queryKey: contentKeys.all });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      queryClient.invalidateQueries({ queryKey: taskKeys.allOutputs() });
     },
   });
 
@@ -293,19 +281,18 @@ export const PublishPage = () => {
       formData.append("task_id", String(taskId));
       formData.append("caption", caption);
       await createTaskOutputApi(formData);
-      // After saving caption, set task status to "review"
       await updateTaskApi(taskId, { status: "review" });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-task-outputs"] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.allOutputs() });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
     },
   });
 
   const removeTaskMutation = useMutation({
     mutationFn: (id: number) => deleteTaskApi(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
     },
   });
 
@@ -333,7 +320,6 @@ export const PublishPage = () => {
     removeTaskMutation.mutate(Number(id));
   };
 
-  // Find contents that are scheduled/approved but missing captions
   const missingCaptionsCount = useMemo(() => {
     return publishData.filter(
       (i) =>
@@ -345,7 +331,6 @@ export const PublishPage = () => {
     return publishData.filter((i) => i.status === "Revision");
   }, [publishData]);
 
-  // --- Caption Task Drawer States ---
   const [isCaptionPickerOpen, setIsCaptionPickerOpen] = useState(false);
   const [selectedCaptionTask, setSelectedCaptionTask] =
     useState<DraftsItem | null>(null);
@@ -355,7 +340,7 @@ export const PublishPage = () => {
     mutationFn: (taskId: number) =>
       updateTaskApi(taskId, { status: "on_progress" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
     },
   });
 
@@ -364,9 +349,8 @@ export const PublishPage = () => {
     setIsCaptionPickerOpen(false);
   };
 
-  // Exclude content plans that already have caption tasks in active/completed statuses (not 'to_do')
   const activeCaptionContentIds = useMemo(() => {
-    const activeTasks = canSeeAll
+    const activeTasks = isSuperadmin
       ? apiTasks
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
@@ -379,14 +363,13 @@ export const PublishPage = () => {
       })
       .map((t) => Number(t.content_id))
       .filter(Boolean);
-  }, [apiTasks, canSeeAll, user]);
+  }, [apiTasks, isSuperadmin, user]);
 
   const handleOpenCaptionDrawer = (item: QueueItem) => {
-    // Find the caption task for this content
     const rawTask = apiTasks.find((t) => {
       const role = t.assignee_roles?.[0] ?? "content_editor";
       const isUserCaptionTask =
-        canSeeAll || Number(t.assigned_to) === Number(user?.id);
+        isSuperadmin || Number(t.assigned_to) === Number(user?.id);
       return (
         Number(t.id) === Number(item.id) &&
         getTaskTypeConfig(role).label === "Caption" &&
@@ -396,7 +379,6 @@ export const PublishPage = () => {
     });
     if (!rawTask) return;
 
-    // Transition to_do task to on_progress
     if (rawTask.status === "to_do") {
       startCaptionMutation.mutate(Number(rawTask.id));
     }
@@ -413,7 +395,6 @@ export const PublishPage = () => {
       status: statusVisual.label,
       statusBg: statusVisual.bg,
       statusDot: statusVisual.dot,
-      revisionNote: rawTask.description || undefined,
       wordCount: 0,
       savedTimeText: rawTask.deadline
         ? `Due ${formatDate(rawTask.deadline)}`
@@ -476,11 +457,10 @@ export const PublishPage = () => {
           onRemove={handleRemove}
           onCaptionClick={() => setIsCaptionPickerOpen(true)}
           onOpenCaptionDrawer={handleOpenCaptionDrawer}
-          canPublish={canSeeAll}
+          canPublish={canPublish}
         />
       )}
 
-      {/* Caption Task Picker Modal */}
       <ContentPickerModal
         isOpen={isCaptionPickerOpen}
         onClose={() => setIsCaptionPickerOpen(false)}
@@ -489,8 +469,7 @@ export const PublishPage = () => {
         excludeContentIds={activeCaptionContentIds}
       />
 
-      {/* Caption Task Specific Drawer */}
-      <SpesificDrawer
+      <UnifiedTaskDrawer
         key={selectedCaptionTask?.id ?? "caption-new"}
         isOpen={isCaptionDrawerOpen}
         onClose={() => {

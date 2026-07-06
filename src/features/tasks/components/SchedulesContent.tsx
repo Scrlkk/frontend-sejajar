@@ -30,34 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getContentByIdApi, type ContentPillar } from "@/features/contents/api/contentsApi";
+import { getContentByIdApi } from "@/features/contents/api/contentsApi";
 
-export interface ScheduledContentItem {
-  id: string | number;
-  title: string;
-  campaign: string;
-  platform: string;
-  platformColorKey?: string | null;
-  platformBg: string;
-  pillar: string;
-  pillars?: ContentPillar[];
-  pillarBg: string;
-  pillarDot: string;
-  postDate: string;
-  time: string;
-  status: "Published" | "Approved" | "On Progress" | "Draft" | string;
-  statusBg: string;
-  statusDot: string;
-  hasPublishButton: boolean;
-  type?: string;
-  caption?: string;
-  hashtag?: string;
-  postDateRaw?: string;
-  file_url?: string;
-  content_url?: string;
-  content_id?: number;
-  publisher_name?: string;
-}
+import type { ScheduledContentItem } from "../types";
 
 interface SchedulesContentProps {
   contents: ScheduledContentItem[];
@@ -135,11 +110,9 @@ export function SchedulesContent({
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
 
-  // Local CRUD items state initialized from props
   const [prevContents, setPrevContents] = useState(contents);
   const [items, setItems] = useState<ScheduledContentItem[]>(() => contents);
 
-  // Derive unique platforms and statuses for filters
   const platformsList = useMemo(() => {
     const list = new Set(items.map((it) => it.platform));
     return Array.from(list).filter(Boolean);
@@ -155,7 +128,6 @@ export function SchedulesContent({
     setItems(contents);
   }
 
-  // Preview modal states & actions
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [itemToPreview, setItemToPreview] =
     useState<ScheduledContentItem | null>(null);
@@ -223,7 +195,6 @@ export function SchedulesContent({
       }
     }
 
-    // Fetch all outputs for all tasks in parallel
     const tasksToFetch: Partial<Task>[] =
       tasksList.length > 0 ? tasksList : taskId > 0 ? [{ id: taskId }] : [];
     const allOutputsRes = await Promise.all(
@@ -238,7 +209,6 @@ export function SchedulesContent({
     );
     const outputsFlat = allOutputsRes.flat();
 
-    // Find caption: prefer selected task, fallback to any task in content
     const mainTaskOutputs = outputsFlat.filter((o) => o.task.id === taskId);
     const mainCaptionOut = mainTaskOutputs.find((o) => !!o.caption);
     let caption = mainCaptionOut?.caption || "";
@@ -250,7 +220,6 @@ export function SchedulesContent({
       }
     }
 
-    // Find hashtag: prefer selected task, fallback to any task in content
     const mainHashtagOut = mainTaskOutputs.find((o) => !!o.hashtag);
     let hashtag = mainHashtagOut?.hashtag || "";
 
@@ -261,7 +230,6 @@ export function SchedulesContent({
       }
     }
 
-    // Find file URL: prefer non-script media outputs
     const mediaOutputs = outputsFlat.filter(
       (o) => !!o.file_url && isMediaFile(o.file_url),
     );
@@ -274,7 +242,6 @@ export function SchedulesContent({
       nonScriptMediaOutputs.length > 0 ? nonScriptMediaOutputs : mediaOutputs;
     let mediaOut = candidates[0];
 
-    // If content format is video, prioritize video file types
     const isVideoFormat = tasksList.some(
       (t) => t.content_format?.toLowerCase() === "video",
     );
@@ -432,7 +399,6 @@ export function SchedulesContent({
           {resolvedTitle}
         </h2>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto xl:flex-1 xl:justify-end">
-          {/* Searchbar */}
           <div className="relative w-full sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -444,7 +410,6 @@ export function SchedulesContent({
             />
           </div>
 
-          {/* Platform Filter */}
           <Select
             value={selectedPlatform}
             onValueChange={(val) => {
@@ -465,7 +430,6 @@ export function SchedulesContent({
             </SelectContent>
           </Select>
 
-          {/* Status Filter */}
           <Select
             value={selectedStatus}
             onValueChange={(val) => {
@@ -499,7 +463,6 @@ export function SchedulesContent({
             </SelectContent>
           </Select>
 
-          {/* Type Filter */}
           {showTypeFilterAndColumn && (
             <Select
               value={selectedType}
@@ -698,13 +661,7 @@ export function SchedulesContent({
                           return null;
                         }
 
-                        const isContentLead = roles.some((r) =>
-                          ["content_lead", "superadmin"].includes(
-                            r.toLowerCase(),
-                          ),
-                        );
-
-                        if (isContentLead && isTask) {
+                        if (isTask) {
                           return (
                             <Button
                               onClick={() => handleViewTask(item)}
@@ -755,7 +712,6 @@ export function SchedulesContent({
                 </TableRow>
               ))
             ) : items.length === 0 ? (
-              /* State Jika Data Sistem Kosong */
               <TableRow>
                 <TableCell
                   colSpan={showTypeFilterAndColumn ? 8 : 7}
@@ -786,7 +742,6 @@ export function SchedulesContent({
                 </TableCell>
               </TableRow>
             ) : (
-              /* State Jika Hasil Pencarian Kosong */
               <TableRow>
                 <TableCell
                   colSpan={showTypeFilterAndColumn ? 8 : 7}
@@ -865,7 +820,6 @@ export function SchedulesContent({
         </div>
       </div>
 
-       {/* Separated Preview Publish Modal */}
       <ModalPreviewPublish
         key={itemToPreview?.id ?? "preview-closed"}
         isOpen={isPreviewModalOpen}

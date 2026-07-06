@@ -75,7 +75,6 @@ export const ProfilePage = () => {
     return null;
   }
 
-  // Use targetUser.id as key to completely reset ProfileForm state when user changes
   return <ProfileForm key={targetUser.id} initialUser={targetUser} />;
 };
 
@@ -94,7 +93,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
 
   const role = initialUser.role || "Owner";
 
-  // Password criteria checks
   const newHasMinLength = newPassword.length >= 8;
   const newHasUppercase = /[A-Z]/.test(newPassword);
   const newHasLowercase = /[a-z]/.test(newPassword);
@@ -166,7 +164,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
 
       const updatedUser = await updateUserApi(initialUser.id, updateData);
 
-      // If the updated user is the currently logged in user, update the auth state
       if (currentUser && currentUser.id === initialUser.id) {
         setUser({
           ...currentUser,
@@ -177,7 +174,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
 
       toast.success("Profil berhasil diperbarui!");
 
-      // Clear password fields after save
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -199,7 +195,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 pt-4 text-left">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column: Avatar & Overview */}
         <div className="md:col-span-1 h-full">
           <Card className="bg-white h-full rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 flex flex-col items-center text-center justify-between">
             <div className="flex flex-col items-center w-full pb-5">
@@ -230,7 +225,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
           </Card>
         </div>
 
-        {/* Right Column: Profile Edit Form */}
         <div className="md:col-span-2 h-full">
           <Card className="bg-white h-full rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6">
             <CardHeader className="p-0 border-b border-gray-100 pb-4 mb-6">
@@ -240,7 +234,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
             </CardHeader>
             <CardContent className="p-0">
               <form onSubmit={handleSave} className="space-y-6">
-                {/* Informasi Pribadi */}
                 <div className="space-y-4">
                   <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
                     Informasi Pribadi
@@ -257,7 +250,7 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-3.5 py-2 bg-gray-55/50 border border-gray-250 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
+                        className="w-full px-3.5 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
                       />
                     </div>
 
@@ -271,7 +264,7 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-3.5 py-2 bg-gray-55/50 border border-gray-250 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
+                        className="w-full px-3.5 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
                       />
                     </div>
                   </div>
@@ -279,7 +272,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
 
                 <hr className="border-gray-100" />
 
-                {/* Ubah Password */}
                 <div className="space-y-4">
                   <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
                     Ubah Password
@@ -297,7 +289,7 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
                           placeholder="Masukkan password saat ini untuk mengubah password"
-                          className="w-full pl-3.5 pr-10 py-2 bg-gray-55/50 border border-gray-250 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
+                          className="w-full pl-3.5 pr-10 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
                         />
                         <button
                           type="button"
@@ -330,7 +322,7 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
                               onFocus={() => setIsNewPasswordFocused(true)}
                               onBlur={() => setIsNewPasswordFocused(false)}
                               placeholder="Masukkan password baru"
-                              className="w-full pl-3.5 pr-10 py-2 bg-gray-55/50 border border-gray-250 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
+                              className="w-full pl-3.5 pr-10 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
                             />
                             <button
                               type="button"
@@ -347,7 +339,6 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
                             </button>
                           </div>
 
-                          {/* Password checklist criteria */}
                           {((isNewPasswordFocused && newPassword.length > 0) ||
                             (!isNewPasswordFocused &&
                               newPassword.length > 0)) &&
@@ -400,7 +391,7 @@ const ProfileForm = ({ initialUser }: { initialUser: UserProfileData }) => {
                                 setConfirmPassword(e.target.value)
                               }
                               placeholder="Konfirmasi password baru"
-                              className="w-full pl-3.5 pr-10 py-2 bg-gray-55/50 border border-gray-250 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
+                              className="w-full pl-3.5 pr-10 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-800/50 focus:border-red-800 transition-all text-gray-700 font-semibold h-10"
                             />
                             <button
                               type="button"

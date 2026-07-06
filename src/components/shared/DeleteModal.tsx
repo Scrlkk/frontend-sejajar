@@ -26,13 +26,12 @@ export function DeleteModal({
   description,
   icon = <Trash2 className="h-6 w-6" />,
   iconBgColor = "bg-red-50",
-  iconBorderColor = "border-red-150",
+  iconBorderColor = "border-red-100",
   iconTextColor = "text-red-800",
   cancelText = "Batal",
   confirmText = "Hapus",
   confirmBtnClassName = "bg-red-800 hover:bg-red-900 text-white",
 }: DeleteModalProps) {
-  // Local state to preserve text content during dialog fade-out transition
   const [prevTitle, setPrevTitle] = useState(title);
   const [prevDescription, setPrevDescription] = useState(description);
   const [displayTitle, setDisplayTitle] = useState(title);
@@ -55,20 +54,16 @@ export function DeleteModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-95 bg-white border border-gray-100 shadow-2xl rounded-3xl p-6 outline-none overflow-hidden">
-        {/* Ambient background glow accent */}
         <div
           className={`absolute -top-12 -right-12 w-28 h-28 rounded-full filter blur-2xl opacity-25 ${iconBgColor}`}
         />
 
         <div className="flex flex-col items-center text-center space-y-4 pt-3 pb-1 relative z-10">
-          {/* Animated double-ring icon container */}
           <div className="relative flex items-center justify-center">
-            {/* Pulsing outer ring */}
             <div
               className={`absolute inset-0 h-16 w-16 -m-2 rounded-full opacity-30 animate-ping ${iconBgColor}`}
               style={{ animationDuration: "3s" }}
             />
-            {/* Inner icon circle */}
             <div
               className={`h-12 w-12 rounded-full ${iconBgColor} flex items-center justify-center border ${iconBorderColor} ${iconTextColor} shadow-md relative z-10 transition-transform duration-300 hover:scale-110`}
             >
@@ -86,7 +81,6 @@ export function DeleteModal({
           </div>
         </div>
 
-        {/* Action buttons with premium layouts */}
         <div className="flex items-center justify-center gap-3 mt-6 pt-4 border-t border-gray-50 relative z-10">
           <Button
             type="button"

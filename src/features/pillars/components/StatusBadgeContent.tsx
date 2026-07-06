@@ -51,7 +51,6 @@ const formatStatusLabel = (status: string) => {
   if (normStatus === "pending" || normStatus === "review") {
     return "Review";
   }
-  // Capitalize first letter for others
   return normStatus.charAt(0).toUpperCase() + normStatus.slice(1);
 };
 

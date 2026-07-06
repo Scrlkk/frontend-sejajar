@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { PillarList } from "../components/PillarList";
 import { ContentCategoryList } from "../components/ContentCategoryList";
 import { PlatformList } from "../components/PlatformList";
-import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { DeleteModal } from "@/components/shared/DeleteModal";
 import { PillarFormModal } from "../components/PillarFormModal";
 import { ContentCategoryFormModal } from "../components/ContentCategoryFormModal";
 import { PlatformFormModal } from "../components/PlatformFormModal";
@@ -45,7 +45,6 @@ import {
 export function PillarsPage() {
   const queryClient = useQueryClient();
 
-  // Queries
   const { data: pillars = [], isLoading: isPillarsLoading } = useQuery<
     Pillar[]
   >({
@@ -67,20 +66,16 @@ export function PillarsPage() {
     queryFn: () => getPlatformsApi({ include_inactive: true }),
   });
 
-  // Modal States - Pillars
   const [isPillarModalOpen, setIsPillarModalOpen] = useState(false);
   const [editingPillar, setEditingPillar] = useState<Pillar | null>(null);
 
-  // Modal States - Categories
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] =
     useState<ContentCategory | null>(null);
 
-  // Modal States - Platforms
   const [isPlatformModalOpen, setIsPlatformModalOpen] = useState(false);
   const [editingPlatform, setEditingPlatform] = useState<Platform | null>(null);
 
-  // Delete Modal States
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteType, setDeleteType] = useState<"pillar" | "category" | "platform" | null>(
     null,
@@ -89,19 +84,16 @@ export function PillarsPage() {
     Pillar | ContentCategory | Platform | null
   >(null);
 
-  // Search & Filter States - Pillars
   const [pillarSearch, setPillarSearch] = useState("");
   const [pillarStatus, setPillarStatus] = useState<
     "all" | "active" | "inactive"
   >("all");
 
-  // Search & Filter States - Categories
   const [categorySearch, setCategorySearch] = useState("");
   const [categoryStatus, setCategoryStatus] = useState<
     "all" | "active" | "inactive"
   >("all");
 
-  // Search & Filter States - Platforms
   const [platformSearch, setPlatformSearch] = useState("");
   const [platformStatus, setPlatformStatus] = useState<
     "all" | "active" | "inactive"
@@ -154,7 +146,6 @@ export function PillarsPage() {
     });
   }, [platforms, platformSearch, platformStatus]);
 
-  // Mutations - Pillars
   const createPillarMutation = useMutation({
     mutationFn: createPillarApi,
     onSuccess: () => {
@@ -200,7 +191,6 @@ export function PillarsPage() {
     },
   });
 
-  // Mutations - Categories
   const createCategoryMutation = useMutation({
     mutationFn: createContentCategoryApi,
     onSuccess: () => {
@@ -246,7 +236,6 @@ export function PillarsPage() {
     },
   });
 
-  // Mutations - Platforms
   const createPlatformMutation = useMutation({
     mutationFn: createPlatformApi,
     onSuccess: () => {
@@ -292,7 +281,6 @@ export function PillarsPage() {
     },
   });
 
-  // Pillar Action Handlers
   const handleAddPillarClick = () => {
     setEditingPillar(null);
     setIsPillarModalOpen(true);
@@ -329,7 +317,6 @@ export function PillarsPage() {
     }
   };
 
-  // Category Action Handlers
   const handleAddCategoryClick = () => {
     setEditingCategory(null);
     setIsCategoryModalOpen(true);
@@ -364,7 +351,6 @@ export function PillarsPage() {
     }
   };
 
-  // Platform Action Handlers
   const handleAddPlatformClick = () => {
     setEditingPlatform(null);
     setIsPlatformModalOpen(true);
@@ -399,7 +385,6 @@ export function PillarsPage() {
     }
   };
 
-  // Confirm Delete Handler
   const handleConfirmDelete = () => {
     if (!itemToDelete) return;
 
@@ -416,7 +401,6 @@ export function PillarsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {getPillarsCards(pillars, categories, platforms, isDataLoading).map((card) => (
           <CardDashboard key={card.title} {...card} />
@@ -434,7 +418,6 @@ export function PillarsPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            {/* Pillars List Section */}
             <div className="bg-white rounded-2xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4 h-137.5 lg:col-span-8">
               <div className="flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
@@ -452,7 +435,6 @@ export function PillarsPage() {
                 </Button>
               </div>
               
-              {/* Search & Filter Row */}
               <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
                 <Input
                   placeholder="Search pillar name or description..."
@@ -499,7 +481,6 @@ export function PillarsPage() {
               />
             </div>
 
-            {/* Content Categories List Section */}
             <div className="bg-white rounded-2xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4 h-137.5 lg:col-span-4">
               <div className="flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
@@ -517,7 +498,6 @@ export function PillarsPage() {
                 </Button>
               </div>
 
-              {/* Search & Filter Row */}
               <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
                 <Input
                   placeholder="Search category name..."
@@ -565,7 +545,6 @@ export function PillarsPage() {
             </div>
           </div>
 
-          {/* Social Platforms List Section (2-column layout container) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 flex flex-col gap-4 h-137.5">
               <div className="flex items-center justify-between shrink-0">
@@ -584,7 +563,6 @@ export function PillarsPage() {
                 </Button>
               </div>
 
-              {/* Search & Filter Row */}
               <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
                 <Input
                   placeholder="Search platform name..."
@@ -630,13 +608,11 @@ export function PillarsPage() {
                 onDelete={handleDeletePlatformClick}
               />
             </div>
-            {/* Right column empty space for future development */}
             <div className="hidden lg:block" />
           </div>
         </div>
       )}
 
-      {/* Pillar Form Modal */}
       {isPillarModalOpen && (
         <PillarFormModal
           isOpen={isPillarModalOpen}
@@ -647,7 +623,6 @@ export function PillarsPage() {
         />
       )}
 
-      {/* Category Form Modal */}
       {isCategoryModalOpen && (
         <ContentCategoryFormModal
           isOpen={isCategoryModalOpen}
@@ -658,7 +633,6 @@ export function PillarsPage() {
         />
       )}
 
-      {/* Platform Form Modal */}
       {isPlatformModalOpen && (
         <PlatformFormModal
           isOpen={isPlatformModalOpen}
@@ -669,7 +643,6 @@ export function PillarsPage() {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

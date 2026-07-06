@@ -12,7 +12,7 @@ export interface User {
   is_active: boolean;
   created_at: string;
   roles: string[];
-  role: string; // primary role
+  role: string; 
 }
 
 export interface UserData {

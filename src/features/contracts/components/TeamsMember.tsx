@@ -5,14 +5,14 @@ export interface TeamMemberItem {
   name: string;
   role: string;
   initials: string;
-  avatarBg: string; // Tailwind bg- and text- color class, e.g. "bg-indigo-100 text-indigo-600"
-  statusDotColor?: string; // Tailwind color class, e.g. "bg-emerald-500"
+  avatarBg: string; 
+  statusDotColor?: string; 
 }
 
 export interface TeamsMemberProps {
   title?: string;
   members?: TeamMemberItem[];
-  maxHeight?: string; // Tailwind class, e.g. "max-h-[280px]" or "h-[250px]"
+  maxHeight?: string; 
 }
 
 export function TeamsMember({
@@ -22,7 +22,6 @@ export function TeamsMember({
 }: TeamsMemberProps) {
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6">
-      {/* Header Title with Member Count */}
       <CardHeader className="p-0 mb-4 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
           {title}
@@ -56,16 +55,13 @@ export function TeamsMember({
               key={member.name}
               className="flex items-center justify-between py-0.5"
             >
-              {/* Left: Avatar, Name, and Role */}
               <div className="flex items-center gap-3">
-                {/* Initials Avatar */}
                 <div
                   className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${member.avatarBg}`}
                 >
                   {member.initials}
                 </div>
 
-                {/* Name & Role Stack */}
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-slate-900 leading-tight">
                     {member.name}
@@ -76,7 +72,6 @@ export function TeamsMember({
                 </div>
               </div>
 
-              {/* Right: Status Dot */}
               <div
                 className={`h-2.5 w-2.5 rounded-full shrink-0 ${
                   member.statusDotColor || "bg-gray-300"

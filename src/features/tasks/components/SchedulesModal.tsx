@@ -8,9 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ScheduledContentItem } from "@/features/tasks/components/SchedulesContent";
+import type { ScheduledContentItem } from "@/features/tasks/types";
 import { ContentPlanPreviewCard } from "@/features/contents/components/ContentPlanPreviewCard";
-import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
+import type { ContentPlanCardItem } from "@/features/contents/types";
 
 interface SchedulesModalProps {
   isOpen: boolean;
@@ -108,7 +108,6 @@ const initialContents = [
   },
 ];
 
-// Helper date parsing/formatting functions
 const parseMockDateToInputDate = (dateStr: string) => {
   const months: Record<string, string> = {
     Jan: "01",
@@ -145,7 +144,6 @@ export function SchedulesModal({
   editingItem,
   onSave,
 }: SchedulesModalProps) {
-  // Form input fields states
   const contentOptions = useMemo(() => {
     if (editingItem) {
       const exists = initialContents.some((c) => c.title === editingItem.title);
@@ -236,14 +234,12 @@ export function SchedulesModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-3 text-left">
-          {/* Select Content */}
           <div className="space-y-1.5 flex flex-col relative">
             <label className="text-xs font-bold text-gray-700 block">
               Select Content <span className="text-red-500">*</span>
             </label>
 
             <div className="relative">
-              {/* Trigger Input / Search */}
               <div
                 className={`relative flex items-center ${isDropdownOpen ? "z-40" : "z-10"}`}
               >
@@ -289,10 +285,8 @@ export function SchedulesModal({
                 )}
               </div>
 
-              {/* Dropdown Panel overlay */}
               {isDropdownOpen && (
                 <>
-                  {/* Backdrop to close when clicking outside */}
                   <div
                     className="fixed inset-0 z-30"
                     onClick={() => {
@@ -301,9 +295,7 @@ export function SchedulesModal({
                     }}
                   />
 
-                  {/* Dropdown Panel Content */}
-                  <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-white border border-gray-250 shadow-xl rounded-lg flex flex-col overflow-hidden max-h-60 animate-in fade-in slide-in-from-top-1 duration-150">
-                    {/* Scrollable list of plans */}
+                  <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-white border border-gray-200 shadow-xl rounded-lg flex flex-col overflow-hidden max-h-60 animate-in fade-in slide-in-from-top-1 duration-150">
                     <div className="overflow-y-auto p-1 scrollbar-none">
                       {filteredOptions.length > 0 ? (
                         filteredOptions.map((c, i) => {
@@ -367,7 +359,6 @@ export function SchedulesModal({
             )}
           </div>
 
-          {/* Date and Time (2 cols) */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700 block">
@@ -395,7 +386,6 @@ export function SchedulesModal({
             </div>
           </div>
 
-          {/* Caption */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-700 block">
               Caption <span className="text-red-500">*</span>
@@ -410,7 +400,6 @@ export function SchedulesModal({
             />
           </div>
 
-          {/* Hashtags */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-700 block">
               Hashtags <span className="text-red-500">*</span>
@@ -428,7 +417,6 @@ export function SchedulesModal({
             </span>
           </div>
 
-          {/* Footer Actions */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
             <Button
               type="button"

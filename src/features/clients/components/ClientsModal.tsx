@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ClientData } from "@/features/clients/pages/ClientsPage";
+import type { ClientData } from "@/features/clients/types";
 
 interface ClientsModalProps {
   isOpen: boolean;
@@ -95,7 +95,6 @@ export function ClientsModal({
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-1.5 scrollbar-none">
-            {/* Company Name / Brand */}
             <div className="space-y-1.5 flex flex-col">
               <Label htmlFor="company_name" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                 Company / Brand <span className="text-red-500">*</span>
@@ -114,7 +113,6 @@ export function ClientsModal({
               )}
             </div>
 
-            {/* Client Name */}
             <div className="space-y-1.5 flex flex-col">
               <Label htmlFor="client_name" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                 Contact Person / Client Name <span className="text-red-500">*</span>
@@ -133,7 +131,6 @@ export function ClientsModal({
               )}
             </div>
 
-            {/* Contact Email & Contact Phone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5 flex flex-col">
                 <Label htmlFor="contact_email" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -173,20 +170,18 @@ export function ClientsModal({
               </div>
             </div>
 
-            {/* Status — only shown in edit mode, new client is always active */}
             {isEdit && (
               <div className="space-y-2.5 py-3 border-t border-gray-100">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Client Status
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Active Option */}
                   <button
                     type="button"
                     onClick={() => setIsActive(true)}
                     className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       isActive
-                        ? "border-emerald-500 bg-emerald-50/30 text-emerald-950 ring-1 ring-emerald-500/30"
+                        ? "border-emerald-500 bg-emerald-50/30 text-emerald-900 ring-1 ring-emerald-500/30"
                         : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
@@ -199,13 +194,12 @@ export function ClientsModal({
                     </p>
                   </button>
 
-                  {/* Inactive Option */}
                   <button
                     type="button"
                     onClick={() => setIsActive(false)}
                     className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       !isActive
-                        ? "border-red-500 bg-red-50/20 text-red-950 ring-1 ring-red-500/20"
+                        ? "border-red-500 bg-red-50/20 text-red-900 ring-1 ring-red-500/20"
                         : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
@@ -227,7 +221,7 @@ export function ClientsModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-755 px-5"
+              className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-700 px-5"
             >
               Cancel
             </Button>

@@ -61,7 +61,6 @@ const renderCardDelta = (key: string, currentVal: number, prevVal: number) => {
 export const EngagementPage = () => {
   const currentYear = new Date().getFullYear();
 
-  // Fetch engagement charts (trends & total metrics)
   const { data: trendChart } = useQuery<EngagementChartResponse>({
     queryKey: ["dashboard-charts", "engagement", currentYear],
     queryFn: () =>

@@ -57,7 +57,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
   const [isPasswordFocused, setIsPasswordFocused] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
 
-  // Password criteria helper checks
   const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
@@ -73,7 +72,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
       newErrors.email = "Invalid email address";
     }
     
-    // Validate password if new user, or if editing and password is not empty
     const shouldValidatePassword = !isEdit || password.length > 0;
     if (shouldValidatePassword) {
       if (!hasMinLength) {
@@ -127,7 +125,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto space-y-3 py-3 px-1.5 pr-2.5 scrollbar-none">
-          {/* Full Name */}
           <div className="space-y-2">
             <Label htmlFor="fullName" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Full Name
@@ -146,7 +143,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
             )}
           </div>
 
-          {/* Email Address */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Email Address
@@ -166,7 +162,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
             )}
           </div>
 
-          {/* Password */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -207,7 +202,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
               <p className="text-xs text-red-500 font-medium">{errors.password}</p>
             )}
 
-            {/* Password checklist criteria */}
             {((isPasswordFocused && (password.length > 0 || !isEdit)) || (!isPasswordFocused && password.length > 0)) && 
              (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSymbol) && (
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2.5 p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
@@ -245,7 +239,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
             )}
           </div>
 
-          {/* Role selection using dynamic grid checklist */}
           <div className="space-y-2.5">
             <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Assigned Roles (Pilih satu atau lebih)
@@ -292,20 +285,18 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
             )}
           </div>
 
-          {/* Status (is_active) styled as an Action Card/Toggle */}
           {isEdit && (
             <div className="space-y-2.5 py-3 border-t border-gray-100">
               <Label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                 Account Status
               </Label>
               <div className="grid grid-cols-2 gap-3">
-                {/* Active Option */}
                 <button
                   type="button"
                   onClick={() => setIsActive(true)}
                   className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
                     isActive
-                      ? "border-emerald-500 bg-emerald-50/30 text-emerald-950 ring-1 ring-emerald-500/30"
+                      ? "border-emerald-500 bg-emerald-50/30 text-emerald-900 ring-1 ring-emerald-500/30"
                       : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -318,13 +309,12 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
                   </p>
                 </button>
 
-                {/* Inactive Option (Soft Deleted) */}
                 <button
                   type="button"
                   onClick={() => setIsActive(false)}
                   className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
                     !isActive
-                      ? "border-red-500 bg-red-50/20 text-red-950 ring-1 ring-red-500/20"
+                      ? "border-red-500 bg-red-50/20 text-red-900 ring-1 ring-red-500/20"
                       : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -341,7 +331,6 @@ export const ModalUsers = ({ isOpen, onClose, onSave, user }: ModalUsersProps) =
           )}
         </div>
 
-          {/* Footer buttons */}
           <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sm:space-x-0 shrink-0 mt-4">
             <Button
               type="button"

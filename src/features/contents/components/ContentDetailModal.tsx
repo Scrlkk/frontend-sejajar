@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, ExternalLink } from "lucide-react";
 import { differenceInDays } from "date-fns";
-import type { ContentPlanCardItem } from "@/features/contents/components/ContentPlan";
+import type { ContentPlanCardItem } from "@/features/contents/types";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { PriorityCard } from "@/features/pillars/components/PriorityCard";
 import { FormatBadgeContent } from "@/features/pillars/components/FormatBadgeContent";
@@ -93,9 +93,7 @@ export function ContentDetailModal({
         </DialogHeader>
 
         <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Scrollable Content Area */}
           <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-1.5 scrollbar-none">
-            {/* Main Title and Badge Info */}
             <div className="space-y-3">
               <h3 className="text-base font-bold text-gray-900 leading-snug">
                 {card.title}
@@ -111,7 +109,6 @@ export function ContentDetailModal({
 
             <hr className="border-gray-100" />
 
-            {/* Overdue Alert Banner */}
             {isOverdue && (
               <div className="bg-red-50 border border-red-100 rounded-xl p-3.5 flex items-start gap-3 mt-1 animate-pulse">
                 <Clock className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
@@ -128,7 +125,6 @@ export function ContentDetailModal({
               </div>
             )}
 
-            {/* Objective & Target Audience (Stacked) */}
             <div className="space-y-4">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
@@ -148,9 +144,7 @@ export function ContentDetailModal({
               </div>
             </div>
 
-            {/* Grid Info */}
             <div className="grid grid-cols-2 gap-5">
-              {/* Content Pillar */}
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   Content Pillar
@@ -170,7 +164,6 @@ export function ContentDetailModal({
                 </div>
               </div>
 
-              {/* Priority */}
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   Priority
@@ -181,7 +174,6 @@ export function ContentDetailModal({
               </div>
 
               <div>
-                {/* Status */}
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                     Status
@@ -203,13 +195,13 @@ export function ContentDetailModal({
               <div
                 className={`space-y-1 p-2.5 rounded-xl border transition-all ${
                   isOverdue
-                    ? "bg-red-50/50 border-red-105 text-red-850"
+                    ? "bg-red-50/50 border-red-105 text-red-800"
                     : "bg-slate-50/20 border-slate-100/70"
                 }`}
               >
                 <span
                   className={`text-[10px] font-bold uppercase tracking-wider ${
-                    isOverdue ? "text-red-800" : "text-gray-450"
+                    isOverdue ? "text-red-800" : "text-gray-400"
                   }`}
                 >
                   Deadline
@@ -228,7 +220,6 @@ export function ContentDetailModal({
               </div>
             </div>
 
-            {/* Notes */}
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                 Production Notes & References
@@ -240,7 +231,6 @@ export function ContentDetailModal({
               </div>
             </div>
 
-            {/* Published Content URL */}
             {card.status === "Published" && (
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
@@ -266,7 +256,6 @@ export function ContentDetailModal({
               </div>
             )}
 
-            {/* Revision Feedback */}
             {card.feedback && (
               <div
                 className={`border rounded-xl p-3.5 space-y-1.5 mt-2 ${
@@ -279,7 +268,7 @@ export function ContentDetailModal({
                   className={`flex items-center gap-1.5 font-semibold text-[10px] uppercase tracking-wider ${
                     card.status === "Revision"
                       ? "text-red-800"
-                      : "text-slate-655"
+                      : "text-slate-600"
                   }`}
                 >
                   <span
@@ -296,7 +285,7 @@ export function ContentDetailModal({
                 <p
                   className={`text-xs font-semibold leading-relaxed ${
                     card.status === "Revision"
-                      ? "text-red-750"
+                      ? "text-red-700"
                       : "text-slate-600"
                   }`}
                 >
@@ -306,12 +295,11 @@ export function ContentDetailModal({
             )}
           </div>
 
-          {/* Footer actions */}
           <DialogFooter className="pt-4 border-t border-gray-100 flex items-center justify-end shrink-0 mt-2">
             <Button
               type="button"
               onClick={onClose}
-              className="rounded-lg bg-gray-950 hover:bg-gray-800 text-white font-semibold px-5 py-2 text-xs cursor-pointer h-auto"
+              className="rounded-lg bg-gray-900 hover:bg-gray-800 text-white font-semibold px-5 py-2 text-xs cursor-pointer h-auto"
             >
               Close
             </Button>

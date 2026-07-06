@@ -12,29 +12,17 @@ import {
 } from "@/features/clients/api/clientsApi";
 import { getClientsCards } from "@/features/clients/constants/cardConfig";
 import { formatDate } from "@/utils/helpers";
+import type { ClientData } from "@/features/clients/types";
 import { getContractsApi } from "@/features/contracts/api/contractsApi";
-
-// Define adapter ClientData interface locally since it is cleaned up from mockData
-export interface ClientData {
-  client_id: number;
-  client_name: string;
-  company_name: string;
-  contact_email: string;
-  contact_phone: string;
-  joinedDate?: string;
-  status?: "active" | "inactive";
-}
 
 export const ClientsPage = () => {
   const queryClient = useQueryClient();
 
-  // Fetch clients from API using React Query (including inactive/deleted ones)
   const { data: apiClients = [], isLoading: isClientsLoading } = useQuery<Client[]>({
     queryKey: ["clients", { all: true, limit: 100 }],
     queryFn: () => getClientsApi({ all: true, limit: 100 }),
   });
 
-  // Fetch contracts to calculate active and completed counts dynamically
   const { data: contractsList = [], isLoading: isContractsLoading } = useQuery({
     queryKey: ["contracts"],
     queryFn: () => getContractsApi(),
@@ -42,7 +30,6 @@ export const ClientsPage = () => {
 
   const isLoading = isClientsLoading || isContractsLoading;
 
-  // Map API clients to the UI adapter ClientData structure
   const clients: ClientData[] = apiClients.map((c) => ({
     client_id: c.id,
     client_name: c.client_name,
@@ -53,7 +40,6 @@ export const ClientsPage = () => {
     status: c.is_active ? "active" : "inactive",
   }));
 
-  // Create Client Mutation
   const createMutation = useMutation({
     mutationFn: (newClient: Omit<Client, "id" | "is_active">) => createClientApi(newClient),
     onSuccess: () => {
@@ -65,7 +51,6 @@ export const ClientsPage = () => {
     },
   });
 
-  // Edit/Update Client Mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Omit<Client, "id" | "is_active">> }) =>
       updateClientApi(id, data),
@@ -78,7 +63,6 @@ export const ClientsPage = () => {
     },
   });
 
-  // Deactivate/Delete Client Mutation
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteClientApi(id),
     onSuccess: () => {
@@ -90,7 +74,6 @@ export const ClientsPage = () => {
     },
   });
 
-  // Reactivate/Restore Client Mutation
   const restoreMutation = useMutation({
     mutationFn: (id: number) => restoreClientApi(id),
     onSuccess: () => {
@@ -113,11 +96,9 @@ export const ClientsPage = () => {
 
   const handleEditClient = (updatedClientData: ClientData) => {
     const currentClient = apiClients.find((c) => c.id === updatedClientData.client_id);
-    // If the edit changes the status to inactive, trigger soft delete
     if (updatedClientData.status === "inactive") {
       deleteMutation.mutate(updatedClientData.client_id);
     } else if (currentClient && !currentClient.is_active) {
-      // If client is currently inactive and status changes to active, trigger restore
       restoreMutation.mutate(updatedClientData.client_id);
     } else {
       updateMutation.mutate({
@@ -132,7 +113,6 @@ export const ClientsPage = () => {
     }
   };
 
-  // Calculate active and completed contract counts
   const activeContractsCount = contractsList.filter(
     (c) => c.status.toLowerCase() === "active" || c.status.toLowerCase() === "overdue"
   ).length;
@@ -141,7 +121,6 @@ export const ClientsPage = () => {
     (c) => c.status.toLowerCase() === "completed"
   ).length;
 
-  // Construct dashboard cards based on actual fetched client and contract data
   const cards = getClientsCards(apiClients, activeContractsCount, completedContractsCount);
 
   return (

@@ -60,7 +60,6 @@ export function ContractContentPage() {
 
   const contractId = Number(id) || 1;
 
-  // 1. Fetch Contract Detail
   const {
     data: contract,
     isLoading: isLoadingContract,
@@ -70,20 +69,17 @@ export function ContractContentPage() {
     queryFn: () => getContractByIdApi(contractId),
   });
 
-  // 2. Fetch Client Info
   const { data: client } = useQuery({
     queryKey: clientKeys.detail(contract?.client_id),
     queryFn: () => getClientByIdApi(contract!.client_id),
     enabled: !!contract?.client_id,
   });
 
-  // 3. Fetch All Users for team candidates
   const { data: allUsers = [] } = useQuery({
     queryKey: userKeys.all,
     queryFn: () => getUsersApi(),
   });
 
-  // 4. Fetch Contract Contents for progress calculation
   const { data: contractContents = [], isLoading: isLoadingContents } =
     useQuery({
       queryKey: contentKeys.byFilter({ contract_id: contractId }),
@@ -98,7 +94,6 @@ export function ContractContentPage() {
       },
     });
 
-  // 5. Team Assign Mutation
   const assignMutation = useMutation({
     mutationFn: ({
       id,
@@ -138,7 +133,7 @@ export function ContractContentPage() {
 
   if (isErrorContract || !contract) {
     return (
-      <div className="text-center py-12 text-red-650 bg-red-50 rounded-xl border border-red-100 font-semibold">
+      <div className="text-center py-12 text-red-600 bg-red-50 rounded-xl border border-red-100 font-semibold">
         Error loading contract detail. Please try again.
       </div>
     );
@@ -306,9 +301,7 @@ export function ContractContentPage() {
   return (
     <div className="space-y-4">
       <div className="w-full">
-        {/* Header Container */}
         <div className="w-full p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Left Side: Back Button & Title/Subtext */}
           <div className="flex items-center gap-4">
             <Button
               variant="secondary"
@@ -349,7 +342,6 @@ export function ContractContentPage() {
             </div>
           </div>
 
-          {/* Right Side: Actions */}
           <div className="flex items-center gap-3 self-end md:self-auto">
             {isOwner && (
               <Button
@@ -416,7 +408,6 @@ export function ContractContentPage() {
         />
       </div>
 
-      {/* Assign Members Modal */}
       <AssignMembers
         key={
           isAssignMembersOpen ? "assign-members-open" : "assign-members-closed"

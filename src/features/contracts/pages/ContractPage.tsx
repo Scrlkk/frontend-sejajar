@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getContractsApi,
   createContractApi,
   updateContractApi,
   deleteContractApi,
@@ -19,6 +18,7 @@ import {
   contentKeys,
 } from "@/features/contracts/api/contractKeys";
 import { getContractsCards } from "@/features/contracts/constants/cardConfig";
+import { useContractsList } from "@/features/contracts/hooks/useContracts";
 import { getPlatformsApi } from "@/features/platforms/api/platformsApi";
 import { getClientsApi } from "@/features/clients/api/clientsApi";
 import { getUsersApi } from "@/features/users/api/usersApi";
@@ -27,7 +27,7 @@ import {
   type ContractCardItem,
 } from "@/features/contracts/components/Contracts";
 import { ContractModal } from "@/features/contracts/components/ContractModal";
-import { DeleteModal } from "@/features/tasks/components/DeleteModal";
+import { DeleteModal } from "@/components/shared/DeleteModal";
 import toast from "react-hot-toast";
 import type { AxiosError } from "axios";
 
@@ -46,17 +46,9 @@ export const ContractPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingContract, setDeletingContract] = useState<ContractCardItem | null>(null);
 
-  // Fetch active contracts
-  const { data: activeContracts = [], isLoading: isLoadingActive, isError: isErrorActive } = useQuery({
-    queryKey: contractKeys.list("active"),
-    queryFn: () => getContractsApi({ limit: 100 }),
-  });
+  const { data: activeContracts = [], isLoading: isLoadingActive, isError: isErrorActive } = useContractsList("active");
 
-  // Fetch deleted contracts
-  const { data: deletedContracts = [], isLoading: isLoadingDeleted, isError: isErrorDeleted } = useQuery({
-    queryKey: contractKeys.list("deleted"),
-    queryFn: () => getContractsApi({ status: "deleted", limit: 100 }),
-  });
+  const { data: deletedContracts = [], isLoading: isLoadingDeleted, isError: isErrorDeleted } = useContractsList("deleted");
 
   const apiContracts = useMemo(() => {
     return [...activeContracts, ...deletedContracts];
@@ -65,31 +57,26 @@ export const ContractPage = () => {
   const isLoadingContracts = isLoadingActive || isLoadingDeleted;
   const isErrorContracts = isErrorActive || isErrorDeleted;
 
-  // 2. Fetch contents for progress
   const { data: apiContents = [], isLoading: isLoadingContents } = useQuery({
     queryKey: contentKeys.byFilter({ limit: 1000 }),
     queryFn: () => getContentsForProgressApi(),
   });
 
-  // 3. Fetch platforms
   const { data: platformsList = [] } = useQuery({
     queryKey: platformKeys.all,
     queryFn: () => getPlatformsApi(),
   });
 
-  // Fetch clients
   const { data: clientsList = [] } = useQuery({
     queryKey: clientKeys.all,
     queryFn: () => getClientsApi(),
   });
 
-  // Fetch users
   const { data: usersList = [] } = useQuery({
     queryKey: userKeys.all,
     queryFn: () => getUsersApi(),
   });
 
-  // Map progress counts
   const progressMap = apiContents.reduce((acc, content) => {
     const cid = content.contract_id;
     if (!acc[cid]) {
@@ -102,7 +89,6 @@ export const ContractPage = () => {
     return acc;
   }, {} as Record<number, { total: number; completed: number }>);
 
-  // Map apiContracts to ContractCardItem[]
   const contracts = apiContracts.map((c) => {
     const progress = progressMap[c.id] || { total: 0, completed: 0 };
     return mapContractToCardItem(c, progress.total, progress.completed);
@@ -110,7 +96,6 @@ export const ContractPage = () => {
 
   const dynamicContractDataCards = getContractsCards(contracts);
 
-  // 4. Mutations
   const createMutation = useMutation({
     mutationFn: createContractApi,
     onSuccess: () => {
@@ -308,7 +293,7 @@ export const ContractPage = () => {
 
   if (isErrorContracts) {
     return (
-      <div className="text-center py-12 text-red-650 bg-red-50 rounded-xl border border-red-100 font-semibold">
+      <div className="text-center py-12 text-red-600 bg-red-50 rounded-xl border border-red-100 font-semibold">
         Error loading contracts. Please try again.
       </div>
     );

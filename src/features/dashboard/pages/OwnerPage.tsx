@@ -1,7 +1,8 @@
 import { PlatformEngagement, type PlatformInfo } from "@/features/analytics/components/PlatformEngagement";
 import { getTopContentsApi, type TopContent } from "@/features/analytics/api/analyticsApi";
 import { ContractPerformance } from "@/features/contracts/components/ContractPerformance";
-import { EmployeePerformance } from "@/features/contracts/components/EmployeePerformance";
+import { EmployeeAnalytics } from "@/features/analytics/components/EmployeeAnalytics";
+import { ActiveContracts } from "@/features/contracts/components/ActiveContracts";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import {
   Select,
@@ -93,13 +94,11 @@ interface UsersByTasksResponse {
 export const OwnerPage = () => {
   const navigate = useNavigate();
 
-  // Fetch dashboard summary
   const { data: summaryData } = useQuery<OwnerSummary>({
-    queryKey: ["ownerDashboardSummary"],
-    queryFn: () => getDashboardSummaryApi<OwnerSummary>(),
+    queryKey: ["ownerDashboardSummary", "owner"],
+    queryFn: () => getDashboardSummaryApi<OwnerSummary>("owner"),
   });
 
-  // Fetch contracts
   const { data: contractsList = [] } = useQuery({
     queryKey: ["contracts"],
     queryFn: () => getContractsApi(),
@@ -120,13 +119,11 @@ export const OwnerPage = () => {
     });
   }, [contractsList]);
 
-  // Fetch content progress
   const { data: contentsProgress = [] } = useQuery({
     queryKey: ["contentsProgress"],
     queryFn: () => getContentsForProgressApi(),
   });
 
-  // Fetch activity logs
   const { data: rawLogs = [] } = useQuery({
     queryKey: ["activity-logs"],
     queryFn: () => getActivityLogsApi({ limit: 100 }),
@@ -160,22 +157,20 @@ export const OwnerPage = () => {
     });
   }, [rawLogs]);
 
-  // Fetch all users to resolve employee roles
   const { data: apiUsers = [] } = useQuery({
     queryKey: ["users"],
     queryFn: () => getUsersApi(),
   });
 
-  // Fetch employee tasks counts
   const { data: usersByTasksChart } = useQuery<UsersByTasksResponse>({
-    queryKey: ["dashboard-charts", "users_by_tasks"],
+    queryKey: ["dashboard-charts", "users_by_tasks", "owner"],
     queryFn: () =>
       getDashboardChartsApi<UsersByTasksResponse>({
         metric: "users_by_tasks",
+        role: "owner",
       }),
   });
 
-  // Map users list to id->role mapping
   const userRoleMap = useMemo(() => {
     const map = new Map<number, string>();
     apiUsers.forEach((u) => {
@@ -184,7 +179,6 @@ export const OwnerPage = () => {
     return map;
   }, [apiUsers]);
 
-  // Compute mapped contract card items with year attribute
   const mappedContracts = useMemo(() => {
     return contractsList.map((c) => {
       const contractContents = contentsProgress.filter(
@@ -202,7 +196,6 @@ export const OwnerPage = () => {
     });
   }, [contractsList, contentsProgress]);
 
-  // Calculate available years dynamically from contracts
   const availableYears = useMemo(() => {
     if (mappedContracts.length === 0) {
       return [new Date().getFullYear()];
@@ -228,7 +221,36 @@ export const OwnerPage = () => {
     [mappedContracts, activeYear],
   );
 
-  // Map employee performance data from users_by_tasks chart
+  const activeContractsData = useMemo(() => {
+    return contractsList
+      .filter((c) => c.status === "active")
+      .map((c) => {
+        const contractContents = contentsProgress.filter(
+          (cp) => cp.contract_id === c.id,
+        );
+        const totalProgress = contractContents.length;
+        const currentProgress = contractContents.filter(
+          (cp) => cp.status === "published" || cp.status === "approved",
+        ).length;
+        const isOverdue =
+          c.end_date &&
+          new Date(c.end_date) < new Date() &&
+          (totalProgress === 0 || currentProgress < totalProgress);
+
+        return {
+          id: c.id,
+          code: c.contract_code,
+          title: c.contract_name,
+          brand: c.company_name || c.client_name || "",
+          platforms: c.platforms.map((p) => p.platform_name),
+          currentProgress,
+          targetProgress: totalProgress,
+          date: formatDate(c.end_date),
+          statusText: isOverdue ? "Overdue" : undefined,
+        };
+      });
+  }, [contractsList, contentsProgress]);
+
   const filteredEmployeeData = useMemo(() => {
     if (!usersByTasksChart?.users) return [];
     return usersByTasksChart.users.map((item) => {
@@ -257,9 +279,8 @@ export const OwnerPage = () => {
   const [activeMetric, setActiveMetric] = useState<"views" | "likes" | "comments" | "shares">("views");
   const [activeGranularity, setActiveGranularity] = useState<"daily" | "weekly" | "monthly">("daily");
 
-  // Fetch per-platform engagement for the trend chart
   const { data: platformEngagementChart } = useQuery<EngagementByPlatformChartResponse>({
-    queryKey: ["dashboard-charts", "engagement_by_platform", activeYear, activeMetric, activeGranularity],
+    queryKey: ["dashboard-charts", "engagement_by_platform", activeYear, activeMetric, activeGranularity, "owner"],
     queryFn: () =>
       getDashboardChartsApi<EngagementByPlatformChartResponse>({
         metric: "engagement_by_platform",
@@ -267,10 +288,10 @@ export const OwnerPage = () => {
         to: `${activeYear}-12-31`,
         chartMetric: activeMetric,
         granularity: activeGranularity,
+        role: "owner",
       }),
   });
 
-  // Fetch top performing contents
   const { data: topContents = [] } = useQuery<TopContent[]>({
     queryKey: ["top-contents"],
     queryFn: () => getTopContentsApi({ limit: 10 }),
@@ -337,6 +358,14 @@ export const OwnerPage = () => {
           ))}
         </div>
       )}
+
+      <div className="w-full max-w-7xl mx-auto">
+        <ActiveContracts
+          contracts={activeContractsData}
+          onViewAll={() => navigate("/contracts")}
+        />
+      </div>
+
       <div className="w-full max-w-7xl mx-auto">
         <PlatformEngagement
           data={mappedPlatformData.data}
@@ -388,8 +417,8 @@ export const OwnerPage = () => {
           }
         />
 
-        <EmployeePerformance
-          title="Employee Performance"
+        <EmployeeAnalytics
+          title="Top 5 Employee Analytics"
           data={filteredEmployeeData}
           headerAction={
             <Select

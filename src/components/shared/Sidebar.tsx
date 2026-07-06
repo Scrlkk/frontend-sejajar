@@ -1,9 +1,10 @@
 import { LayoutPanelLeft } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getSidebarGroupsForUser } from "@/components/shared/sidebarMenu";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Sidebar = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const sidebarGroups = getSidebarGroupsForUser(user);
@@ -37,10 +38,10 @@ export const Sidebar = () => {
                     location.pathname.startsWith(`${item.to}/`));
 
                 return (
-                  <Link
+                  <button
                     key={item.to}
-                    to={item.to}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-lg transition dynamic-classes focus-none outline-none
+                    onClick={() => navigate(item.to)}
+                    className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition dynamic-classes focus-none outline-none
                       ${
                         isActive
                           ? "bg-red-50 text-red-600 font-normal"
@@ -49,7 +50,7 @@ export const Sidebar = () => {
                   >
                     <Icon className="h-5 w-5 shrink-0" />
                     <span>{item.title}</span>
-                  </Link>
+                  </button>
                 );
               })}
             </div>

@@ -5,8 +5,10 @@ import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { RevisionBanner } from "@/features/reviews/components/RevisionBanner";
 import { DRAFTS_CARD_CONFIG } from "@/features/tasks/constants/cardConfig";
 import { FilePen, Loader2 } from "lucide-react";
-import { Drafts, type DraftsItem } from "@/features/tasks/components/Drafts";
-import { SpesificDrawer } from "@/features/tasks/components/SpesificDrawer";
+import { Drafts } from "@/features/tasks/components/Drafts";
+import type { DraftsItem } from "@/features/tasks/types";
+import { taskKeys } from "@/features/tasks/api/taskKeys";
+import { UnifiedTaskDrawer } from "@/features/tasks/components/UnifiedTaskDrawer";
 import {
   ContentPickerModal,
   type AssignedContentPlan,
@@ -24,22 +26,17 @@ export const DraftsPage = () => {
   const { roles } = usePermissions();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const isLeadOrOwner =
-    roles.includes("content_lead") ||
-    roles.includes("owner") ||
-    roles.includes("superadmin");
+  const isSuperadmin = roles.includes("superadmin");
 
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
 
-  // Fetch tasks
   const { data: apiTasks = [], isLoading: loadingTasks } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: () => getTasksApi(),
+    queryKey: taskKeys.list(isSuperadmin ? "all" : user?.id),
+    queryFn: () => getTasksApi(isSuperadmin ? {} : { assigned_to: Number(user?.id) }),
   });
 
-  // Fetch task outputs across all tasks
   const { data: allOutputs = [], isLoading: loadingOutputs } = useQuery({
-    queryKey: ["all-task-outputs", apiTasks.map((t) => t.id)],
+    queryKey: taskKeys.allOutputs(apiTasks.map((t) => t.id)),
     queryFn: async () => {
       if (apiTasks.length === 0) return [];
       const promises = apiTasks.map(async (t) => {
@@ -56,10 +53,8 @@ export const DraftsPage = () => {
     enabled: apiTasks.length > 0,
   });
 
-  // Filter tasks to show only "Script" type tasks (naskah)
   const drafts = useMemo<DraftsItem[]>(() => {
-    // Filter tasks based on role/ID
-    const userTasks = isLeadOrOwner
+    const userTasks = isSuperadmin
       ? apiTasks
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
@@ -73,7 +68,6 @@ export const DraftsPage = () => {
       const { initials: assignerInitials } = getInitialsAndBg(assignerName);
       const statusVisual = getTaskStatusConfig(t.status);
 
-      // Find the outputs for this specific task
       const taskOutputs = allOutputs.filter((out) => out.task.id === t.id);
       const latestOutput = taskOutputs[0];
 
@@ -103,7 +97,6 @@ export const DraftsPage = () => {
         status: statusVisual.label,
         statusBg: statusVisual.bg,
         statusDot: statusVisual.dot,
-        revisionNote: t.description || undefined,
         wordCount,
         savedTimeText,
         iconBg: "bg-indigo-50",
@@ -121,9 +114,8 @@ export const DraftsPage = () => {
       if (!b.deadline) return -1;
       return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
     });
-  }, [apiTasks, allOutputs, isLeadOrOwner, user]);
+  }, [apiTasks, allOutputs, isSuperadmin, user]);
 
-  // Dynamically calculate metrics
   const cardData = useMemo(() => {
     const total = drafts.length;
     const toDo = drafts.filter((d) => d.status.toLowerCase() === "to do" || d.status.toLowerCase() === "to_do").length;
@@ -197,7 +189,7 @@ export const DraftsPage = () => {
   const startDraftMutation = useMutation({
     mutationFn: (taskId: number) => updateTaskApi(taskId, { status: "on_progress" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
       setIsPickerModalOpen(false);
     },
   });
@@ -239,7 +231,7 @@ export const DraftsPage = () => {
         />
       )}
 
-      <SpesificDrawer
+      <UnifiedTaskDrawer
         key={selectedDraft?.id ?? "new"}
         isOpen={isDrawerOpen}
         onClose={() => {

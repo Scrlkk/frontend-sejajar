@@ -26,8 +26,12 @@ interface ContentOutputProps {
 
 const KEY_COLORS: Record<string, string> = {
   Draft: "#94a3b8",
+  Assigned: "#4f46e5",
   "On Progress": "#d97706",
+  Review: "#a855f7",
+  Revision: "#ef4444",
   Approved: "#10b981",
+  Scheduled: "#3b82f6",
   Published: "#0891b2",
 };
 
@@ -116,14 +120,17 @@ export function ContentOutput({
 
   const keys = useMemo(() => {
     if (data.length === 0) return [];
-    return Object.keys(data[0]).filter(
-      (k) =>
-        k !== "month" &&
-        k !== "year" &&
-        k !== "Assigned" &&
-        k !== "Review" &&
-        k !== "Revision"
-    );
+    const allWorkflowKeys = [
+      "Draft",
+      "Assigned",
+      "On Progress",
+      "Review",
+      "Revision",
+      "Approved",
+      "Scheduled",
+      "Published",
+    ];
+    return allWorkflowKeys.filter((k) => k in data[0]);
   }, [data]);
 
   const { domain, ticks: yTicks } = useMemo(() => {

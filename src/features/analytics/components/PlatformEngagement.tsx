@@ -15,7 +15,6 @@ import { PLATFORM_CONFIG } from "@/features/platforms/constants/platformConfig";
 import type { TopContent } from "@/features/analytics/api/analyticsApi";
 import { getColorToken } from "@/features/pillars/constants/colorPalette";
 
-// ─── palette fallback for platforms not yet in PLATFORM_CONFIG ─────────────────
 const FALLBACK_COLORS = [
   "#6366f1", "#f59e0b", "#10b981", "#8b5cf6",
   "#0ea5e9", "#f43f5e", "#84cc16", "#14b8a6",
@@ -27,10 +26,9 @@ export interface PlatformInfo {
   color_key?: string | null;
 }
 
-/** One row in the chart — keys are platform names, value is cumulative metric value */
 export type EngagementDataRow = {
-  name: string;     // x-axis label (e.g. "26 Jun")
-  date?: string;     // raw date (e.g. "2026-06-26")
+  name: string;
+  date?: string;
   [platform: string]: number | string | undefined;
 };
 
@@ -47,16 +45,12 @@ interface PlatformEngagementProps {
   topContents?: TopContent[];
 }
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
-/** Resolve a hex color for a given platform */
 const resolvePlatformColor = (
   platform: PlatformInfo,
   fallbackIndex: number
 ): string => {
   if (platform.color_key?.startsWith("#")) return platform.color_key;
 
-  // Resolving hex color dynamically from the centralized palette mapping
   const token = getColorToken(platform.platform_name, platform.color_key);
   if (token?.hex) return token.hex;
 
@@ -100,8 +94,6 @@ const computeYDomain = (
 
   return { domain: [0, niceMax], ticks };
 };
-
-// ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
 interface TooltipEntry {
   name?: string;
@@ -157,8 +149,6 @@ const CustomTooltip = ({
   );
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export function PlatformEngagement({
   data,
   platforms,
@@ -171,7 +161,6 @@ export function PlatformEngagement({
   onGranularityChange,
   topContents = [],
 }: PlatformEngagementProps) {
-  // Local fallbacks if parents don't manage states (like OwnerPage)
   const [localMetric, setLocalMetric] = useState<"views" | "likes" | "comments" | "shares">("views");
   const [localGranularity, setLocalGranularity] = useState<"daily" | "weekly" | "monthly">("daily");
 
@@ -188,7 +177,6 @@ export function PlatformEngagement({
     onGranularityChange?.(val);
   };
 
-  // State to manage hidden lines
   const [hiddenPlatforms, setHiddenPlatforms] = useState<string[]>([]);
   const togglePlatform = (name: string) => {
     setHiddenPlatforms((prev) =>
@@ -196,9 +184,7 @@ export function PlatformEngagement({
     );
   };
 
-  // State to track platform selected for content breakdown
   const [selectedBreakdownPlatform, setSelectedBreakdownPlatform] = useState<string | null>(null);
-  // State to track if the breakdown list is expanded
   const [isExpandedBreakdown, setIsExpandedBreakdown] = useState(false);
 
   const handleSelectBreakdownPlatform = (platformName: string) => {
@@ -206,7 +192,6 @@ export function PlatformEngagement({
     setIsExpandedBreakdown(false);
   };
 
-  // Dynamically extract platforms if not provided as a prop (useful for fallback or legacy callers)
   const resolvedPlatforms = useMemo(() => {
     if (platforms && platforms.length > 0) return platforms;
     if (!data || data.length === 0) return [];
@@ -227,7 +212,6 @@ export function PlatformEngagement({
     }));
   }, [platforms, data]);
 
-  // Only render platforms that have at least one non-zero data point
   const activePlatforms = resolvedPlatforms.filter((p) =>
     data?.some(
       (d) => typeof d[p.platform_name] === "number" && (d[p.platform_name] as number) > 0
@@ -244,7 +228,6 @@ export function PlatformEngagement({
     data.length === 0 ||
     activePlatforms.length === 0;
 
-  // Build a minimal chartConfig for ChartContainer (required by shadcn)
   const chartConfig = Object.fromEntries(
     activePlatforms.map((p, i) => [
       p.platform_name,
@@ -252,7 +235,6 @@ export function PlatformEngagement({
     ])
   );
 
-  // Determine active platform for breakdown
   const activeBreakdownPlatform =
     selectedBreakdownPlatform ||
     (activePlatforms.length > 0 ? activePlatforms[0].platform_name : null);
@@ -264,7 +246,6 @@ export function PlatformEngagement({
     return Number(val);
   };
 
-  // Filter and sort topContents for activeBreakdownPlatform
   const filteredContents = useMemo(() => {
     if (!topContents || !activeBreakdownPlatform) return [];
     return topContents
@@ -297,9 +278,7 @@ export function PlatformEngagement({
           )}
         </div>
 
-        {/* Filters and Controls */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Metric Selector */}
           <div className="bg-gray-100/80 p-0.5 rounded-lg flex items-center border border-gray-200">
             {(["views", "likes", "comments", "shares"] as const).map((m) => (
               <button
@@ -307,7 +286,7 @@ export function PlatformEngagement({
                 onClick={() => setMetric(m)}
                 className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer capitalize ${
                   metric === m
-                    ? "bg-white text-gray-950 shadow-sm"
+                    ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-500 hover:text-gray-900"
                 }`}
               >
@@ -316,7 +295,6 @@ export function PlatformEngagement({
             ))}
           </div>
 
-          {/* Granularity Selector */}
           <div className="bg-gray-100/80 p-0.5 rounded-lg flex items-center border border-gray-200">
             {(["daily", "weekly", "monthly"] as const).map((g) => (
               <button
@@ -324,7 +302,7 @@ export function PlatformEngagement({
                 onClick={() => setGranularity(g)}
                 className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer capitalize ${
                   granularity === g
-                    ? "bg-white text-gray-950 shadow-sm"
+                    ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-500 hover:text-gray-900"
                 }`}
               >
@@ -392,7 +370,6 @@ export function PlatformEngagement({
                 }}
               />
 
-
               {activePlatforms.map((platform, i) => {
                 const color = resolvePlatformColor(platform, i);
                 return (
@@ -423,7 +400,6 @@ export function PlatformEngagement({
           </ChartContainer>
         )}
 
-        {/* Legend — only show platforms with data */}
         {activePlatforms.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-gray-500 mt-6 pt-3 border-t border-gray-100">
             {activePlatforms.map((platform, i) => {
@@ -450,7 +426,6 @@ export function PlatformEngagement({
           </div>
         )}
 
-        {/* Content Contribution Breakdown */}
         {activeBreakdownPlatform && (
           <div className="mt-8 pt-6 border-t border-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
@@ -463,7 +438,6 @@ export function PlatformEngagement({
                 </p>
               </div>
 
-              {/* Selector breakdown platform tabs */}
               <div className="flex flex-wrap items-center gap-1">
                 {activePlatforms.map((p) => {
                   const isSelected = activeBreakdownPlatform === p.platform_name;
@@ -544,7 +518,6 @@ export function PlatformEngagement({
                             </div>
                           </div>
 
-                          {/* Progress bar */}
                           <div className="h-1.5 w-full bg-gray-100/80 rounded-full overflow-hidden mt-1">
                             <div
                               className="h-full rounded-full transition-all duration-500 ease-out"

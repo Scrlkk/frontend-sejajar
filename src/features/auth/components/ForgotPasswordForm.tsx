@@ -46,7 +46,6 @@ export function ForgotPasswordForm() {
       
       toast.success("Membuka Gmail untuk mengirim permintaan...");
       
-      // Open the Gmail compose link via DOM click in a new tab to avoid mutating global window object directly
       const mailLink = document.createElement("a");
       mailLink.href = gmailUrl;
       mailLink.target = "_blank";
@@ -89,7 +88,7 @@ export function ForgotPasswordForm() {
                 disabled={isSubmitting}
               />
               {errors.email && (
-                <p className="text-xs text-red-650 mt-1">{errors.email.message}</p>
+                <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>
               )}
             </div>
 

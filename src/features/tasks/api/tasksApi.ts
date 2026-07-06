@@ -1,51 +1,7 @@
 import { api } from '@/services/api';
 import { ENDPOINTS } from '@/services/endpoints';
-import type { ContentPillar } from '@/features/contents/api/contentsApi';
-
-export interface Task {
-  id: number;
-  content_id: number;
-  assigned_to: number;
-  title: string;
-  description: string;
-  deadline?: string | null;
-  status: string;
-  is_active: boolean;
-  assignee_name: string;
-  assignee_roles: string[];
-  content_title?: string;
-  contract_id?: number;
-  contract_name?: string;
-  pillar_name?: string;
-  platform_name?: string;
-  platform_color_key?: string | null;
-  category_name?: string;
-  lead_name?: string;
-  lead_id?: number;
-  content_format?: string;
-  content_status?: string;
-  content_due_date?: string | null;
-  content_scheduled_at?: string | null;
-  pillars?: ContentPillar[];
-}
-
-
-export interface CreateTaskPayload {
-  content_id: number;
-  assigned_to: number;
-  title: string;
-  description: string;
-  deadline?: string;
-  status?: string;
-}
-
-export interface UpdateTaskPayload {
-  title?: string;
-  description?: string;
-  assigned_to?: number;
-  deadline?: string;
-  status?: string;
-}
+import type { Task, CreateTaskPayload, UpdateTaskPayload } from '../types';
+export type { Task, CreateTaskPayload, UpdateTaskPayload };
 
 const mapTaskStatusFromBackend = (task: Task): Task => {
   return {
@@ -62,6 +18,7 @@ const mapTaskStatusToBackend = (status?: string): string | undefined => {
 export const getTasksApi = async (params?: {
   content_id?: number;
   contract_id?: number;
+  assigned_to?: number;
   status?: string;
   limit?: number;
   offset?: number;

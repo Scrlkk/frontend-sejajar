@@ -21,6 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 
 import { useAuth } from "@/hooks/useAuth";
+import { storage } from "@/utils/storage";
 import { loginSchema, type LoginSchemaType } from "@/features/auth/validation/loginSchema";
 
 export function LoginForm() {
@@ -38,9 +39,9 @@ export function LoginForm() {
   } = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: localStorage.getItem("remembered_email") || "",
+      email: storage.getRememberedEmail() || "",
       password: "",
-      rememberMe: !!localStorage.getItem("remembered_email"),
+      rememberMe: !!storage.getRememberedEmail(),
     },
   });
 
@@ -48,13 +49,12 @@ export function LoginForm() {
     setLoginError(null);
     setIsSubmitting(true);
     try {
-      // Save or clear email & storage preference based on rememberMe checkbox
       if (values.rememberMe) {
-        localStorage.setItem("remembered_email", values.email);
-        localStorage.setItem("use_local_storage", "true");
+        storage.setRememberedEmail(values.email);
+        storage.setUseLocalStorage(true);
       } else {
-        localStorage.removeItem("remembered_email");
-        localStorage.removeItem("use_local_storage");
+        storage.clearRememberedEmail();
+        storage.clearUseLocalStorage();
       }
 
       const user = await login({ email: values.email, password: values.password });

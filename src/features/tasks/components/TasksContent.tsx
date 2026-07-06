@@ -3,55 +3,14 @@ import {
   TriangleAlert,
   Trash2,
   RotateCcw,
-  type LucideIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TypeTasks } from "@/features/pillars/components/TypeTasks";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { useAuth } from "@/hooks/useAuth";
-import type { ContentPillar } from "@/features/contents/api/contentsApi";
-
-export type TaskCommentItem = {
-  id: string;
-  sender: string;
-  senderInitials: string;
-  senderBg: string;
-  text: string;
-  timestamp: string;
-  isMe?: boolean;
-  isSystem?: boolean;
-};
-
-export type TaskBoardItem = {
-  id: string | number;
-  content_id?: number;
-  title: string;
-  type: "Script" | "Production" | "Editor" | "Caption";
-  typeBg?: string;
-  typeIcon?: LucideIcon;
-  category: string;
-  categoryDot: string;
-  categoryBg?: string;
-  categoryBorder?: string;
-  assignee: string;
-  assigneeInitials: string;
-  assigneeBg: string;
-  status: "to_do" | "on_progress" | "revision" | "approved" | "pending";
-  isOverdue: boolean;
-  date: Date;
-  priority: "low" | "medium" | "high" | "critical";
-  description?: string;
-  pillar?: string;
-  pillars?: ContentPillar[];
-  role?: string;
-  deliverables?: string[];
-  comments?: TaskCommentItem[];
-  content_title?: string;
-  is_active?: boolean;
-  contract_name?: string;
-  rolesArray?: string[];
-  contentStatus?: string;
-};
+import { formatDate } from "@/utils/helpers";
+import type { TaskBoardItem } from "@/features/tasks/types";
+import { TASK_STATUS } from "@/features/tasks/constants/status";
 
 interface TasksContentProps {
   task: TaskBoardItem;
@@ -71,7 +30,15 @@ export function TasksContent({
   const showContentStatus =
     ["admin_social_media", "content_lead"].includes(user?.role || "") &&
     !!task.contentStatus &&
-    ["scheduled", "published"].includes(task.contentStatus.toLowerCase());
+    [TASK_STATUS.SCHEDULED, TASK_STATUS.PUBLISHED].includes(task.contentStatus.toLowerCase() as any);
+
+  const isSuperadmin = user?.roles?.includes("superadmin");
+  const isContractCreator =
+    task.contractCreatedBy != null &&
+    Number(task.contractCreatedBy) === Number(user?.id);
+  const isContractLead =
+    task.leadId != null && Number(task.leadId) === Number(user?.id);
+  const canManageTask = isSuperadmin || isContractCreator || isContractLead;
 
   return (
     <Card
@@ -83,13 +50,17 @@ export function TasksContent({
       }`}
     >
       <div className="flex items-center justify-between">
-        <TypeTasks type={task.type} />
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <TypeTasks type={task.type} />
           {task.isOverdue && !isDeleted && (
             <TriangleAlert className="h-4 w-4 text-red-500" />
           )}
+        </div>
+
+        <div className="flex items-center gap-1">
           {isDeleted
-            ? onRestore && (
+            ? onRestore &&
+              canManageTask && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -101,7 +72,8 @@ export function TasksContent({
                   <RotateCcw className="h-3.5 w-3.5" />
                 </button>
               )
-            : onDelete && (
+            : onDelete &&
+              canManageTask && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -143,7 +115,10 @@ export function TasksContent({
             ))}
             {task.pillars.length > 2 && (
               <span
-                title={task.pillars.slice(2).map((p) => p.pillar_name).join(", ")}
+                title={task.pillars
+                  .slice(2)
+                  .map((p) => p.pillar_name)
+                  .join(", ")}
                 className="rounded-lg px-2 py-0.5 text-[10px] font-semibold border bg-gray-50 text-gray-500 border-gray-200/60 shadow-none shrink-0 cursor-help"
               >
                 + {task.pillars.length - 2} more
@@ -164,7 +139,7 @@ export function TasksContent({
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-2">
           <div
-            className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold outline-1 ${task.assigneeBg}`}
+            className={`h-6 w-6 rounded-full shrink-0 flex items-center justify-center text-[9px] font-bold outline-1 ${task.assigneeBg}`}
           >
             {task.assigneeInitials}
           </div>
@@ -172,10 +147,15 @@ export function TasksContent({
             {task.assignee}
           </span>
         </div>
-        {task.isOverdue && (
+        {task.isOverdue && !isDeleted ? (
           <div className="flex items-center gap-1 text-xs text-red-500 font-semibold">
-            <Calendar className="h-3 w-3" />
+            <Calendar className="h-3.5 w-3.5" />
             <span>Overdue</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
+            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+            <span>{formatDate(task.date)}</span>
           </div>
         )}
       </div>

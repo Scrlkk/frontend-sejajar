@@ -27,7 +27,7 @@ export const PillarsContract = ({
     resolvedDot = "bg-blue-500";
   } else if (normalizedStatus === "overdue") {
     displayStatus = "Overdue";
-    resolvedBg = "bg-red-50 text-red-650 hover:bg-red-50 border border-red-100";
+    resolvedBg = "bg-red-50 text-red-600 hover:bg-red-50 border border-red-100";
     resolvedDot = "bg-red-500";
   } else if (normalizedStatus === "cancel" || normalizedStatus === "cancelled" || normalizedStatus === "canceled") {
     displayStatus = "Cancel";
