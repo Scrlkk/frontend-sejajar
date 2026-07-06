@@ -58,7 +58,7 @@ Sejajar Creative structures permissions around specific organizational roles to 
 ```mermaid
 graph TD
     A[React 19 & TypeScript] --> B[Routing: React Router DOM v7]
-    A --> C[State Management: React Query v5 & React Context]
+    A --> C[State Management: React Query v5, Zustand & React Context]
     A --> D[Styling: Tailwind CSS v4 & Radix UI / Shadcn]
     A --> E[Visualizations: Recharts]
     A --> F[Forms: React Hook Form & Zod]
@@ -73,6 +73,7 @@ graph TD
 - **Interactive Visualizations**: [Recharts](https://recharts.org/) for beautiful responsive dashboards.
 - **Form Verification**: [React Hook Form](https://react-hook-form.com/) integrated with [Zod](https://zod.dev/) schemas.
 - **Data Queries**: [TanStack Query v5](https://tanstack.com/query) for caching and network requests logic.
+- **Global State**: [Zustand](https://github.com/pmndrs/zustand) for lightweight, selective-rendering global notification store.
 
 ---
 
@@ -87,13 +88,13 @@ react-sejajar/
     │   ├── logos/          # Sejajar brand SVG logos (DashboardLogo, loginLogo)
     │   └── styles/         # tailwindcss directives and system tokens (globals.css)
     ├── components/         # Highly reusable shared UI elements (Button, Card, Notification, etc.)
-    ├── contexts/           # Authentication, Theme, and Notifications React Context providers
+    ├── contexts/           # Authentication and Theme React Context providers
     ├── features/           # Feature modules (analytics, auth, clients, tasks, etc.)
     │   └── [feature_name]/
     │       ├── components/ # Local component tree
     │       ├── data/       # Mock data and structural interfaces
     │       └── pages/      # Route entry points
-    ├── hooks/              # Global custom hooks
+    ├── hooks/              # Global custom hooks and Zustand stores (useNotificationStore.ts)
     ├── layouts/            # Top-level shell views (DashboardLayout, AuthLayout)
     ├── lib/                # Third-party utilities (shadcn components config, axios clients)
     ├── routes/             # Route guards and authorization barriers
@@ -160,6 +161,7 @@ Ensure you have the following installed on your machine:
 | `npm run build` | Compile TypeScript and bundle production files in `/dist` folder. |
 | `npm run preview` | Run the compiled production build locally for verification. |
 | `npm run lint` | Inspect code style, formatting, and syntax errors using ESLint. |
+| `npm run test` | Execute unit test suite using Vitest runner. |
 | `npx tsc --noEmit` | Validate type-safety using the TypeScript compiler. |
 
 ---
