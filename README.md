@@ -106,9 +106,52 @@ react-sejajar/
 
 ## 🚀 Getting Started
 
+### 🐳 Running with Docker (Recommended & Instan)
+
+The easiest and fastest way to launch the entire Sejajar Creative ecosystem (Frontend, Backend, and PostgreSQL database) is via Docker Compose:
+
+#### 📋 Docker Prerequisites
+
+1. Ensure **Docker Desktop** is active and running on your machine.
+
+2. Stop **Laragon** (or any local PostgreSQL/Node service) to free up ports `5432`, `3000`, and `5173`.
+
+#### 🚀 Launching
+
+1. Navigate to the backend directory (`express-sejajar`) where the `docker-compose.yml` file is located:
+
+   ```bash
+   cd ../express-sejajar
+   ```
+
+2. Build and spin up the containers in detached mode:
+
+   ```bash
+   docker compose up -d
+   ```
+
+   *(To rebuild containers after pulling library changes, use: `docker compose up -d --renew-anon-volumes --build`)*
+
+3. Access the web client and APIs in your browser:
+
+   - **Frontend (React)**: [http://localhost:5173](http://localhost:5173)
+   - **Backend API Docs**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+
+#### 🛑 Stopping
+
+To shut down all containers securely:
+
+```bash
+docker compose down
+```
+
+---
+
+### ⚙️ Local Development (Without Docker)
+
 Follow the instructions below to set up and run the frontend client application locally.
 
-### 📋 Prerequisites
+#### 📋 Prerequisites
 
 Ensure you have the following installed on your machine:
 
