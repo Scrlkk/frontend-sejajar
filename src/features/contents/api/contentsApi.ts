@@ -3,6 +3,7 @@ import { ENDPOINTS } from "@/services/endpoints";
 import type { Content, ContentPillar, ContentTeamUser, GetContentsParams, ContentPlanCardItem } from '../types';
 export type { Content, ContentPillar, ContentTeamUser, GetContentsParams, ContentPlanCardItem };
 import { getCategoryBg } from "../constants/categoryConfig";
+import { formatDateLongEN } from "@/utils/helpers";
 
 export interface CreateContentPayload {
   contract_id: number;
@@ -138,13 +139,7 @@ export const mapContentToCardItem = (
     platformColorKey: c.platform_color_key,
     format: c.format || "Video",
     priority: formatPriority(c.priority),
-    dueDate: c.due_date
-      ? new Date(c.due_date).toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "",
+    dueDate: formatDateLongEN(c.due_date),
     overdue: c.due_date
       ? new Date(c.due_date) < new Date() &&
         !["published", "scheduled"].includes(c.status.toLowerCase())

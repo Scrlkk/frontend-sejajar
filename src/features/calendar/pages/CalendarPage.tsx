@@ -23,6 +23,7 @@ import {
   updateContentApi,
 } from "@/features/contents/api/contentsApi";
 import toast from "react-hot-toast";
+import { toLocalISOWithOffset } from "@/utils/helpers";
 import { getDashboardWidgetApi } from "@/features/dashboard/api/dashboardApi";
 import {
   getPlatformConfig,
@@ -61,6 +62,7 @@ interface CalendarContentItem {
   status: string;
   due_date: string;
   scheduled_at?: string;
+  published_at?: string;
   platform_name: string;
   platform_color_key?: string | null;
   category_name?: string;
@@ -185,7 +187,7 @@ export const CalendarPage = () => {
 
       const nextStatus =
         item.status.toLowerCase() === "approved" ? "scheduled" : "published";
-      const deadline = date && time ? `${date}T${time}:00` : undefined;
+      const deadline = date && time ? toLocalISOWithOffset(date, time) : undefined;
 
       const existingCaption = item.caption || "";
       const updatedCaption = hashtags
@@ -207,11 +209,12 @@ export const CalendarPage = () => {
     }
   };
 
-  const getEventTime = (status: string, scheduledAt?: string) => {
+  const getEventTime = (status: string, scheduledAt?: string, publishedAt?: string) => {
     const norm = status.toLowerCase();
-    if ((norm === "scheduled" || norm === "published") && scheduledAt) {
+    const dateToUse = norm === "published" ? (publishedAt || scheduledAt) : scheduledAt;
+    if ((norm === "scheduled" || norm === "published") && dateToUse) {
       try {
-        return format(new Date(scheduledAt), "HH:mm");
+        return format(new Date(dateToUse), "HH:mm");
       } catch {
         // ignore
       }
@@ -228,8 +231,8 @@ export const CalendarPage = () => {
           return {
             id: `c_${c.id}`,
             title: c.title,
-            time: getEventTime(c.status, c.scheduled_at),
-            date: new Date(c.due_date),
+            time: getEventTime(c.status, c.scheduled_at, c.published_at),
+            date: new Date(c.status === "published" ? (c.published_at || c.scheduled_at || c.due_date) : (c.scheduled_at || c.due_date)),
             platform: c.platform_name,
             platformColorKey: c.platform_color_key,
             badgeBg: statusCfg.bg,
@@ -385,9 +388,10 @@ export const CalendarPage = () => {
             pillars: c.pillars,
             pillarBg: "bg-blue-50 text-blue-600",
             pillarDot: "bg-blue-500",
-            postDate: formatDate(c.scheduled_at || c.due_date),
+            postDate: formatDate(c.status === "published" ? (c.published_at || c.scheduled_at || c.due_date) : (c.scheduled_at || c.due_date)),
             postDateRaw: c.scheduled_at || c.due_date,
-            time: getEventTime(c.status, c.scheduled_at),
+            publishedAtRaw: c.published_at,
+            time: getEventTime(c.status, c.scheduled_at, c.published_at),
             status: c.status,
             statusBg: statusCfg.bg,
             statusDot: statusCfg.dot,

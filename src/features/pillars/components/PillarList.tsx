@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, FolderOpen } from "lucide-react";
+import { Pencil, Trash2, FolderOpen, RotateCcw } from "lucide-react";
 import { getColorToken } from "../constants/colorPalette";
 import type { Pillar } from "../api/pillarsApi";
 
@@ -64,7 +64,7 @@ export function PillarList({ pillars, onEdit, onDelete }: PillarListProps) {
               <TableCell className="py-3.5 font-semibold text-gray-900 leading-snug">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-2 h-2 rounded-full border border-black/5 ${getColorToken(pillar.id, pillar.color_key).dot}`}
+                     className={`w-2 h-2 rounded-full border border-black/5 ${getColorToken(pillar.id, pillar.color_key).dot}`}
                   />
                   <span>{pillar.pillar_name}</span>
                 </div>
@@ -94,14 +94,27 @@ export function PillarList({ pillars, onEdit, onDelete }: PillarListProps) {
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => onDelete(pillar)}
-                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50/30 border-gray-200 rounded-xl cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  {pillar.is_active ? (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onDelete(pillar)}
+                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50/30 border-gray-200 rounded-xl cursor-pointer"
+                      title="Deactivate"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onDelete(pillar)}
+                      className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50/30 border-gray-200 rounded-xl cursor-pointer"
+                      title="Restore"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

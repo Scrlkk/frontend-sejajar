@@ -94,6 +94,7 @@ interface UnifiedTaskDrawerProps {
   item?: UploadedMediaItem | DraftsItem | null;
   itemType?: "upload" | "draft" | null;
   onSave?: (updatedItem: UploadedMediaItem | DraftsItem) => void;
+  hideUpload?: boolean;
 }
 
 export function UnifiedTaskDrawer({
@@ -103,6 +104,7 @@ export function UnifiedTaskDrawer({
   item,
   itemType,
   onSave,
+  hideUpload = false,
 }: UnifiedTaskDrawerProps) {
   const queryClient = useQueryClient();
   const { roles } = usePermissions();
@@ -170,7 +172,7 @@ export function UnifiedTaskDrawer({
       queryKey: taskKeys.siblingOutputs(contentId, taskId),
       queryFn: async () => {
         const tasksList = await getTasksApi({ content_id: contentId });
-        const otherTasks = tasksList.filter((t) => Number(t.id) !== taskId);
+        const otherTasks = tasksList.filter((t) => Number(t.id) !== taskId && t.status.toLowerCase() === "approved");
         if (otherTasks.length === 0) return [];
 
         const outputsPromises = otherTasks.map(async (t) => {
@@ -284,7 +286,9 @@ export function UnifiedTaskDrawer({
 
   const drawerCaptionText = useMemo(() => {
     if (taskOutputs.length > 0) {
-      return taskOutputs[0].caption || "";
+      const raw = taskOutputs[0].caption || "";
+      // Strip trailing hashtags (e.g. appended during scheduling)
+      return raw.replace(/(\s*#\S+)+$/, "").trim();
     }
     return "";
   }, [taskOutputs]);
@@ -677,6 +681,12 @@ export function UnifiedTaskDrawer({
                 deleteOutputMutation.mutate(Number(newest.id));
               }
             }}
+            history={history}
+            canSeeHistory={canSeeHistory}
+            deleteHistoryConfirmId={deleteHistoryConfirmId}
+            setDeleteHistoryConfirmId={setDeleteHistoryConfirmId}
+            onDeleteOutput={(id) => deleteOutputMutation.mutate(id)}
+            formatDate={(d) => formatDate(d || null)}
           />
 
           <TaskDrawerUploads
@@ -684,7 +694,7 @@ export function UnifiedTaskDrawer({
             deliverables={deliverables}
             loadingOutputs={loadingOutputs}
             canDelete={canDelete}
-            canUpload={isAssignee}
+            canUpload={hideUpload ? false : isAssignee}
             isApproved={isApproved}
             itemType={
               itemType ||

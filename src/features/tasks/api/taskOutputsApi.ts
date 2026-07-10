@@ -31,3 +31,11 @@ export const createTaskOutputApi = async (formData: FormData): Promise<TaskOutpu
 export const deleteTaskOutputApi = async (id: number): Promise<void> => {
   await api.delete(ENDPOINTS.TASK_OUTPUTS.DETAIL(id));
 };
+
+export const updateTaskOutputApi = async (
+  id: number,
+  data: { caption?: string; hashtag?: string },
+): Promise<TaskOutput> => {
+  const response = await api.patch<{ data: TaskOutput }>(ENDPOINTS.TASK_OUTPUTS.DETAIL(id), data);
+  return response.data.data;
+};

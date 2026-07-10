@@ -208,27 +208,23 @@ export function SchedulesContent({
       }),
     );
     const outputsFlat = allOutputsRes.flat();
-
+    
+    const captionRoleOutputs = outputsFlat.filter((o) =>
+      (o.task?.assignee_roles ?? []).includes("admin_social_media"),
+    );
     const mainTaskOutputs = outputsFlat.filter((o) => o.task.id === taskId);
-    const mainCaptionOut = mainTaskOutputs.find((o) => !!o.caption);
-    let caption = mainCaptionOut?.caption || "";
 
-    if (!caption && contentId > 0) {
-      const anyCaptionOut = outputsFlat.find((o) => !!o.caption);
-      if (anyCaptionOut) {
-        caption = anyCaptionOut.caption || "";
-      }
-    }
+    const captionOut =
+      captionRoleOutputs.find((o) => !!o.caption) ??
+      mainTaskOutputs.find((o) => !!o.caption) ??
+      outputsFlat.find((o) => !!o.caption);
+    const caption = captionOut?.caption || "";
 
-    const mainHashtagOut = mainTaskOutputs.find((o) => !!o.hashtag);
-    let hashtag = mainHashtagOut?.hashtag || "";
-
-    if (!hashtag && contentId > 0) {
-      const anyHashtagOut = outputsFlat.find((o) => !!o.hashtag);
-      if (anyHashtagOut) {
-        hashtag = anyHashtagOut.hashtag || "";
-      }
-    }
+    const hashtagOut =
+      captionRoleOutputs.find((o) => !!o.hashtag) ??
+      mainTaskOutputs.find((o) => !!o.hashtag) ??
+      outputsFlat.find((o) => !!o.hashtag);
+    const hashtag = hashtagOut?.hashtag || "";
 
     const mediaOutputs = outputsFlat.filter(
       (o) => !!o.file_url && isMediaFile(o.file_url),
@@ -601,9 +597,15 @@ export function SchedulesContent({
                           return <span className="text-gray-300">—</span>;
                         }
 
-                        const isScheduled =
-                          item.status?.toLowerCase() === "scheduled" ||
-                          item.status?.toLowerCase() === "published";
+                        const isPublished = item.status?.toLowerCase() === "published";
+                        const isScheduled = item.status?.toLowerCase() === "scheduled";
+                        if (isPublished && item.publishedAtRaw) {
+                          try {
+                            return format(new Date(item.publishedAtRaw), "dd/MM/yyyy HH:mm");
+                          } catch {
+                            // fallback
+                          }
+                        }
                         if (isScheduled && item.postDateRaw) {
                           try {
                             return format(new Date(item.postDateRaw), "dd/MM/yyyy HH:mm");
@@ -611,7 +613,7 @@ export function SchedulesContent({
                             // fallback
                           }
                         }
-                        if (isScheduled && item.time) {
+                        if ((isScheduled || isPublished) && item.time) {
                           return item.time;
                         }
 
@@ -821,7 +823,7 @@ export function SchedulesContent({
       </div>
 
       <ModalPreviewPublish
-        key={itemToPreview?.id ?? "preview-closed"}
+        key={`${itemToPreview?.id ?? "preview-closed"}-${itemToPreview?.hashtag ?? ""}`}
         isOpen={isPreviewModalOpen}
         onClose={() => setIsPreviewModalOpen(false)}
         item={itemToPreview}

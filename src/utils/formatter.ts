@@ -1,4 +1,3 @@
-import { formatDate } from "./helpers";
 
 export const getInitials = (name: string) =>
   name
@@ -32,10 +31,7 @@ export const getInitialsAndBg = (name: string) => ({
 export const getRankColor = (rank: number) =>
   rank === 1 ? 'text-amber-500' : 'text-slate-400';
 
-export const isTaskOverdue = (deadline: string | null, status: string) =>
-  !!deadline &&
-  new Date(deadline) < new Date() &&
-  !['published', 'approved'].includes(status);
+export { isTaskOverdue, formatCommentTimestamp, mapTaskToDeadlineItem, type DeadlineTask } from "./helpers";
 
 export { getPlatformConfig } from '@/features/platforms/constants/platformConfig';
 export { getRoleBg } from '@/features/users/constants/roleColors';
@@ -118,58 +114,5 @@ export const formatActionDescription = (
   }
 };
 
-export const formatCommentTimestamp = (dateStr: string) => {
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
 
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHr = Math.floor(diffMin / 60);
-
-    if (diffSec < 60) {
-      return "just now";
-    } else if (diffMin === 1) {
-      return "a minute ago";
-    } else if (diffMin < 60) {
-      return `${diffMin} minutes ago`;
-    } else if (diffHr === 1) {
-      return "an hour ago";
-    } else if (diffHr < 24) {
-      return `${diffHr} hours ago`;
-    }
-
-    return date.toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
-};
-
-export interface DeadlineTask {
-  id: number;
-  title: string;
-  status: string;
-  deadline: string;
-  content_title?: string;
-  assigned_to_name?: string;
-}
-
-export const mapTaskToDeadlineItem = (task: DeadlineTask) => ({
-  id: task.id,
-  title: task.title,
-  category: task.content_title || "General",
-  categoryBg: "bg-blue-50 text-blue-600 border-blue-200/60",
-  categoryDot: "bg-blue-500",
-  status: task.status,
-  statusBg: "bg-gray-50/60 text-gray-600 hover:bg-gray-50/60",
-  statusDot: "bg-gray-600",
-  dueDateText: formatDate(task.deadline),
-  dueDate: task.deadline ? new Date(task.deadline) : undefined,
-});
 

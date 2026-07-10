@@ -23,19 +23,20 @@ export const formatCompactIDR = (v: number): string => {
   return formatCurrencyIDR(v);
 };
 
-export const formatDate = (d: string | Date | null) => {
+export const formatDate = (d: string | number | Date | null | undefined) => {
   if (!d) return '';
   let date: Date;
   if (d instanceof Date) {
     date = d;
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+  } else if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
     const [y, m, day] = d.split('-').map(Number);
     date = new Date(y, m - 1, day);
   } else {
-    date = new Date(d);
+    date = safeNewDate(d);
   }
   if (isNaN(date.getTime())) return '';
   return date.toLocaleDateString('id-ID', {
+    timeZone: 'Asia/Jakarta',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -69,15 +70,68 @@ export const downloadFile = async (url: string, filename: string) => {
   }
 };
 
-export const formatDateEN = (d: string | Date | null) => {
+export const formatDateEN = (d: string | number | Date | null | undefined) => {
   if (!d) return '';
-  const date = d instanceof Date ? d : new Date(d);
+  const date = safeNewDate(d);
   if (isNaN(date.getTime())) return '';
   return date.toLocaleDateString('en-US', {
+    timeZone: 'Asia/Jakarta',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
+};
+
+export const formatDateLongEN = (d: string | number | Date | null | undefined): string => {
+  if (!d) return '';
+  const date = safeNewDate(d);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-US', {
+    timeZone: 'Asia/Jakarta',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+export const formatChartDate = (d: string | number | Date | null | undefined): string => {
+  if (!d) return '';
+  const date = safeNewDate(d);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+
+/**
+ * Converts any Date/ISO datetime string to separate Date (YYYY-MM-DD)
+ * and Time (HH:mm) strings in WIB timezone (Asia/Jakarta).
+ */
+export const getWIBParts = (dateInput: string | Date | null | undefined): { date: string; time: string } => {
+  if (!dateInput) return { date: "", time: "" };
+  const d = safeNewDate(dateInput);
+  if (isNaN(d.getTime())) return { date: "", time: "" };
+
+  const formatterDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const date = formatterDate.format(d); // "YYYY-MM-DD"
+
+  const formatterTime = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const time = formatterTime.format(d); // "HH:mm"
+
+  return { date, time };
 };
 
 export const getFileUrl = (url?: string | null) => {
@@ -94,4 +148,87 @@ export const getFileUrl = (url?: string | null) => {
   const basename = dotIndex !== -1 ? filename.substring(0, dotIndex) : filename;
   return `${apiBase}/stream-media/${basename}`;
 };
+
+/**
+ * Builds a datetime string from separate date (YYYY-MM-DD) and time (HH:mm) inputs,
+ * always using WIB (UTC+7 / +07:00) offset.
+ * e.g. "2026-07-11" + "00:00" → "2026-07-11T00:00:00+07:00"
+ */
+export const toLocalISOWithOffset = (date: string, time: string): string => {
+  return `${date}T${time}:00+07:00`;
+};
+/**
+ * Safely creates a new Date object from a string or Date.
+ * If the string is a raw PostgreSQL timestamp (e.g. "YYYY-MM-DD HH:mm:ss"),
+ * it replaces the space with "T" (e.g. "YYYY-MM-DDTHH:mm:ss") so all browsers (including Safari)
+ * can parse it correctly.
+ */
+export const safeNewDate = (d: string | number | Date | null | undefined): Date => {
+  if (d === null || d === undefined || d === '') return new Date(NaN);
+  if (d instanceof Date) return d;
+  if (typeof d === 'number') return new Date(d);
+  const formattedStr = typeof d === 'string' && d.includes(" ") && !d.includes("T") ? d.replace(" ", "T") : d;
+  return new Date(formattedStr);
+};
+
+export const isTaskOverdue = (deadline: string | null, status: string) =>
+  !!deadline &&
+  safeNewDate(deadline) < new Date() &&
+  !['published', 'approved'].includes(status);
+
+export const formatCommentTimestamp = (dateStr: string) => {
+  try {
+    const date = safeNewDate(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+
+    if (diffSec < 60) {
+      return "just now";
+    } else if (diffMin === 1) {
+      return "a minute ago";
+    } else if (diffMin < 60) {
+      return `${diffMin} minutes ago`;
+    } else if (diffHr === 1) {
+      return "an hour ago";
+    } else if (diffHr < 24) {
+      return `${diffHr} hours ago`;
+    }
+
+    return date.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+export interface DeadlineTask {
+  id: number;
+  title: string;
+  status: string;
+  deadline: string;
+  content_title?: string;
+  assigned_to_name?: string;
+}
+
+export const mapTaskToDeadlineItem = (task: DeadlineTask) => ({
+  id: task.id,
+  title: task.title,
+  category: task.content_title || "General",
+  categoryBg: "bg-blue-50 text-blue-600 border-blue-200/60",
+  categoryDot: "bg-blue-500",
+  status: task.status,
+  statusBg: "bg-gray-50/60 text-gray-600 hover:bg-gray-50/60",
+  statusDot: "bg-gray-600",
+  dueDateText: formatDate(task.deadline),
+  dueDate: task.deadline ? safeNewDate(task.deadline) : undefined,
+});
 

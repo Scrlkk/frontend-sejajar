@@ -25,7 +25,7 @@ import {
   getDashboardSummaryApi,
 } from "@/features/dashboard/api/dashboardApi";
 import { OWNER_CARDS_TEMPLATE } from "@/features/dashboard/constants/cardConfig";
-import { formatCompactIDR, formatDate } from "@/utils/helpers";
+import { formatCompactIDR, formatDate, formatChartDate } from "@/utils/helpers";
 import {
   getInitialsAndBg,
   getInitials,
@@ -303,11 +303,7 @@ export const OwnerPage = () => {
     return {
       platforms: platformList,
       data: series.map((s) => {
-        const d = new Date(String(s.date));
-        const name = d.toLocaleDateString("id-ID", {
-          month: "short",
-          day: "numeric",
-        });
+        const name = formatChartDate(s.date);
         return { ...s, name };
       }),
     };

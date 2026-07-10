@@ -18,6 +18,7 @@ import { getContractsApi } from "@/features/contracts/api/contractsApi";
 import { getPlatformConfig } from "@/utils/formatter";
 import { ANALYTICS_CARDS_TEMPLATE, formatMetricValue } from "@/features/analytics/constants/cardConfig";
 import { getPillarColor } from "@/features/contents/constants/pillarColors";
+import { formatChartDate } from "@/utils/helpers";
 
 interface EngagementChartResponse {
   metric: string;
@@ -239,11 +240,7 @@ export const AnalyticsPage = () => {
     return {
       platforms: platformList,
       data: series.map((s) => {
-        const d = new Date(String(s.date));
-        const name = d.toLocaleDateString("id-ID", {
-          month: "short",
-          day: "numeric",
-        });
+        const name = formatChartDate(s.date);
         return { ...s, name };
       }),
     };
@@ -259,6 +256,7 @@ export const AnalyticsPage = () => {
         Review: number;
         Revision: number;
         Approved: number;
+        Scheduled: number;
         Published: number;
       }
     > = {};
@@ -270,6 +268,7 @@ export const AnalyticsPage = () => {
         Review: 0,
         Revision: 0,
         Approved: 0,
+        Scheduled: 0,
         Published: 0,
       };
     }
@@ -285,6 +284,7 @@ export const AnalyticsPage = () => {
         buckets[monthIndex].Review += s.statuses?.review || 0;
         buckets[monthIndex].Revision += s.statuses?.revision || 0;
         buckets[monthIndex].Approved += s.statuses?.approved || 0;
+        buckets[monthIndex].Scheduled += s.statuses?.scheduled || 0;
         buckets[monthIndex].Published += s.statuses?.published || 0;
       }
     });
@@ -309,6 +309,7 @@ export const AnalyticsPage = () => {
         Review: counts.Review,
         Revision: counts.Revision,
         Approved: counts.Approved,
+        Scheduled: counts.Scheduled,
         Published: counts.Published,
       }));
   }, [outputChartData, activeYear]);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Calendar, Eye, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,12 +10,13 @@ import {
   ModalPreviewPublish,
   type PreviewPublishItem,
 } from "@/features/tasks/components/ModalPreviewPublish";
-import { getTasksApi, updateTaskApi, getTaskByIdApi } from "@/features/tasks/api/tasksApi";
-import { getTaskOutputsApi, createTaskOutputApi } from "@/features/tasks/api/taskOutputsApi";
+import { getTasksApi, getTaskByIdApi } from "@/features/tasks/api/tasksApi";
+import { getTaskOutputsApi, createTaskOutputApi, updateTaskOutputApi } from "@/features/tasks/api/taskOutputsApi";
 import type { Task, TaskOutput } from "@/features/tasks/types";
 import { useAuth } from "@/hooks/useAuth";
 import { getTaskTypeConfig } from "@/features/tasks/constants/typeConfig";
 import { publishContentApi, updateContentApi, getContentByIdApi } from "@/features/contents/api/contentsApi";
+import { toLocalISOWithOffset } from "@/utils/helpers";
 
 export interface ScheduleItem {
   id: string | number;
@@ -66,20 +67,6 @@ export function PostSchedule({
     Record<string | number, PreviewPublishItem>
   >({});
 
-  const handlePrefetch = async (item: ScheduleItem) => {
-    const key = item.id;
-    if (prefetchedDetails[key]) return;
-    try {
-      const detailedItem = await loadDetails(item);
-      setPrefetchedDetails((prev) => ({
-        ...prev,
-        [key]: detailedItem,
-      }));
-    } catch (err) {
-      console.error("Prefetch error:", err);
-    }
-  };
-
   const isMediaFile = (url?: string | null) => {
     if (!url) return false;
     const lower = url.toLowerCase();
@@ -96,7 +83,7 @@ export function PostSchedule({
     );
   };
 
-  const loadDetails = async (
+  const loadDetails = useCallback(async (
     item: ScheduleItem,
   ): Promise<PreviewPublishItem> => {
     try {
@@ -141,26 +128,22 @@ export function PostSchedule({
       );
       const outputsFlat = allOutputsRes.flat();
 
+      const captionRoleOutputs = outputsFlat.filter((o) =>
+        (o.task?.assignee_roles ?? []).includes("admin_social_media"),
+      );
       const mainTaskOutputs = outputsFlat.filter((o) => o.task.id === taskId);
-      const mainCaptionOut = mainTaskOutputs.find((o) => !!o.caption);
-      let caption = mainCaptionOut?.caption || "";
 
-      if (!caption && contentId > 0) {
-        const anyCaptionOut = outputsFlat.find((o) => !!o.caption);
-        if (anyCaptionOut) {
-          caption = anyCaptionOut.caption || "";
-        }
-      }
+      const captionOut =
+        captionRoleOutputs.find((o) => !!o.caption) ??
+        mainTaskOutputs.find((o) => !!o.caption) ??
+        outputsFlat.find((o) => !!o.caption);
+      const caption = captionOut?.caption || "";
 
-      const mainHashtagOut = mainTaskOutputs.find((o) => !!o.hashtag);
-      let hashtag = mainHashtagOut?.hashtag || "";
-
-      if (!hashtag && contentId > 0) {
-        const anyHashtagOut = outputsFlat.find((o) => !!o.hashtag);
-        if (anyHashtagOut) {
-          hashtag = anyHashtagOut.hashtag || "";
-        }
-      }
+      const hashtagOut =
+        captionRoleOutputs.find((o) => !!o.hashtag) ??
+        mainTaskOutputs.find((o) => !!o.hashtag) ??
+        outputsFlat.find((o) => !!o.hashtag);
+      const hashtag = hashtagOut?.hashtag || "";
 
       const mediaOutputs = outputsFlat.filter(
         (o) => !!o.file_url && isMediaFile(o.file_url),
@@ -223,23 +206,53 @@ export function PostSchedule({
         content_url: contentUrl || undefined,
         content_id: contentId || undefined,
         publisher_name: publisherName || undefined,
+        postDateRaw: item.postDateRaw,
       };
     } catch (err) {
       console.error("Failed to load preview details:", err);
       return item;
     }
-  };
+  }, [user]);
 
-  const openPreviewModal = async (item: ScheduleItem) => {
+  const handlePrefetch = async (item: ScheduleItem) => {
     const key = item.id;
-    let detailedItem = prefetchedDetails[key];
-    if (!detailedItem) {
-      detailedItem = await loadDetails(item);
+    if (prefetchedDetails[key]) return;
+    try {
+      const detailedItem = await loadDetails(item);
       setPrefetchedDetails((prev) => ({
         ...prev,
         [key]: detailedItem,
       }));
+    } catch (err) {
+      console.error("Prefetch error:", err);
     }
+  };
+
+  useEffect(() => {
+    schedules.forEach(async (item) => {
+      const key = item.id;
+      try {
+        const detailedItem = await loadDetails(item);
+        setPrefetchedDetails((prev) => {
+          if (prev[key]) return prev;
+          return {
+            ...prev,
+            [key]: detailedItem,
+          };
+        });
+      } catch (err) {
+        console.error("Prefetch error:", err);
+      }
+    });
+  }, [schedules, loadDetails]);
+
+  const openPreviewModal = async (item: ScheduleItem) => {
+    const key = item.id;
+    const detailedItem = await loadDetails(item);
+    setPrefetchedDetails((prev) => ({
+      ...prev,
+      [key]: detailedItem,
+    }));
     setItemToPreview(detailedItem);
     setModalMode("preview");
     setTimeout(() => {
@@ -250,17 +263,28 @@ export function PostSchedule({
 
   const openPublishModal = async (item: ScheduleItem) => {
     const key = item.id;
-    let detailedItem = prefetchedDetails[key];
-    if (!detailedItem) {
-      detailedItem = await loadDetails(item);
-      setPrefetchedDetails((prev) => ({
-        ...prev,
-        [key]: detailedItem,
-      }));
-    }
+    const detailedItem = await loadDetails(item);
+    setPrefetchedDetails((prev) => ({
+      ...prev,
+      [key]: detailedItem,
+    }));
     setItemToPreview(detailedItem);
     const mode = item.status === "Approved" ? "publish" : "preview";
     setModalMode(mode);
+    setTimeout(() => {
+      setIsPreviewModalOpen(true);
+    }, 100);
+  };
+
+  const openEditScheduleModal = async (item: ScheduleItem) => {
+    const key = item.id;
+    const detailedItem = await loadDetails(item);
+    setPrefetchedDetails((prev) => ({
+      ...prev,
+      [key]: detailedItem,
+    }));
+    setItemToPreview(detailedItem);
+    setModalMode("publish");
     setTimeout(() => {
       setIsPreviewModalOpen(true);
     }, 100);
@@ -276,7 +300,7 @@ export function PostSchedule({
     const isContent = idStr.startsWith("c_");
     const dbId = Number(idStr.replace(/^[ct]_/, ""));
 
-    const isScheduling = item.status === "Approved";
+    const isScheduling = modalMode === "publish";
 
     let taskId = 0;
     let contentId: number;
@@ -287,7 +311,10 @@ export function PostSchedule({
         const tasksList = await getTasksApi({ content_id: contentId, limit: 100 });
         if (tasksList.length > 0) {
           const myTask = tasksList.find((t) => Number(t.assigned_to) === Number(user?.id));
-          taskId = myTask ? myTask.id : tasksList[0].id;
+          const captionTask = tasksList.find((t) =>
+            t.assignee_roles?.includes("admin_social_media"),
+          );
+          taskId = myTask ? myTask.id : (captionTask ? captionTask.id : tasksList[0].id);
         }
       } else {
         taskId = dbId;
@@ -296,33 +323,32 @@ export function PostSchedule({
       }
 
       if (isScheduling) {
-        const scheduledDateTime = date && time ? `${date}T${time}` : undefined;
+        const scheduledDateTime = date && time ? toLocalISOWithOffset(date, time) : undefined;
         await updateContentApi(contentId, {
           status: "scheduled",
           scheduled_at: scheduledDateTime,
         });
 
-        if (taskId > 0 && scheduledDateTime) {
-          await updateTaskApi(taskId, {
-            deadline: `${scheduledDateTime}:00`,
-          });
-        }
-
-        if (hashtags && taskId > 0) {
+        if (hashtags !== undefined && taskId > 0) {
           let allOutputs: TaskOutput[] = [];
           try {
             allOutputs = await getTaskOutputsApi(taskId);
           } catch {
             // ignore
           }
-          const rawCaption = allOutputs[0]?.caption || "";
-          const newCaption = `${rawCaption} ${hashtags}`.trim();
-
-          const formData = new FormData();
-          formData.append("task_id", String(taskId));
-          formData.append("caption", newCaption);
-          formData.append("hashtag", hashtags);
-          await createTaskOutputApi(formData);
+          const latestOutput = allOutputs[0];
+          if (latestOutput) {
+            const rawCaption = latestOutput.caption?.replace(/(\s*#\S+)+$/, "").trim() || "";
+            await updateTaskOutputApi(latestOutput.id, {
+              caption: rawCaption,
+              hashtag: hashtags || "",
+            });
+          } else if (hashtags) {
+            const formData = new FormData();
+            formData.append("task_id", String(taskId));
+            formData.append("hashtag", hashtags);
+            await createTaskOutputApi(formData);
+          }
         }
       } else {
         await publishContentApi(contentId);
@@ -409,6 +435,16 @@ export function PostSchedule({
                     <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">
                       {item.title}
                     </h4>
+                    {(() => {
+                      const detailed = prefetchedDetails[item.id];
+                      const hashtagsToDisplay = detailed?.hashtag || item.hashtag;
+                      if (!hashtagsToDisplay) return null;
+                      return (
+                        <p className="text-xs text-blue-600 font-medium line-clamp-1">
+                          {hashtagsToDisplay}
+                        </p>
+                      );
+                    })()}
                     <div className="flex items-center gap-2 flex-wrap">
                       <PlatformBadge
                         platform={item.platform}
@@ -440,16 +476,29 @@ export function PostSchedule({
                   ) : (
                     item.hasPublishButton && (
                       item.status === "Scheduled" ? (
-                        <Button
-                          size="sm"
-                          onClick={() => openPublishModal(item)}
-                          onMouseEnter={() => handlePrefetch(item)}
-                          onFocus={() => handlePrefetch(item)}
-                          className="bg-red-700 hover:bg-red-logo text-white rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 border-none cursor-pointer"
-                        >
-                          <Send className="h-3.5 w-3.5 rotate-45" />
-                          Publish
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditScheduleModal(item)}
+                            onMouseEnter={() => handlePrefetch(item)}
+                            onFocus={() => handlePrefetch(item)}
+                            className="bg-gray-50/50 hover:bg-gray-100 text-gray-600 border-gray-300 rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 shadow-none cursor-pointer"
+                          >
+                            <Calendar className="h-3.5 w-3.5" />
+                            Edit Schedule
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => openPublishModal(item)}
+                            onMouseEnter={() => handlePrefetch(item)}
+                            onFocus={() => handlePrefetch(item)}
+                            className="bg-red-700 hover:bg-red-logo text-white rounded-sm px-3 h-9 text-xs flex items-center gap-1.5 border-none cursor-pointer"
+                          >
+                            <Send className="h-3.5 w-3.5 rotate-45" />
+                            Publish
+                          </Button>
+                        </div>
                       ) : (
                         <Button
                           size="sm"
@@ -472,7 +521,7 @@ export function PostSchedule({
       </CardContent>
 
       <ModalPreviewPublish
-        key={itemToPreview?.id ?? "preview-closed"}
+        key={`${itemToPreview?.id ?? "preview-closed"}-${modalMode}-${itemToPreview?.hashtag ?? ""}`}
         isOpen={isPreviewModalOpen}
         onClose={() => setIsPreviewModalOpen(false)}
         item={itemToPreview}

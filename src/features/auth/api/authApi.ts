@@ -8,11 +8,6 @@ export interface LoginResponse {
   refreshToken: string;
 }
 
-export interface RefreshResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -20,13 +15,6 @@ export interface LoginRequest {
 
 export const loginApi = async (data: LoginRequest): Promise<LoginResponse> => {
   const response = await api.post<{ data: LoginResponse }>(ENDPOINTS.AUTH.LOGIN, data);
-  return response.data.data;
-};
-
-export const refreshTokenApi = async (refresh_token: string): Promise<RefreshResponse> => {
-  const response = await api.post<{ data: RefreshResponse }>(ENDPOINTS.AUTH.REFRESH, {
-    refresh_token,
-  });
   return response.data.data;
 };
 

@@ -115,6 +115,7 @@ export interface ScheduledContentItem {
   caption?: string;
   hashtag?: string;
   postDateRaw?: string;
+  publishedAtRaw?: string;
   file_url?: string;
   content_url?: string;
   content_id?: number;

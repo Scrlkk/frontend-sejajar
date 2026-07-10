@@ -231,6 +231,7 @@ export const AdminSocialMediaPage = () => {
       const time = schedDate
         ? schedDate
             .toLocaleTimeString("id-ID", {
+              timeZone: "Asia/Jakarta",
               hour: "2-digit",
               minute: "2-digit",
             })
@@ -261,6 +262,7 @@ export const AdminSocialMediaPage = () => {
         const time = schedDate
           ? schedDate
               .toLocaleTimeString("id-ID", {
+                timeZone: "Asia/Jakarta",
                 hour: "2-digit",
                 minute: "2-digit",
               })

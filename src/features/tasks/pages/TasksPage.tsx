@@ -9,7 +9,11 @@ import { TaskBoard } from "@/features/tasks/components/TasksBoard";
 import { TasksFilter } from "@/features/tasks/components/TasksFilter";
 import { UnifiedTaskDrawer } from "@/features/tasks/components/UnifiedTaskDrawer";
 import type { TaskBoardItem } from "@/features/tasks/types";
-import { useTasks, useDeleteTaskMutation, useRestoreTaskMutation } from "@/features/tasks/hooks/useTasks";
+import {
+  useTasks,
+  useDeleteTaskMutation,
+  useRestoreTaskMutation,
+} from "@/features/tasks/hooks/useTasks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
 import { DeleteModal } from "@/components/shared/DeleteModal";
@@ -52,9 +56,6 @@ export const TasksPage = () => {
     const rawTasks = isLeadOrOwner
       ? apiTasks
       : apiTasks.filter((t) => {
-          if (roles.includes("admin_social_media") && (t.content_status === "scheduled" || t.content_status === "published")) {
-            return true;
-          }
           return Number(t.assigned_to) === Number(user?.id);
         });
 
@@ -94,7 +95,7 @@ export const TasksPage = () => {
         contentStatus: t.content_status,
       };
     });
-  }, [apiTasks, isLeadOrOwner, user, roles]);
+  }, [apiTasks, isLeadOrOwner, user]);
 
   const cardData = useMemo(() => {
     return TASKS_CARD_CONFIG.map((config) => {
@@ -146,7 +147,9 @@ export const TasksPage = () => {
               .then((t) => {
                 const role = t.assignee_roles?.[0] ?? "content_editor";
                 const { label: type, bg: typeBg } = getTaskTypeConfig(role);
-                const { initials, avatarBg } = getInitialsAndBg(t.assignee_name ?? "");
+                const { initials, avatarBg } = getInitialsAndBg(
+                  t.assignee_name ?? "",
+                );
                 const overdue = isTaskOverdue(t.deadline ?? null, t.status);
                 const statusKey = t.status as TaskBoardItem["status"];
 
@@ -262,7 +265,6 @@ export const TasksPage = () => {
         ))}
       </div>
 
-
       <TasksFilter
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -295,13 +297,16 @@ export const TasksPage = () => {
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}
         task={selectedTask}
+        hideUpload={true}
       />
 
       <DeleteModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
         onConfirm={handleConfirmAction}
-        title={confirmModal.action === "delete" ? "Hapus Tugas" : "Kembalikan Tugas"}
+        title={
+          confirmModal.action === "delete" ? "Hapus Tugas" : "Kembalikan Tugas"
+        }
         description={
           confirmModal.action === "delete" ? (
             <>
@@ -326,11 +331,15 @@ export const TasksPage = () => {
             <RotateCcw className="h-6 w-6" />
           )
         }
-        iconBgColor={confirmModal.action === "delete" ? undefined : "bg-emerald-50"}
+        iconBgColor={
+          confirmModal.action === "delete" ? undefined : "bg-emerald-50"
+        }
         iconBorderColor={
           confirmModal.action === "delete" ? undefined : "border-emerald-100"
         }
-        iconTextColor={confirmModal.action === "delete" ? undefined : "text-emerald-800"}
+        iconTextColor={
+          confirmModal.action === "delete" ? undefined : "text-emerald-800"
+        }
         cancelText="Batal"
         confirmText={confirmModal.action === "delete" ? "Hapus" : "Kembalikan"}
         confirmBtnClassName={

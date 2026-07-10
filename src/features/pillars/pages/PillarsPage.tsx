@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Tag, Loader2, GalleryVerticalEnd, Monitor } from "lucide-react";
+import { Plus, Tag, Loader2, GalleryVerticalEnd, Monitor, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { getPillarsCards } from "../constants/cardConfig";
@@ -77,6 +77,7 @@ export function PillarsPage() {
   const [editingPlatform, setEditingPlatform] = useState<Platform | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [deleteType, setDeleteType] = useState<"pillar" | "category" | "platform" | null>(
     null,
   );
@@ -294,7 +295,11 @@ export function PillarsPage() {
   const handleDeletePillarClick = (pillar: Pillar) => {
     setDeleteType("pillar");
     setItemToDelete(pillar);
-    setIsDeleteModalOpen(true);
+    if (!pillar.is_active) {
+      setIsRestoreModalOpen(true);
+    } else {
+      setIsDeleteModalOpen(true);
+    }
   };
 
   const handlePillarSave = (data: {
@@ -330,7 +335,11 @@ export function PillarsPage() {
   const handleDeleteCategoryClick = (category: ContentCategory) => {
     setDeleteType("category");
     setItemToDelete(category);
-    setIsDeleteModalOpen(true);
+    if (!category.is_active) {
+      setIsRestoreModalOpen(true);
+    } else {
+      setIsDeleteModalOpen(true);
+    }
   };
 
   const handleCategorySave = (data: {
@@ -364,7 +373,11 @@ export function PillarsPage() {
   const handleDeletePlatformClick = (platform: Platform) => {
     setDeleteType("platform");
     setItemToDelete(platform);
-    setIsDeleteModalOpen(true);
+    if (!platform.is_active) {
+      setIsRestoreModalOpen(true);
+    } else {
+      setIsDeleteModalOpen(true);
+    }
   };
 
   const handlePlatformSave = (data: {
@@ -394,6 +407,39 @@ export function PillarsPage() {
       deleteCategoryMutation.mutate(itemToDelete.id);
     } else if (deleteType === "platform") {
       deletePlatformMutation.mutate(itemToDelete.id);
+    }
+  };
+
+  const handleConfirmRestore = () => {
+    if (!itemToDelete) return;
+
+    if (deleteType === "pillar") {
+      updatePillarMutation.mutate({
+        id: itemToDelete.id,
+        data: { is_active: true },
+      }, {
+        onSuccess: () => {
+          setIsRestoreModalOpen(false);
+        }
+      });
+    } else if (deleteType === "category") {
+      updateCategoryMutation.mutate({
+        id: itemToDelete.id,
+        data: { is_active: true },
+      }, {
+        onSuccess: () => {
+          setIsRestoreModalOpen(false);
+        }
+      });
+    } else if (deleteType === "platform") {
+      updatePlatformMutation.mutate({
+        id: itemToDelete.id,
+        data: { is_active: true },
+      }, {
+        onSuccess: () => {
+          setIsRestoreModalOpen(false);
+        }
+      });
     }
   };
 
@@ -678,6 +724,50 @@ export function PillarsPage() {
             ""
           )
         }
+      />
+
+      <DeleteModal
+        isOpen={isRestoreModalOpen}
+        onClose={() => setIsRestoreModalOpen(false)}
+        onConfirm={handleConfirmRestore}
+        title={
+          deleteType === "pillar"
+            ? "Restore Content Pillar?"
+            : deleteType === "category"
+              ? "Restore Content Category?"
+              : "Restore Social Platform?"
+        }
+        description={
+          itemToDelete ? (
+            <>
+              Are you sure you want to restore{" "}
+              {deleteType === "pillar"
+                ? "content pillar"
+                : deleteType === "category"
+                  ? "content category"
+                  : "social platform"}{" "}
+              <span className="font-semibold text-gray-800">
+                &quot;
+                {deleteType === "pillar"
+                  ? (itemToDelete as Pillar).pillar_name
+                  : deleteType === "category"
+                    ? (itemToDelete as ContentCategory).type_name
+                    : (itemToDelete as Platform).platform_name}
+                &quot;
+              </span>
+              ?
+            </>
+          ) : (
+            ""
+          )
+        }
+        icon={<RotateCcw className="h-6 w-6" />}
+        iconBgColor="bg-green-50"
+        iconBorderColor="border-green-100"
+        iconTextColor="text-green-800"
+        cancelText="Batal"
+        confirmText="Aktifkan"
+        confirmBtnClassName="bg-green-700 hover:bg-green-800 text-white"
       />
     </div>
   );

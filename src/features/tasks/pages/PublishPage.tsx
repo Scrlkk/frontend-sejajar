@@ -13,6 +13,7 @@ import {
   publishContentApi,
   updateContentApi,
 } from "@/features/contents/api/contentsApi";
+import { toLocalISOWithOffset } from "@/utils/helpers";
 import { taskKeys } from "@/features/tasks/api/taskKeys";
 import { contentKeys } from "@/features/contracts/api/contractKeys";
 import {
@@ -25,7 +26,7 @@ import { getTaskTypeConfig } from "@/features/tasks/constants/typeConfig";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
 import { getTasksApi, updateTaskApi, deleteTaskApi } from "@/features/tasks/api/tasksApi";
-import { getTaskOutputsApi, createTaskOutputApi } from "@/features/tasks/api/taskOutputsApi";
+import { getTaskOutputsApi, createTaskOutputApi, updateTaskOutputApi } from "@/features/tasks/api/taskOutputsApi";
 import { UnifiedTaskDrawer } from "@/features/tasks/components/UnifiedTaskDrawer";
 import {
   ContentPickerModal,
@@ -51,8 +52,8 @@ export const PublishPage = () => {
   });
 
   const { data: apiTasks = [] } = useQuery({
-    queryKey: taskKeys.list(isSuperadmin ? "all" : user?.id),
-    queryFn: () => getTasksApi(isSuperadmin ? { limit: 1000 } : { assigned_to: Number(user?.id), limit: 1000 }),
+    queryKey: taskKeys.list(isSuperadmin ? "all" : `team-${user?.id}`),
+    queryFn: () => getTasksApi({ limit: 1000 }),
   });
 
   const { data: allOutputs = [], isLoading: loadingOutputs } = useQuery({
@@ -146,6 +147,7 @@ export const PublishPage = () => {
         const d = new Date(t.content_scheduled_at);
         const dateStr = formatDate(t.content_scheduled_at);
         const timeStr = d.toLocaleTimeString("id-ID", {
+          timeZone: "Asia/Jakarta",
           hour: "2-digit",
           minute: "2-digit",
         });
@@ -191,6 +193,7 @@ export const PublishPage = () => {
         publisher_name: t.assignee_name,
         content_id: t.content_id,
         content_url: contentUrl || undefined,
+        postDateRaw: t.content_scheduled_at || t.deadline || undefined,
       };
     });
   }, [apiTasks, allOutputs, isSuperadmin, user, apiContents]);
@@ -249,22 +252,28 @@ export const PublishPage = () => {
       if (normStatus === "published") {
         await publishContentApi(contentId);
       } else if (normStatus === "scheduled") {
-        const scheduledDateTime = date && time ? `${date}T${time}` : undefined;
+        const scheduledDateTime = date && time ? toLocalISOWithOffset(date, time) : undefined;
         await updateContentApi(contentId, {
           status: "scheduled",
           scheduled_at: scheduledDateTime,
         });
-        if (hashtags) {
+        if (hashtags !== undefined) {
           const taskOutputs = allOutputs.filter((out) => out.task.id === taskId);
           const latestOutput = taskOutputs[0];
-          const rawCaption = latestOutput?.caption || "";
-          const newCaption = `${rawCaption} ${hashtags}`.trim();
-          
-          const formData = new FormData();
-          formData.append("task_id", String(taskId));
-          formData.append("caption", newCaption);
-          formData.append("hashtag", hashtags);
-          await createTaskOutputApi(formData);
+          if (latestOutput) {
+            // Update hashtag on existing output (no new version)
+            const rawCaption = latestOutput.caption?.replace(/(\s*#\S+)+$/, "").trim() || "";
+            await updateTaskOutputApi(latestOutput.id, {
+              caption: rawCaption,
+              hashtag: hashtags || "",
+            });
+          } else if (hashtags) {
+            // No existing output — create one
+            const formData = new FormData();
+            formData.append("task_id", String(taskId));
+            formData.append("hashtag", hashtags);
+            await createTaskOutputApi(formData);
+          }
         }
       }
     },

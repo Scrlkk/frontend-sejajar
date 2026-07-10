@@ -51,6 +51,7 @@ export interface QueueItem {
   content_id?: number;
   content_url?: string;
   file_url?: string;
+  postDateRaw?: string;
 }
 
 interface PublishContentProps {
@@ -156,19 +157,26 @@ export function PublishContent({
 
     const formattedDateText =
       date && time ? `${date} • ${time}` : originalItem.dateText;
-    const updatedCaption = hashtags
-      ? `${originalItem.caption || ""} ${hashtags}`.trim()
-      : originalItem.caption;
 
-    const isScheduling = originalItem.status === "Approved";
+    // Caption and hashtag are stored separately in DB — don't append hashtag to caption
+    const updatedCaption = originalItem.caption;
+
+    const isScheduling = !!date;
     const nextStatus = isScheduling ? "Scheduled" : "Published";
+
+    // Update postDateRaw so the next "Edit Schedule" modal pre-fills the new date
+    const newPostDateRaw = date
+      ? `${date}T${time || "00:00"}:00+07:00`
+      : originalItem.postDateRaw;
 
     const updated: QueueItem = {
       ...originalItem,
       status: nextStatus,
       dateText: formattedDateText,
       caption: updatedCaption,
-      isPublishable: isScheduling,
+      hashtag: hashtags ?? originalItem.hashtag,
+      postDateRaw: newPostDateRaw,
+      isPublishable: isScheduling || nextStatus === "Scheduled",
     };
     onPublish?.(updated, date, time, hashtags);
     setLocalItems((prev) =>
@@ -177,7 +185,7 @@ export function PublishContent({
     setIsPublishModalOpen(false);
     setItemToPublish(null);
     toast.success(
-      isScheduling
+      nextStatus === "Scheduled"
         ? "Konten berhasil dijadwalkan!"
         : "Konten berhasil dipublikasikan!",
     );
@@ -479,19 +487,31 @@ export function PublishContent({
                 ) : (
                   <>
                     {item.status === "Scheduled" ? (
-                      <Button
-                        size="sm"
-                        disabled={!item.isPublishable}
-                        onClick={() => handleOpenPublishModal(item, "preview")}
-                        className={`h-9 text-xs font-semibold rounded-lg gap-1.5 justify-center md:w-full border-none shadow-none transition-colors cursor-pointer ${
-                          item.isPublishable
-                            ? "bg-red-800 hover:bg-red-logo text-white"
-                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        }`}
-                      >
-                        <Send className="h-3.5 w-3.5" />
-                        Publish
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          disabled={!item.isPublishable}
+                          onClick={() => handleOpenPublishModal(item, "preview")}
+                          className={`h-9 text-xs font-semibold rounded-lg gap-1.5 justify-center md:w-full border-none shadow-none transition-colors cursor-pointer ${
+                            item.isPublishable
+                              ? "bg-red-800 hover:bg-red-logo text-white"
+                              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          }`}
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                          Publish
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenPublishModal(item, "publish")}
+                          className="h-9 text-xs font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-xl gap-1.5 justify-center md:w-full cursor-pointer border border-gray-200"
+                        >
+                          <Calendar className="h-3.5 w-3.5" />
+                          Edit Schedule
+                        </Button>
+                      </>
                     ) : (
                       <Button
                         size="sm"
@@ -551,7 +571,7 @@ export function PublishContent({
       </div>
 
       <ModalPreviewPublish
-        key={itemToPublish?.id ?? "publish-closed"}
+        key={`${itemToPublish?.id ?? "publish-closed"}-${publishModalMode}-${itemToPublish?.hashtag ?? ""}`}
         isOpen={isPublishModalOpen}
         onClose={() => {
           setIsPublishModalOpen(false);
@@ -568,6 +588,7 @@ export function PublishContent({
                   itemToPublish.dateText.split(" • ")[0] ||
                   itemToPublish.dateText,
                 time: itemToPublish.dateText.split(" • ")[1] || "",
+                postDateRaw: itemToPublish.postDateRaw,
                 file_url: itemToPublish.file_url,
                 type: itemToPublish.type,
                 caption: itemToPublish.caption,

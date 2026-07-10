@@ -30,7 +30,7 @@ export function TasksContent({
   const showContentStatus =
     ["admin_social_media", "content_lead"].includes(user?.role || "") &&
     !!task.contentStatus &&
-    [TASK_STATUS.SCHEDULED, TASK_STATUS.PUBLISHED].includes(task.contentStatus.toLowerCase() as any);
+    ([TASK_STATUS.SCHEDULED, TASK_STATUS.PUBLISHED] as string[]).includes(task.contentStatus.toLowerCase());
 
   const isSuperadmin = user?.roles?.includes("superadmin");
   const isContractCreator =

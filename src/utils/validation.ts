@@ -10,8 +10,3 @@ export const passwordSchema = z
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
     'Harus mengandung huruf besar, huruf kecil, angka, dan simbol (@$!%*?&)'
   );
-
-export const paginationSchema = z.object({
-  limit: z.number().min(1).max(100).default(20),
-  offset: z.number().min(0).default(0),
-});

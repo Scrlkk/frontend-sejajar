@@ -1,23 +1,11 @@
+import { formatDateLongEN } from "@/utils/helpers";
+
 /**
  * Helper functions for formatting dates and currency in contract forms.
  */
 
 export function formatDateToDisplay(dateStr?: string): string {
-  if (!dateStr) return "";
-  let date: Date;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, m, d] = dateStr.split("-").map(Number);
-    date = new Date(y, m - 1, d);
-  } else {
-    date = new Date(dateStr);
-  }
-  if (isNaN(date.getTime())) return "";
-  const options: Intl.DateTimeFormatOptions = {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  };
-  return date.toLocaleDateString("en-US", options);
+  return formatDateLongEN(dateStr);
 }
 
 /**

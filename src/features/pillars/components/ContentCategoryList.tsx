@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Tag } from "lucide-react";
+import { Pencil, Trash2, Tag, RotateCcw } from "lucide-react";
 import { getColorToken } from "../constants/colorPalette";
 import type { ContentCategory } from "@/features/contents/api/contentCategoriesApi";
 
@@ -91,14 +91,27 @@ export function ContentCategoryList({
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => onDelete(category)}
-                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50/30 border-gray-200 rounded-xl cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  {category.is_active ? (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onDelete(category)}
+                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50/30 border-gray-200 rounded-xl cursor-pointer"
+                      title="Deactivate"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onDelete(category)}
+                      className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50/30 border-gray-200 rounded-xl cursor-pointer"
+                      title="Restore"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

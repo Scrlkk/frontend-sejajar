@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { getFileUrl } from "@/utils/helpers";
+import { getFileUrl, getWIBParts } from "@/utils/helpers";
 import { Send, Play, X, Video, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,92 +31,6 @@ export interface PreviewPublishItem {
   publisher_name?: string;
 }
 
-const parseToInputDate = (dateStr?: string, dateRaw?: string) => {
-  if (dateRaw && /^\d{4}-\d{2}-\d{2}$/.test(dateRaw)) return dateRaw;
-  if (!dateStr) return "";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-
-  const monthsMap: Record<string, string> = {
-    jan: "01",
-    januari: "01",
-    january: "01",
-    feb: "02",
-    februari: "02",
-    february: "02",
-    mar: "03",
-    maret: "03",
-    march: "03",
-    apr: "04",
-    april: "04",
-    mei: "05",
-    may: "05",
-    jun: "06",
-    juni: "06",
-    june: "06",
-    jul: "07",
-    juli: "07",
-    july: "07",
-    agu: "08",
-    agustus: "08",
-    agt: "08",
-    aug: "08",
-    august: "08",
-    sep: "09",
-    september: "09",
-    sept: "09",
-    okt: "10",
-    oktober: "10",
-    oct: "10",
-    october: "10",
-    nov: "11",
-    november: "11",
-    des: "12",
-    desember: "12",
-    dec: "12",
-    december: "12",
-  };
-
-  const cleaned = dateStr.replace(/[,.]/g, "").toLowerCase();
-  const parts = cleaned.split(/\s+/);
-  if (parts.length === 3) {
-    let day = "";
-    let month = "";
-    let year = "";
-    if (/^\d+$/.test(parts[0]) && parts[0].length <= 2) {
-      day = parts[0].padStart(2, "0");
-      month = monthsMap[parts[1]] || "";
-      year = parts[2];
-    } else if (/^\d+$/.test(parts[1]) && parts[1].length <= 2) {
-      month = monthsMap[parts[0]] || "";
-      day = parts[1].padStart(2, "0");
-      year = parts[2];
-    }
-    if (month && day && year && year.length === 4) {
-      return `${year}-${month}-${day}`;
-    }
-  }
-
-  const parsed = new Date(dateStr);
-  if (!isNaN(parsed.getTime())) {
-    const y = parsed.getFullYear();
-    const m = String(parsed.getMonth() + 1).padStart(2, "0");
-    const d = String(parsed.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-  return "";
-};
-
-const parseToInputTime = (timeStr?: string) => {
-  if (!timeStr) return "";
-  const match = timeStr.match(/^(\d{1,2})[.:](\d{2})/);
-  if (match) {
-    const h = match[1].padStart(2, "0");
-    const m = match[2];
-    return `${h}:${m}`;
-  }
-  return "";
-};
-
 interface ModalPreviewPublishProps {
   isOpen: boolean;
   onClose: () => void;
@@ -131,8 +45,6 @@ interface ModalPreviewPublishProps {
   canPublish?: boolean;
 }
 
-
-
 export function ModalPreviewPublish({
   isOpen,
   onClose,
@@ -141,8 +53,17 @@ export function ModalPreviewPublish({
   mode = "preview",
   canPublish = true,
 }: ModalPreviewPublishProps) {
-  const [inputDate, setInputDate] = useState(() => parseToInputDate(item?.postDate, item?.postDateRaw));
-  const [inputTime, setInputTime] = useState(() => parseToInputTime(item?.time));
+  const wibParts = useMemo(() => {
+    // Only pre-fill date/time if the content is already scheduled.
+    // If it is first-time scheduling (e.g. status Approved), start blank.
+    if (item?.status?.toLowerCase() === "scheduled") {
+      return getWIBParts(item?.postDateRaw || item?.postDate);
+    }
+    return { date: "", time: "" };
+  }, [item?.status, item?.postDateRaw, item?.postDate]);
+
+  const [inputDate, setInputDate] = useState(() => wibParts.date);
+  const [inputTime, setInputTime] = useState(() => wibParts.time);
   const [inputHashtags, setInputHashtags] = useState(() => item?.hashtag || "");
   const [urlInput, setUrlInput] = useState(() => item?.content_url || "");
   const [savedContentUrl, setSavedContentUrl] = useState<string | null>(null);
@@ -245,7 +166,7 @@ export function ModalPreviewPublish({
           </DialogTitle>
           <p className="text-xs text-gray-400 mt-0.5 leading-normal">
             {mode === "publish"
-              ? "Schedule your approved content plan to active social media platforms."
+              ? "Schedule your approved content plan."
               : "Review the details of the scheduled or published content plan."}
           </p>
         </DialogHeader>
@@ -575,7 +496,7 @@ export function ModalPreviewPublish({
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        Select Date <span className="text-red-500">*</span>
+                        Scheduled Date <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
