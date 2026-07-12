@@ -19,18 +19,21 @@ interface PlatformListProps {
   onDelete: (platform: Platform) => void;
 }
 
-export function PlatformList({ platforms, onEdit, onDelete }: PlatformListProps) {
+export function PlatformList({
+  platforms,
+  onEdit,
+  onDelete,
+}: PlatformListProps) {
   if (platforms.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center text-center py-12 px-4 bg-gray-50/30 rounded-2xl border border-dashed border-gray-200 flex-1">
         <div className="h-12 w-12 rounded-xl bg-red-50 flex items-center justify-center text-red-800 mb-3 border border-red-100">
           <Monitor className="h-6 w-6" />
         </div>
-        <h4 className="text-sm font-bold text-gray-900 mb-1">
-          No Platforms
-        </h4>
+        <h4 className="text-sm font-bold text-gray-900 mb-1">No Platforms</h4>
         <p className="text-xs text-gray-400 max-w-xs leading-relaxed font-semibold">
-          Add a new platform to define publish destinations for your social content.
+          Add a new platform to define publish destinations for your social
+          content.
         </p>
       </div>
     );
@@ -41,9 +44,18 @@ export function PlatformList({ platforms, onEdit, onDelete }: PlatformListProps)
       <Table>
         <TableHeader className="bg-gray-50 sticky top-0 z-10">
           <TableRow className="border-none hover:bg-transparent">
-            <TableHead className="text-gray-400 font-medium py-3">Platform Name</TableHead>
-            <TableHead className="text-gray-400 font-medium py-3 text-center">Status</TableHead>
-            <TableHead className="text-gray-400 font-medium py-3 text-center">Actions</TableHead>
+            <TableHead className="text-gray-400 font-medium py-3">
+              Platform Name
+            </TableHead>
+            <TableHead className="text-gray-400 font-medium py-3 text-center">
+              Type
+            </TableHead>
+            <TableHead className="text-gray-400 font-medium py-3 text-center">
+              Status
+            </TableHead>
+            <TableHead className="text-gray-400 font-medium py-3 text-center">
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -58,13 +70,17 @@ export function PlatformList({ platforms, onEdit, onDelete }: PlatformListProps)
                     className={cn(
                       "h-2 w-2 rounded-full shrink-0",
                       platform.color_key
-                        ? getColorToken(platform.platform_name, platform.color_key).dot
-                        : "bg-gray-300"
+                        ? getColorToken(
+                            platform.platform_name,
+                            platform.color_key,
+                          ).dot
+                        : "bg-gray-300",
                     )}
                   />
                   <span>{platform.platform_name}</span>
                 </div>
               </TableCell>
+              <TableCell className="py-3.5 text-center"></TableCell>
               <TableCell className="py-3.5 text-center">
                 <Badge
                   variant="outline"

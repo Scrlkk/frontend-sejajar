@@ -149,6 +149,7 @@ export function LoginForm() {
                   id="email-spacing"
                   type="email"
                   placeholder="account@example.com"
+                  autoComplete="email"
                   {...register("email")}
                   className={errors.email ? "border-red-500" : ""}
                 />
@@ -167,6 +168,7 @@ export function LoginForm() {
                     id="password-spacing"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
+                    autoComplete="current-password"
                     {...register("password")}
                     className={errors.password ? "border-red-500 pr-10" : "pr-10"}
                   />

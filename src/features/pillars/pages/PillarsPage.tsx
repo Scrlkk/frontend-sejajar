@@ -1,7 +1,14 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Tag, Loader2, GalleryVerticalEnd, Monitor, RotateCcw } from "lucide-react";
+import {
+  Plus,
+  Tag,
+  Loader2,
+  GalleryVerticalEnd,
+  Monitor,
+  RotateCcw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardDashboard } from "@/features/dashboard/components/CardDashboard";
 import { getPillarsCards } from "../constants/cardConfig";
@@ -78,9 +85,9 @@ export function PillarsPage() {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
-  const [deleteType, setDeleteType] = useState<"pillar" | "category" | "platform" | null>(
-    null,
-  );
+  const [deleteType, setDeleteType] = useState<
+    "pillar" | "category" | "platform" | null
+  >(null);
   const [itemToDelete, setItemToDelete] = useState<
     Pillar | ContentCategory | Platform | null
   >(null);
@@ -161,13 +168,8 @@ export function PillarsPage() {
   });
 
   const updatePillarMutation = useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: number;
-      data: { pillar_name?: string; description?: string; is_active?: boolean; color_key?: string | null };
-    }) => updatePillarApi(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<Pillar> }) =>
+      updatePillarApi(id, data),
     onSuccess: () => {
       toast.success("Pillar berhasil diperbarui!");
       queryClient.invalidateQueries({ queryKey: ["pillars"] });
@@ -211,7 +213,7 @@ export function PillarsPage() {
       data,
     }: {
       id: number;
-      data: { type_name?: string; is_active?: boolean; color_key?: string | null };
+      data: Partial<ContentCategory>;
     }) => updateContentCategoryApi(id, data),
     onSuccess: () => {
       toast.success("Kategori berhasil diperbarui!");
@@ -251,13 +253,8 @@ export function PillarsPage() {
   });
 
   const updatePlatformMutation = useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: number;
-      data: { platform_name?: string; is_active?: boolean; color_key?: string | null };
-    }) => updatePlatformApi(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<Platform> }) =>
+      updatePlatformApi(id, data),
     onSuccess: () => {
       toast.success("Platform berhasil diperbarui!");
       queryClient.invalidateQueries({ queryKey: ["platforms"] });
@@ -414,43 +411,55 @@ export function PillarsPage() {
     if (!itemToDelete) return;
 
     if (deleteType === "pillar") {
-      updatePillarMutation.mutate({
-        id: itemToDelete.id,
-        data: { is_active: true },
-      }, {
-        onSuccess: () => {
-          setIsRestoreModalOpen(false);
-        }
-      });
+      updatePillarMutation.mutate(
+        {
+          id: itemToDelete.id,
+          data: { is_active: true },
+        },
+        {
+          onSuccess: () => {
+            setIsRestoreModalOpen(false);
+          },
+        },
+      );
     } else if (deleteType === "category") {
-      updateCategoryMutation.mutate({
-        id: itemToDelete.id,
-        data: { is_active: true },
-      }, {
-        onSuccess: () => {
-          setIsRestoreModalOpen(false);
-        }
-      });
+      updateCategoryMutation.mutate(
+        {
+          id: itemToDelete.id,
+          data: { is_active: true },
+        },
+        {
+          onSuccess: () => {
+            setIsRestoreModalOpen(false);
+          },
+        },
+      );
     } else if (deleteType === "platform") {
-      updatePlatformMutation.mutate({
-        id: itemToDelete.id,
-        data: { is_active: true },
-      }, {
-        onSuccess: () => {
-          setIsRestoreModalOpen(false);
-        }
-      });
+      updatePlatformMutation.mutate(
+        {
+          id: itemToDelete.id,
+          data: { is_active: true },
+        },
+        {
+          onSuccess: () => {
+            setIsRestoreModalOpen(false);
+          },
+        },
+      );
     }
   };
 
-  const isDataLoading = isPillarsLoading || isCategoriesLoading || isPlatformsLoading;
+  const isDataLoading =
+    isPillarsLoading || isCategoriesLoading || isPlatformsLoading;
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {getPillarsCards(pillars, categories, platforms, isDataLoading).map((card) => (
-          <CardDashboard key={card.title} {...card} />
-        ))}
+        {getPillarsCards(pillars, categories, platforms, isDataLoading).map(
+          (card) => (
+            <CardDashboard key={card.title} {...card} />
+          ),
+        )}
       </div>
       {isDataLoading ? (
         <div className="h-64 flex items-center justify-center bg-white rounded-2xl border border-gray-100 shadow-sm">
@@ -480,7 +489,7 @@ export function PillarsPage() {
                   Add Pillar
                 </Button>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
                 <Input
                   placeholder="Search pillar name or description..."
@@ -665,7 +674,9 @@ export function PillarsPage() {
           onClose={() => setIsPillarModalOpen(false)}
           editingPillar={editingPillar}
           onSave={handlePillarSave}
-          isPending={createPillarMutation.isPending || updatePillarMutation.isPending}
+          isPending={
+            createPillarMutation.isPending || updatePillarMutation.isPending
+          }
         />
       )}
 
@@ -675,7 +686,9 @@ export function PillarsPage() {
           onClose={() => setIsCategoryModalOpen(false)}
           editingCategory={editingCategory}
           onSave={handleCategorySave}
-          isPending={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+          isPending={
+            createCategoryMutation.isPending || updateCategoryMutation.isPending
+          }
         />
       )}
 
@@ -685,7 +698,9 @@ export function PillarsPage() {
           onClose={() => setIsPlatformModalOpen(false)}
           editingPlatform={editingPlatform}
           onSave={handlePlatformSave}
-          isPending={createPlatformMutation.isPending || updatePlatformMutation.isPending}
+          isPending={
+            createPlatformMutation.isPending || updatePlatformMutation.isPending
+          }
         />
       )}
 

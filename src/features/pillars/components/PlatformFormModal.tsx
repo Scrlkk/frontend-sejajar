@@ -34,11 +34,18 @@ export function PlatformFormModal({
 }: PlatformFormModalProps) {
   const mode = editingPlatform ? "edit" : "create";
 
-  const [platformName, setPlatformName] = useState(editingPlatform?.platform_name ?? "");
-  const [platformColor, setPlatformColor] = useState<string | null>(editingPlatform?.color_key ?? null);
-  const [platformActive, setPlatformActive] = useState(editingPlatform?.is_active ?? true);
-  const isColorManuallySelected = useRef(editingPlatform?.color_key ? true : false);
-
+  const [platformName, setPlatformName] = useState(
+    editingPlatform?.platform_name ?? "",
+  );
+  const [platformColor, setPlatformColor] = useState<string | null>(
+    editingPlatform?.color_key ?? null,
+  );
+  const [platformActive, setPlatformActive] = useState(
+    editingPlatform?.is_active ?? true,
+  );
+  const isColorManuallySelected = useRef(
+    editingPlatform?.color_key ? true : false,
+  );
 
   const autoSelectBrandColor = (name: string): string | null => {
     const norm = name.toLowerCase().trim();
