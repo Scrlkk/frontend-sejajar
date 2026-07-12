@@ -3,6 +3,32 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { getSidebarGroupsForUser } from "@/components/shared/sidebarMenu";
 import { useAuth } from "@/hooks/useAuth";
 
+const preloadMap: Record<string, () => void> = {
+  "/dashboard/superadmin": () =>
+    import("@/features/dashboard/pages/SuperadminPage"),
+  "/dashboard/social-media": () =>
+    import("@/features/dashboard/pages/AdminSocialMediaPage"),
+  "/dashboard/content-lead": () =>
+    import("@/features/dashboard/pages/ContentLeadPage"),
+  "/dashboard/owner": () => import("@/features/dashboard/pages/OwnerPage"),
+  "/dashboard/script-writer": () =>
+    import("@/features/dashboard/pages/ScriptWriterPage"),
+  "/dashboard/content-editor": () =>
+    import("@/features/dashboard/pages/ContentEditorPage"),
+  "/contracts": () => import("@/features/contracts/pages/ContractPage"),
+  "/clients": () => import("@/features/clients/pages/ClientsPage"),
+  "/tasks": () => import("@/features/tasks/pages/TasksPage"),
+  "/calendar": () => import("@/features/calendar/pages/CalendarPage"),
+  "/drafts": () => import("@/features/tasks/pages/DraftsPage"),
+  "/uploads": () => import("@/features/tasks/pages/UploadsPage"),
+  "/publish": () => import("@/features/tasks/pages/PublishPage"),
+  "/analytics": () => import("@/features/analytics/pages/AnalyticsPage"),
+  "/profile": () => import("@/features/users/pages/ProfilePage"),
+  "/system-logs": () => import("@/features/audit/pages/SystemlogsPage"),
+  "/user-roles": () => import("@/features/users/pages/UserRolePage"),
+  "/pillars": () => import("@/features/pillars/pages/PillarsPage"),
+};
+
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,6 +67,7 @@ export const Sidebar = () => {
                   <button
                     key={item.to}
                     onClick={() => navigate(item.to)}
+                    onMouseEnter={() => preloadMap[item.to]?.()}
                     className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition dynamic-classes focus-none outline-none
                       ${
                         isActive

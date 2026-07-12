@@ -48,6 +48,14 @@ export function LoginForm() {
   const onSubmit = async (values: LoginSchemaType) => {
     setLoginError(null);
     setIsSubmitting(true);
+
+    import("@/features/dashboard/pages/SuperadminPage");
+    import("@/features/dashboard/pages/AdminSocialMediaPage");
+    import("@/features/dashboard/pages/ContentLeadPage");
+    import("@/features/dashboard/pages/OwnerPage");
+    import("@/features/dashboard/pages/ScriptWriterPage");
+    import("@/features/dashboard/pages/ContentEditorPage");
+
     try {
       if (values.rememberMe) {
         storage.setRememberedEmail(values.email);
