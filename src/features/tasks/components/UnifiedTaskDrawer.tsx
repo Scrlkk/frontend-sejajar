@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,11 @@ import {
 } from "@/utils/formatter";
 import { downloadFile, formatDate, getFileUrl } from "@/utils/helpers";
 
-import type { TaskBoardItem, UploadedMediaItem, DraftsItem } from "@/features/tasks/types";
+import type {
+  TaskBoardItem,
+  UploadedMediaItem,
+  DraftsItem,
+} from "@/features/tasks/types";
 import type { ContentPillar } from "@/features/contents/types";
 
 interface ExtendedDrawerItem {
@@ -110,6 +114,21 @@ export function UnifiedTaskDrawer({
   const { roles } = usePermissions();
   const { user } = useAuth();
   const { isRateLimited, retryAfter, reset: resetRateLimit } = useRateLimit();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const taskId = useMemo(() => {
     if (task) return Number(task.id);
@@ -172,7 +191,10 @@ export function UnifiedTaskDrawer({
       queryKey: taskKeys.siblingOutputs(contentId, taskId),
       queryFn: async () => {
         const tasksList = await getTasksApi({ content_id: contentId });
-        const otherTasks = tasksList.filter((t) => Number(t.id) !== taskId && t.status.toLowerCase() === "approved");
+        const otherTasks = tasksList.filter(
+          (t) =>
+            Number(t.id) !== taskId && t.status.toLowerCase() === "approved",
+        );
         if (otherTasks.length === 0) return [];
 
         const outputsPromises = otherTasks.map(async (t) => {
@@ -264,7 +286,8 @@ export function UnifiedTaskDrawer({
   }, [status, taskDetail?.status, task?.status, item?.status]);
 
   const isAssignee = useMemo(() => {
-    if (taskDetail?.assigned_to === undefined || user?.id === undefined) return false;
+    if (taskDetail?.assigned_to === undefined || user?.id === undefined)
+      return false;
     return Number(taskDetail.assigned_to) === Number(user.id);
   }, [taskDetail?.assigned_to, user?.id]);
 
@@ -300,8 +323,6 @@ export function UnifiedTaskDrawer({
     }
     return !!extendedItem?.isOverdue;
   }, [task, taskDetail, extendedItem]);
-
-
 
   const addCommentMutation = useMutation({
     mutationFn: (message: string) =>
@@ -357,7 +378,7 @@ export function UnifiedTaskDrawer({
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
 
       const currentOutputs = queryClient.getQueryData<TaskOutput[]>(
-        taskKeys.outputs(taskId)
+        taskKeys.outputs(taskId),
       );
       if (!currentOutputs || currentOutputs.length <= 1) {
         setStatus("on_progress");
@@ -476,11 +497,13 @@ export function UnifiedTaskDrawer({
           break;
         case "on_progress":
           if (toStatus === "to_do") return true;
-          if ((toStatus === "review" || toStatus === "pending") && hasOutputs) return true;
+          if ((toStatus === "review" || toStatus === "pending") && hasOutputs)
+            return true;
           break;
         case "revision":
           if (toStatus === "on_progress") return true;
-          if ((toStatus === "review" || toStatus === "pending") && hasOutputs) return true;
+          if ((toStatus === "review" || toStatus === "pending") && hasOutputs)
+            return true;
           break;
         case "review":
         case "pending":
@@ -550,8 +573,10 @@ export function UnifiedTaskDrawer({
           </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto p-6 space-y-6"
+        >
           <h2 className="text-xl font-bold tracking-tight text-slate-800">
             {drawerTitle}
           </h2>

@@ -8,12 +8,14 @@ interface GraphicDonutHorizontalProps {
   data: GraphicDonutData[];
   title?: string;
   configLabel?: string;
+  headerAction?: React.ReactNode;
 }
 
 export function GraphicDonutHorizontal({
   data,
   title = "Content by Pillar",
   configLabel = "Total",
+  headerAction,
 }: GraphicDonutHorizontalProps) {
   const chartConfig = {
     value: {
@@ -30,10 +32,11 @@ export function GraphicDonutHorizontal({
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6">
-      <CardHeader className="p-0 mb-4">
+      <CardHeader className="flex flex-row items-center justify-between p-0 mb-4 space-y-0">
         <CardTitle className="text-lg font-semibold text-gray-900">
           {title}
         </CardTitle>
+        {headerAction && <div>{headerAction}</div>}
       </CardHeader>
 
       <CardContent className="p-0">

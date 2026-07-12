@@ -154,8 +154,14 @@ export const ContentLeadPage = () => {
   });
 
   const { data: pillarsUsageChart } = useQuery<PillarsUsageChartResponse>({
-    queryKey: ["dashboard-charts", "pillars_usage", "content_lead"],
-    queryFn: () => getDashboardChartsApi<PillarsUsageChartResponse>({ metric: "pillars_usage", role: "content_lead" }),
+    queryKey: ["dashboard-charts", "pillars_usage", activeYear, "content_lead"],
+    queryFn: () =>
+      getDashboardChartsApi<PillarsUsageChartResponse>({
+        metric: "pillars_usage",
+        from: `${activeYear}-01-01`,
+        to: `${activeYear}-12-31`,
+        role: "content_lead",
+      }),
   });
 
   const { data: users = [] } = useQuery<User[]>({
@@ -385,6 +391,23 @@ export const ContentLeadPage = () => {
         <GraphicDonutHorizontal
           data={mappedPillarsData}
           title="Content Pillar Analytics"
+          headerAction={
+            <Select
+              value={String(activeYear)}
+              onValueChange={(v) => setSelectedYear(Number(v))}
+            >
+              <SelectTrigger className="w-28 h-8 text-sm font-medium border-gray-200 bg-gray-50 rounded-lg">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((year) => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">

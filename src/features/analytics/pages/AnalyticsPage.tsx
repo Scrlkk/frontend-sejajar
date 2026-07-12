@@ -189,8 +189,13 @@ export const AnalyticsPage = () => {
   });
 
   const { data: pillarsUsageChart } = useQuery<PillarsUsageChartResponse>({
-    queryKey: ["dashboard-charts", "pillars_usage"],
-    queryFn: () => getDashboardChartsApi<PillarsUsageChartResponse>({ metric: "pillars_usage" }),
+    queryKey: ["dashboard-charts", "pillars_usage", activeYear],
+    queryFn: () =>
+      getDashboardChartsApi<PillarsUsageChartResponse>({
+        metric: "pillars_usage",
+        from: `${activeYear}-01-01`,
+        to: `${activeYear}-12-31`,
+      }),
   });
 
 
@@ -415,7 +420,27 @@ export const AnalyticsPage = () => {
             </Select>
           }
         />
-        <GraphicDonutHorizontal data={mappedPillarsData} title="Content by Pillar" />
+        <GraphicDonutHorizontal
+          data={mappedPillarsData}
+          title="Content by Pillar"
+          headerAction={
+            <Select
+              value={String(activeYear)}
+              onValueChange={(v) => setSelectedYear(Number(v))}
+            >
+              <SelectTrigger className="w-28 h-8 text-sm font-medium border-gray-200 bg-gray-50 rounded-lg">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((year) => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
       </div>
       <div className="w-full mx-auto">
         <PerformingContent
