@@ -31,6 +31,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatDate } from "@/utils/helpers";
+import { matchTimeframe } from "@/utils/timeframe";
 
 const getFormattedDeadline = (deadlineStr?: string | null) => {
   if (!deadlineStr) return "No deadline";
@@ -50,6 +51,7 @@ export const UploadsPage = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const isSuperadmin = roles.includes("superadmin");
+  const [timeFilter, setTimeFilter] = useState("all");
 
   const { data: apiTasks = [] } = useQuery({
     queryKey: taskKeys.list(isSuperadmin ? "all" : user?.id),
@@ -80,7 +82,7 @@ export const UploadsPage = () => {
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
     const uploadTasks = userTasks.filter((t) => {
-      const role = t.assignee_roles?.[0] ?? "content_editor";
+      const role = t.role ?? t.assignee_roles?.[0] ?? "content_editor";
       return getTaskTypeConfig(role).label !== "Script" && t.status !== "to_do";
     });
 
@@ -173,20 +175,24 @@ export const UploadsPage = () => {
     });
   }, [allOutputs, apiTasks, isSuperadmin, user]);
 
+  const timeframeFilteredUploads = useMemo(() => {
+    return uploads.filter((u) => matchTimeframe(u.deadline, timeFilter));
+  }, [uploads, timeFilter]);
+
   const cardData = useMemo(() => {
-    const total = uploads.length;
-    const onProgress = uploads.filter((u) => u.status === "On Progress").length;
-    const pending = uploads.filter((u) => u.status === "Pending").length;
-    const approved = uploads.filter((u) => u.status === "Approved").length;
-    const revision = uploads.filter((u) => u.status === "Revision").length;
+    const total = timeframeFilteredUploads.length;
+    const onProgress = timeframeFilteredUploads.filter((u) => u.status === "On Progress").length;
+    const pending = timeframeFilteredUploads.filter((u) => u.status === "Pending").length;
+    const revision = timeframeFilteredUploads.filter((u) => u.status === "Revision").length;
+    const overdue = timeframeFilteredUploads.filter((u) => u.isOverdue).length;
 
     return UPLOADS_CARD_CONFIG.map((config) => {
       let val = 0;
       if (config.title === "Total Uploads") val = total;
       else if (config.title === "On Progress") val = onProgress;
       else if (config.title === "Review") val = pending;
-      else if (config.title === "Approved") val = approved;
       else if (config.title === "Revision") val = revision;
+      else if (config.title === "Overdue") val = overdue;
 
       return {
         title: config.title,
@@ -197,7 +203,7 @@ export const UploadsPage = () => {
         iconBgColor: config.iconBgColor,
       };
     });
-  }, [uploads]);
+  }, [timeframeFilteredUploads]);
 
   const [selectedUpload, setSelectedUpload] = useState<UploadedVideoItem | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -285,6 +291,8 @@ export const UploadsPage = () => {
       ) : (
         <Uploads
           uploads={uploads}
+          timeFilter={timeFilter}
+          onTimeFilterChange={setTimeFilter}
           onUploadNew={() => setIsPickerModalOpen(true)}
           onOpen={handleOpenUpload}
         />

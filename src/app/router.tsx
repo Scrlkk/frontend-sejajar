@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import { PageLoader } from "@/components/shared/PageLoader";
 
 // Layouts and Routes (synchronous)
@@ -42,7 +42,7 @@ const lazyLoad = (Component: React.ComponentType) => (
   </Suspense>
 );
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     element: <GuestRoute />,
     children: [
@@ -255,3 +255,8 @@ export const router = createBrowserRouter([
     element: <NotFound />,
   },
 ]);
+
+export const AppRouter = () => {
+  return <RouterProvider router={router} />;
+};
+

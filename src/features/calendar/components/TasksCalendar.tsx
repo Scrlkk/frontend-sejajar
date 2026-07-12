@@ -28,6 +28,7 @@ const statusDotColors: Record<string, string> = {
   on_progress: "text-amber-500",
   revision: "text-red-500",
   approved: "text-emerald-500",
+  scheduled: "text-blue-500",
 };
 
 const priorityStyles: Record<string, string> = {

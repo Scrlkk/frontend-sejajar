@@ -5,14 +5,14 @@ export interface TeamMemberItem {
   name: string;
   role: string;
   initials: string;
-  avatarBg: string; 
-  statusDotColor?: string; 
+  avatarBg: string;
+  statusDotColor?: string;
 }
 
 export interface TeamsMemberProps {
   title?: string;
   members?: TeamMemberItem[];
-  maxHeight?: string; 
+  maxHeight?: string;
 }
 
 export function TeamsMember({
@@ -66,7 +66,7 @@ export function TeamsMember({
                   <span className="text-sm font-semibold text-slate-900 leading-tight">
                     {member.name}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium mt-0.5">
+                  <span className="text-xs text-slate-400 font-medium mt-0.5 truncate w-40">
                     {member.role}
                   </span>
                 </div>

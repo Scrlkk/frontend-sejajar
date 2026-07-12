@@ -7,7 +7,6 @@ import {
   FileUp,
   CircleCheckBig,
   FilePen,
-  PenLine,
   CalendarCheck,
   Calendar,
   type LucideIcon,
@@ -69,7 +68,7 @@ export const TASKS_CARD_CONFIG: TaskCardConfig[] = [
 export const UPLOADS_CARD_CONFIG: TaskCardConfig[] = [
   {
     title: "Total Uploads",
-    description: "This Month",
+    description: "Overall Active",
     icon: FileUp,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
@@ -91,14 +90,6 @@ export const UPLOADS_CARD_CONFIG: TaskCardConfig[] = [
     statusKey: "Pending",
   },
   {
-    title: "Approved",
-    description: "Assigned Tasks",
-    icon: CircleCheckBig,
-    iconColor: "text-blue-600",
-    iconBgColor: "bg-blue-600/10",
-    statusKey: "Approved",
-  },
-  {
     title: "Revision",
     description: "Needs Attention",
     icon: TriangleAlert,
@@ -106,23 +97,23 @@ export const UPLOADS_CARD_CONFIG: TaskCardConfig[] = [
     iconBgColor: "bg-red-600/10",
     statusKey: "Revision",
   },
+  {
+    title: "Overdue",
+    description: "Past Deadline",
+    icon: TriangleAlert,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+    statusKey: "Overdue",
+  },
 ];
 
 export const DRAFTS_CARD_CONFIG: TaskCardConfig[] = [
   {
     title: "Total Drafts",
-    description: "This Month",
+    description: "Overall Active",
     icon: FilePen,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
-  },
-  {
-    title: "To Do",
-    description: "Assigned Tasks",
-    icon: PenLine,
-    iconColor: "text-gray-600",
-    iconBgColor: "bg-gray-600/10",
-    statusKey: "to_do",
   },
   {
     title: "On Progress",
@@ -147,6 +138,14 @@ export const DRAFTS_CARD_CONFIG: TaskCardConfig[] = [
     iconColor: "text-red-600",
     iconBgColor: "bg-red-600/10",
     statusKey: "Revision",
+  },
+  {
+    title: "Overdue",
+    description: "Past Deadline",
+    icon: TriangleAlert,
+    iconColor: "text-red-600",
+    iconBgColor: "bg-red-600/10",
+    statusKey: "Overdue",
   },
 ];
 

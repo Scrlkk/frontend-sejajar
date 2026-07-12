@@ -48,24 +48,29 @@ export function AssignTeams({
 
   const AVAILABLE_MEMBERS = useMemo(() => {
     if (!contract || !contract.teams) return [];
-    return contract.teams
-      .map((u) => {
-        const mappedRole = u.roles
-          .map(getRoleLabel)
-          .find((label) =>
+    const members: TeamMemberCandidate[] = [];
+
+    contract.teams.forEach((u) => {
+      const matchedLabels = u.roles
+        .map(getRoleLabel)
+        .filter(
+          (label): label is "Script Writer" | "Editor" | "Admin Social Media" =>
             ["Script Writer", "Editor", "Admin Social Media"].includes(label),
-          );
-        if (!mappedRole) return null;
-        return {
-          id: String(u.id),
+        );
+
+      matchedLabels.forEach((mappedRole) => {
+        members.push({
+          id: `${u.id}-${mappedRole}`,
           name: u.full_name,
-          role: mappedRole as "Script Writer" | "Editor" | "Admin Social Media",
+          role: mappedRole,
           initials: getInitials(u.full_name),
           avatarBg: getAvatarBg(u.full_name),
           tasksDone: 0,
-        };
-      })
-      .filter((m): m is NonNullable<typeof m> => m !== null);
+        });
+      });
+    });
+
+    return members;
   }, [contract]);
 
   const [selectedIds, setSelectedIds] = useState<string[] | null>(null);
@@ -73,7 +78,11 @@ export function AssignTeams({
   const initialIds = useMemo(() => {
     if (!card) return [];
     return AVAILABLE_MEMBERS.filter((m) =>
-      card.assignedTeam?.some((t) => t.name === m.name),
+      card.assignedTeam?.some((t) => {
+        if (t.name !== m.name) return false;
+        const assignedRoles = t.role ? t.role.split(", ") : [];
+        return assignedRoles.includes(m.role);
+      }),
     ).map((m) => m.id);
   }, [card, AVAILABLE_MEMBERS]);
 
@@ -82,11 +91,26 @@ export function AssignTeams({
   if (!card) return null;
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(
-      activeSelectedIds.includes(id)
-        ? activeSelectedIds.filter((itemId) => itemId !== id)
-        : [...activeSelectedIds, id],
-    );
+    const candidate = AVAILABLE_MEMBERS.find((m) => m.id === id);
+    if (!candidate) return;
+
+    if (activeSelectedIds.includes(id)) {
+      setSelectedIds(activeSelectedIds.filter((itemId) => itemId !== id));
+    } else {
+      if (candidate.role === "Admin Social Media") {
+        const otherSocialMediaAdminIds = AVAILABLE_MEMBERS.filter(
+          (m) => m.role === "Admin Social Media" && m.id !== id,
+        ).map((m) => m.id);
+        setSelectedIds([
+          ...activeSelectedIds.filter(
+            (itemId) => !otherSocialMediaAdminIds.includes(itemId),
+          ),
+          id,
+        ]);
+      } else {
+        setSelectedIds([...activeSelectedIds, id]);
+      }
+    }
   };
 
   const handleSave = () => {
@@ -96,7 +120,9 @@ export function AssignTeams({
       name: m.name,
       initials: m.initials,
       avatarBg: m.avatarBg,
+      role: m.role,
     }));
+
     onSave(card.id, selectedTeam);
     onClose();
   };
@@ -172,7 +198,9 @@ export function AssignTeams({
                       </div>
                     ) : (
                       membersInRole.map((member) => {
-                        const isSelected = activeSelectedIds.includes(member.id);
+                        const isSelected = activeSelectedIds.includes(
+                          member.id,
+                        );
                         return (
                           <div
                             key={member.id}

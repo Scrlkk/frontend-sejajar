@@ -3,6 +3,8 @@ import { RecentComments } from "@/features/reviews/components/RecentComments";
 import { UpcomingDeadlines } from "@/features/tasks/components/UpcomingDeadlines";
 import { RevisionDashboard } from "@/features/reviews/components/RevisionDashboard";
 import { PostSchedule } from "@/features/tasks/components/PostSchedules";
+import { TaskCalendar } from "@/features/calendar/components/TasksCalendar";
+import { TaskDashboard } from "@/features/tasks/components/TasksDashboard";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -17,7 +19,15 @@ import { getUsersApi, type User } from "@/features/users/api/usersApi";
 import { getContentsApi } from "@/features/contents/api/contentsApi";
 import { getTasksApi } from "@/features/tasks/api/tasksApi";
 import { getTaskTypeConfig } from "@/features/tasks/constants/typeConfig";
-import { getInitials, getAvatarBg, getRoleBg, type DeadlineTask, mapTaskToDeadlineItem } from "@/utils/formatter";
+import type { TaskStatusType } from "@/features/tasks/constants/status";
+import {
+  getInitials,
+  getAvatarBg,
+  getRoleBg,
+  type DeadlineTask,
+  mapTaskToDeadlineItem,
+  isTaskOverdue,
+} from "@/utils/formatter";
 import { formatDate } from "@/utils/helpers";
 import { getRoleLabel } from "@/features/users/constants/roleColors";
 import { ADMIN_SOCIAL_MEDIA_CARDS_TEMPLATE } from "@/features/dashboard/constants/cardConfig";
@@ -42,8 +52,6 @@ interface StaffSummary {
   };
 }
 
-
-
 interface RevisionComment {
   id: number;
   task_id: number;
@@ -59,11 +67,41 @@ interface CommentsRevisionResponse {
   comments: RevisionComment[];
 }
 
+interface CalendarTaskItem {
+  id: number;
+  title: string;
+  status: string;
+  deadline: string;
+  platform_name: string;
+  content_id: number;
+  content_title: string;
+  priority?: string;
+}
+
+interface CalendarContentItem {
+  id: number;
+  title: string;
+  status: string;
+  due_date: string;
+  platform_name: string;
+  scheduled_at?: string | null;
+  published_at?: string | null;
+}
+
+interface CalendarDataResponse {
+  contents: CalendarContentItem[];
+  tasks: CalendarTaskItem[];
+}
+
 export const AdminSocialMediaPage = () => {
   const navigate = useNavigate();
   const { roles } = usePermissions();
   const { user } = useAuth();
   const isSuperadmin = roles.includes("superadmin");
+
+  const handleViewAllTasks = () => {
+    navigate("/tasks");
+  };
 
   const { data: summaryData } = useQuery<StaffSummary>({
     queryKey: ["staffSummary", "admin_social_media"],
@@ -85,8 +123,92 @@ export const AdminSocialMediaPage = () => {
   }>({
     queryKey: ["dashboard-widget", "upcoming-deadlines", "admin_social_media"],
     queryFn: () =>
-      getDashboardWidgetApi<{ tasks: DeadlineTask[] }>("upcoming-deadlines", { role: "admin_social_media" }),
+      getDashboardWidgetApi<{ tasks: DeadlineTask[] }>("upcoming-deadlines", {
+        role: "admin_social_media",
+      }),
   });
+
+  const { data: calendarData = { contents: [], tasks: [] } } =
+    useQuery<CalendarDataResponse>({
+      queryKey: ["dashboard-widget", "calendar", "admin_social_media"],
+      queryFn: () =>
+        getDashboardWidgetApi<CalendarDataResponse>("calendar", {
+          role: "admin_social_media",
+        }),
+    });
+
+  const mappedCalendarTasks = useMemo(() => {
+    const taskItems = (calendarData.tasks || []).map((t: CalendarTaskItem) => {
+      const allowedStatuses = [
+        "to_do",
+        "on_progress",
+        "pending",
+        "revision",
+        "approved",
+      ];
+      const statusValue = allowedStatuses.includes(t.status)
+        ? (t.status as
+            | "to_do"
+            | "on_progress"
+            | "pending"
+            | "revision"
+            | "approved")
+        : "to_do";
+
+      const priorityValue =
+        (t.priority?.toLowerCase() as "low" | "medium" | "high" | "critical") ||
+        "medium";
+
+      return {
+        id: t.id,
+        title: t.title,
+        status: statusValue,
+        date: t.deadline ? new Date(t.deadline) : new Date(),
+        priority: priorityValue,
+        category: t.content_title || "General",
+        categoryDot: "bg-blue-500",
+        categoryBg: "bg-blue-50",
+        categoryBorder: "border-blue-200",
+        type: "Caption" as const,
+        assignee: "",
+        assigneeInitials: "",
+        assigneeBg: "",
+        isOverdue: isTaskOverdue(t.deadline || null, t.status),
+      };
+    });
+
+    const contentItems = (calendarData.contents || [])
+      .filter((c) =>
+        ["scheduled", "published"].includes(c.status.toLowerCase()),
+      )
+      .map((c) => {
+        const isPublished = c.status.toLowerCase() === "published";
+        const statusValue: TaskStatusType = isPublished
+          ? "approved"
+          : "scheduled";
+
+        const dateStr = c.scheduled_at || c.due_date || c.published_at;
+
+        return {
+          id: c.id,
+          title: `Post: ${c.title}`,
+          status: statusValue,
+          date: dateStr ? new Date(dateStr) : new Date(),
+          priority: "medium" as const,
+          category: c.platform_name || "Social Media",
+          categoryDot: "bg-purple-500",
+          categoryBg: "bg-purple-50",
+          categoryBorder: "border-purple-200",
+          type: "Caption" as const,
+          assignee: "",
+          assigneeInitials: "",
+          assigneeBg: "",
+          isOverdue: false,
+        };
+      });
+
+    return [...taskItems, ...contentItems];
+  }, [calendarData.tasks, calendarData.contents]);
 
   const { data: scheduledContents = [] } = useQuery({
     queryKey: ["contents", { status: "scheduled" }],
@@ -97,17 +219,22 @@ export const AdminSocialMediaPage = () => {
     queryKey: ["tasks", { assigned_to: isSuperadmin ? undefined : user?.id }],
     queryFn: () =>
       getTasksApi(
-        isSuperadmin ? { limit: 1000 } : { assigned_to: Number(user?.id), limit: 1000 }
+        isSuperadmin
+          ? { limit: 1000 }
+          : { assigned_to: Number(user?.id), limit: 1000 },
       ),
   });
 
   const { data: approvedTasks = [] } = useQuery({
-    queryKey: ["tasks", { status: "approved", assigned_to: isSuperadmin ? undefined : user?.id }],
+    queryKey: [
+      "tasks",
+      { status: "approved", assigned_to: isSuperadmin ? undefined : user?.id },
+    ],
     queryFn: () =>
       getTasksApi(
         isSuperadmin
           ? { status: "approved", limit: 100 }
-          : { status: "approved", assigned_to: Number(user?.id), limit: 100 }
+          : { status: "approved", assigned_to: Number(user?.id), limit: 100 },
       ),
   });
 
@@ -123,7 +250,7 @@ export const AdminSocialMediaPage = () => {
     queryFn: () =>
       getDashboardWidgetApi<{ comments: CommentWidgetData[] }>(
         "recent-comments",
-        { role: "admin_social_media" }
+        { role: "admin_social_media" },
       ),
   });
 
@@ -214,7 +341,8 @@ export const AdminSocialMediaPage = () => {
   const approvedCaptionTasks = useMemo(() => {
     return approvedTasks.filter((t) => {
       const role = t.assignee_roles?.[0] ?? "content_editor";
-      const isCaption = getTaskTypeConfig(role).label === "Caption" && t.is_active !== false;
+      const isCaption =
+        getTaskTypeConfig(role).label === "Caption" && t.is_active !== false;
       const isContentScheduled = t.content_status === "scheduled";
       return isCaption && !isContentScheduled;
     });
@@ -258,7 +386,9 @@ export const AdminSocialMediaPage = () => {
         const isPublishedContent = t.content_status === "published";
         const statusStr = isPublishedContent ? "Published" : "Approved";
 
-        const schedDate = t.content_scheduled_at ? new Date(t.content_scheduled_at) : null;
+        const schedDate = t.content_scheduled_at
+          ? new Date(t.content_scheduled_at)
+          : null;
         const time = schedDate
           ? schedDate
               .toLocaleTimeString("id-ID", {
@@ -286,7 +416,7 @@ export const AdminSocialMediaPage = () => {
           if (!item.postDateRaw) return false;
           const pubDate = new Date(item.postDateRaw);
           const today = new Date();
-          today.setHours(0, 0, 0, 0); 
+          today.setHours(0, 0, 0, 0);
           return pubDate.getTime() >= today.getTime();
         }
         return true;
@@ -319,6 +449,12 @@ export const AdminSocialMediaPage = () => {
       )}
       <div className="flex space-x-4">
         <PostSchedule schedules={mappedSchedules} />
+      </div>
+      <div className="flex space-x-4">
+        <TaskDashboard onViewAll={handleViewAllTasks} />
+        <div className="w-100">
+          <TaskCalendar tasks={mappedCalendarTasks} />
+        </div>
       </div>
       <div className="flex space-x-4">
         <UpcomingDeadlines deadlines={mappedDeadlines} />

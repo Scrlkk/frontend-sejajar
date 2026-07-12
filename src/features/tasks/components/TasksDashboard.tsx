@@ -53,7 +53,7 @@ export function TaskDashboard({
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
     return rawTasks.map((t) => {
-      const role = t.assignee_roles?.[0] ?? "content_editor";
+      const role = t.role ?? t.assignee_roles?.[0] ?? "content_editor";
       const { label: type, bg: typeBg } = getTaskTypeConfig(role);
       const { initials, avatarBg } = getInitialsAndBg(t.assignee_name ?? "");
       const overdue = isTaskOverdue(t.deadline ?? null, t.status);

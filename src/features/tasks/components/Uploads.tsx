@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { getFileUrl } from "@/utils/helpers";
 import { Search, Upload, AlertTriangle, Video, Play, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -7,20 +7,27 @@ import { PlatformBadge } from "@/features/pillars/components/PlatformBadge";
 import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-
-
+import { TimeframeFilter } from "@/components/shared/TimeframeFilter";
+import { matchTimeframe } from "@/utils/timeframe";
 import type { UploadedMediaItem } from "@/features/tasks/types";
 
 export type UploadedVideoItem = UploadedMediaItem;
 
 interface UploadsProps {
   uploads: UploadedMediaItem[];
+  timeFilter: string;
+  onTimeFilterChange: (val: string) => void;
   onUploadNew?: () => void;
   onOpen?: (item: UploadedMediaItem) => void;
 }
 
-export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
+export function Uploads({
+  uploads,
+  timeFilter,
+  onTimeFilterChange,
+  onUploadNew,
+  onOpen,
+}: UploadsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [playingItemId, setPlayingItemId] = useState<string | number | null>(
@@ -35,51 +42,82 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
     setPlayingItemId(item.id);
   };
 
-  const filteredUploads = uploads
-    .filter((item) => {
-      const matchesSearch = item.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+  const timeFilteredUploads = useMemo(() => {
+    return uploads.filter((u) => matchTimeframe(u.deadline, timeFilter));
+  }, [uploads, timeFilter]);
 
-      if (activeTab === "all")
-        return matchesSearch && item.status.toLowerCase() !== "approved";
-      if (activeTab === "on_progress")
-        return matchesSearch && item.status === "On Progress";
-      if (activeTab === "pending")
-        return matchesSearch && item.status === "Pending";
-      if (activeTab === "revision")
-        return matchesSearch && item.status === "Revision";
-      if (activeTab === "approved")
-        return matchesSearch && item.status === "Approved";
-      if (activeTab === "overdue") return matchesSearch && item.isOverdue;
+  const filteredUploads = useMemo(() => {
+    return timeFilteredUploads
+      .filter((item) => {
+        const matchesSearch = item.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
-      return matchesSearch;
-    })
-    .sort((a, b) => {
-      if (!a.deadline) return 1;
-      if (!b.deadline) return -1;
-      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-    });
+        if (activeTab === "all")
+          return matchesSearch && item.status.toLowerCase() !== "approved";
+        if (activeTab === "on_progress")
+          return matchesSearch && item.status === "On Progress";
+        if (activeTab === "pending")
+          return matchesSearch && item.status === "Pending";
+        if (activeTab === "revision")
+          return matchesSearch && item.status === "Revision";
+        if (activeTab === "approved")
+          return matchesSearch && item.status === "Approved";
+        if (activeTab === "overdue") return matchesSearch && item.isOverdue;
+
+        return matchesSearch;
+      })
+      .sort((a, b) => {
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      });
+  }, [timeFilteredUploads, searchQuery, activeTab]);
 
   const countStatus = (statusName: string) =>
-    uploads.filter((u) => u.status === statusName).length;
+    timeFilteredUploads.filter((u) => u.status === statusName).length;
 
   return (
-    <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-6">
-      <div className="flex flex-col xl:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-100">
+    <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-4">
+      {/* Row 1: Search Input (left), + Button (right) */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search uploads..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/10 focus:border-red-800/60 transition-colors"
+          />
+        </div>
+
+        {onUploadNew && (
+          <Button
+            onClick={onUploadNew}
+            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 font-bold text-xs md:text-sm h-10 flex items-center gap-2 border-none shadow-none shrink-0 w-full sm:w-auto justify-center cursor-pointer"
+          >
+            <Upload className="h-4 w-4 stroke-[2.5]" />
+            Upload File
+          </Button>
+        )}
+      </div>
+
+      {/* Row 2: Tabs (left), TimeframeFilter (right) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-gray-100 w-full">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="w-full xl:w-auto overflow-x-auto"
+          className="w-full lg:w-auto overflow-x-auto"
         >
-          <TabsList className="bg-gray-200 p-1 rounded-xl h-11 gap-1 w-full xl:w-auto justify-start">
+          <TabsList className="bg-gray-200 p-1 rounded-xl h-11 gap-1 w-full lg:w-auto justify-start">
             <TabsTrigger
               value="all"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
               All (
               {
-                uploads.filter((u) => u.status.toLowerCase() !== "approved")
+                timeFilteredUploads.filter((u) => u.status.toLowerCase() !== "approved")
                   .length
               }
               )
@@ -112,34 +150,20 @@ export function Uploads({ uploads, onUploadNew, onOpen }: UploadsProps) {
               value="overdue"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs data-[state=active]:text-red-700"
             >
-              Overdue ({uploads.filter((u) => u.isOverdue).length})
+              Overdue ({timeFilteredUploads.filter((u) => u.isOverdue).length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto justify-end">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search uploads..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/10 focus:border-red-800/60 transition-colors"
-            />
-          </div>
-
-          <Button
-            onClick={onUploadNew}
-            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 font-bold text-xs md:text-sm h-10 flex items-center gap-2 border-none shadow-none shrink-0 w-full sm:w-auto justify-center"
-          >
-            <Upload className="h-4 w-4 stroke-[2.5]" />
-            Upload File
-          </Button>
+        <div className="w-full lg:w-auto flex justify-end">
+          <TimeframeFilter
+            value={timeFilter}
+            onValueChange={onTimeFilterChange}
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
         {filteredUploads.length > 0 ? (
           filteredUploads.map((item) => (
             <Card

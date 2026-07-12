@@ -28,6 +28,7 @@ import {
 } from "@/features/contracts/components/Contracts";
 import { ContractModal } from "@/features/contracts/components/ContractModal";
 import { DeleteModal } from "@/components/shared/DeleteModal";
+import { matchTimeframe } from "@/utils/timeframe";
 import toast from "react-hot-toast";
 import type { AxiosError } from "axios";
 
@@ -45,6 +46,7 @@ export const ContractPage = () => {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingContract, setDeletingContract] = useState<ContractCardItem | null>(null);
+  const [timeFilter, setTimeFilter] = useState("all");
 
   const { data: activeContracts = [], isLoading: isLoadingActive, isError: isErrorActive } = useContractsList("active");
 
@@ -94,7 +96,11 @@ export const ContractPage = () => {
     return mapContractToCardItem(c, progress.total, progress.completed);
   });
 
-  const dynamicContractDataCards = getContractsCards(contracts);
+  const timeframeFilteredContracts = useMemo(() => {
+    return contracts.filter((c) => matchTimeframe(c.rawStartDate || c.startDate, timeFilter));
+  }, [contracts, timeFilter]);
+
+  const dynamicContractDataCards = getContractsCards(timeframeFilteredContracts);
 
   const createMutation = useMutation({
     mutationFn: createContractApi,
@@ -309,6 +315,8 @@ export const ContractPage = () => {
       <div>
         <Contracts
           contracts={contracts}
+          timeFilter={timeFilter}
+          onTimeFilterChange={setTimeFilter}
           onCardClick={handleCardClick}
           onAddClick={handleAddClick}
           onEditClick={handleEditClick}

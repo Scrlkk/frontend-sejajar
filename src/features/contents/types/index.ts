@@ -5,6 +5,7 @@ export interface ContentTeamUser {
   full_name: string;
   roles: string[];
   is_online?: boolean;
+  role?: string;
 }
 
 export interface ContentPillar {

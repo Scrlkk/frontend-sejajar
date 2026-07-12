@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { TimeframeFilter } from "@/components/shared/TimeframeFilter";
+import { matchTimeframe } from "@/utils/timeframe";
 
 export interface ActivityLogItem {
   id: string | number;
@@ -54,33 +56,7 @@ export function SystemLog({ logs, itemsPerPage = 5 }: SystemActivityLogProps) {
     const matchesActivityType =
       activityType === "all" || log.actionType === activityType;
 
-    let matchesTime = true;
-    if (timeFilter !== "all") {
-      const logDate = new Date(log.date);
-      const now = new Date();
-
-      if (timeFilter === "today") {
-        const startOfDay = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-        );
-        matchesTime = logDate >= startOfDay;
-      } else if (timeFilter === "week") {
-        const startOfWeek = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() - now.getDay(),
-        );
-        matchesTime = logDate >= startOfWeek;
-      } else if (timeFilter === "month") {
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        matchesTime = logDate >= startOfMonth;
-      } else if (timeFilter === "year") {
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        matchesTime = logDate >= startOfYear;
-      }
-    }
+    const matchesTime = matchTimeframe(log.date, timeFilter);
 
     return matchesSearch && matchesActivityType && matchesTime;
   });
@@ -145,18 +121,11 @@ export function SystemLog({ logs, itemsPerPage = 5 }: SystemActivityLogProps) {
               </SelectContent>
             </Select>
 
-            <Select value={timeFilter} onValueChange={handleTimeFilterChange}>
-              <SelectTrigger className="w-full sm:w-32.5 rounded-sm focus:ring-0 border-gray-200 bg-gray-50/50 text-sm h-9.5">
-                <SelectValue placeholder="All Time" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="year">This Year</SelectItem>
-              </SelectContent>
-            </Select>
+            <TimeframeFilter
+              value={timeFilter}
+              onValueChange={handleTimeFilterChange}
+              className="w-full sm:w-32.5 rounded-sm focus:ring-0 border-gray-200 bg-gray-50/50 text-sm h-9.5"
+            />
           </div>
         </div>
       </CardHeader>

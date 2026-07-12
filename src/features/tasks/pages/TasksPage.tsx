@@ -18,6 +18,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
 import { DeleteModal } from "@/components/shared/DeleteModal";
 import { RotateCcw } from "lucide-react";
+import { matchTimeframe } from "@/utils/timeframe";
 
 export const TasksPage = () => {
   const { roles } = usePermissions();
@@ -60,7 +61,7 @@ export const TasksPage = () => {
         });
 
     return rawTasks.map((t) => {
-      const role = t.assignee_roles?.[0] ?? "content_editor";
+      const role = t.role ?? t.assignee_roles?.[0] ?? "content_editor";
       const { label: type, bg: typeBg } = getTaskTypeConfig(role);
       const { initials, avatarBg } = getInitialsAndBg(t.assignee_name ?? "");
       const overdue = isTaskOverdue(t.deadline ?? null, t.status);
@@ -83,6 +84,7 @@ export const TasksPage = () => {
         status: statusKey,
         isOverdue: overdue,
         date: t.deadline ? new Date(t.deadline) : new Date(),
+        deadline: t.deadline || null,
         priority: "medium",
         description: t.description,
         role,
@@ -97,35 +99,29 @@ export const TasksPage = () => {
     });
   }, [apiTasks, isLeadOrOwner, user]);
 
-  const cardData = useMemo(() => {
-    return TASKS_CARD_CONFIG.map((config) => {
-      let value = 0;
-      const statusKey = config.statusKey;
-      if (config.isOverdue) {
-        value = tasks.filter((t) => t.isOverdue).length;
-      } else if (Array.isArray(statusKey)) {
-        value = tasks.filter((t) => statusKey.includes(t.status)).length;
-      } else if (statusKey) {
-        value = tasks.filter((t) => t.status === statusKey).length;
-      }
-      return {
-        title: config.title,
-        value,
-        description: config.description,
-        icon: config.icon,
-        iconColor: config.iconColor,
-        iconBgColor: config.iconBgColor,
-      };
-    });
-  }, [tasks]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const taskIdParam = searchParams.get("id");
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [timeFilter, setTimeFilter] = useState("all");
+  const searchQuery = searchParams.get("search") || "";
+  const setSearchQuery = (val: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (val) {
+          next.set("search", val);
+        } else {
+          next.delete("search");
+        }
+        return next;
+      },
+      { replace: true }
+    );
+  };
   const [activeTypeFilter, setActiveTypeFilter] = useState("all");
 
   const [selectedTask, setSelectedTask] = useState<TaskBoardItem | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const taskIdParam = searchParams.get("id");
 
   const lastProcessedIdRef = useRef<string | null>(null);
 
@@ -193,34 +189,60 @@ export const TasksPage = () => {
     }
   }, [taskIdParam, tasks]);
 
-  const filteredTasks = tasks.filter((task) => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      task.title.toLowerCase().includes(query) ||
-      (task.content_title?.toLowerCase().includes(query) ?? false) ||
-      (task.contract_name?.toLowerCase().includes(query) ?? false) ||
-      (task.assignee?.toLowerCase().includes(query) ?? false);
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch =
+        task.title.toLowerCase().includes(query) ||
+        (task.content_title?.toLowerCase().includes(query) ?? false) ||
+        (task.contract_name?.toLowerCase().includes(query) ?? false) ||
+        (task.assignee?.toLowerCase().includes(query) ?? false);
 
-    let matchesType: boolean;
-    if (activeTypeFilter === "all") {
-      matchesType = true;
-    } else {
-      const rolesArray = task.rolesArray || [];
-      if (activeTypeFilter === "Script") {
-        matchesType = rolesArray.includes("script_writer");
-      } else if (activeTypeFilter === "Editor") {
-        matchesType = rolesArray.includes("content_editor");
-      } else if (activeTypeFilter === "Caption") {
-        matchesType = rolesArray.includes("admin_social_media");
+      let matchesType: boolean;
+      if (activeTypeFilter === "all") {
+        matchesType = true;
       } else {
-        matchesType = task.type === activeTypeFilter;
+        const rolesArray = task.rolesArray || [];
+        if (activeTypeFilter === "Script") {
+          matchesType = rolesArray.includes("script_writer");
+        } else if (activeTypeFilter === "Editor") {
+          matchesType = rolesArray.includes("content_editor");
+        } else if (activeTypeFilter === "Caption") {
+          matchesType = rolesArray.includes("admin_social_media");
+        } else {
+          matchesType = task.type === activeTypeFilter;
+        }
       }
-    }
 
-    const matchesOverdue = showOverdue ? task.isOverdue : true;
+      const matchesOverdue = showOverdue ? task.isOverdue : true;
 
-    return matchesSearch && matchesType && matchesOverdue;
-  });
+      const matchesTime = matchTimeframe(task.deadline, timeFilter);
+
+      return matchesSearch && matchesType && matchesOverdue && matchesTime;
+    });
+  }, [tasks, searchQuery, activeTypeFilter, showOverdue, timeFilter]);
+
+  const cardData = useMemo(() => {
+    return TASKS_CARD_CONFIG.map((config) => {
+      let value = 0;
+      const statusKey = config.statusKey;
+      if (config.isOverdue) {
+        value = filteredTasks.filter((t) => t.isOverdue).length;
+      } else if (Array.isArray(statusKey)) {
+        value = filteredTasks.filter((t) => statusKey.includes(t.status)).length;
+      } else if (statusKey) {
+        value = filteredTasks.filter((t) => t.status === statusKey).length;
+      }
+      return {
+        title: config.title,
+        value,
+        description: config.description,
+        icon: config.icon,
+        iconColor: config.iconColor,
+        iconBgColor: config.iconBgColor,
+      };
+    });
+  }, [filteredTasks]);
 
   const handleDeleteTask = (task: TaskBoardItem) => {
     setConfirmModal({
@@ -275,6 +297,8 @@ export const TasksPage = () => {
         showOverdue={showOverdue}
         setShowOverdue={setShowOverdue}
         showTypeFilters={isLeadOrOwner}
+        timeFilter={timeFilter}
+        setTimeFilter={setTimeFilter}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">

@@ -34,12 +34,14 @@ import {
 } from "@/features/tasks/components/ContentPickerModal";
 import type { DraftsItem } from "@/features/tasks/types";
 import { formatDate } from "@/utils/helpers";
+import { matchTimeframe } from "@/utils/timeframe";
 
 export const PublishPage = () => {
   const queryClient = useQueryClient();
   const { roles } = usePermissions();
   const { user } = useAuth();
   const isSuperadmin = roles.includes("superadmin");
+  const [timeFilter, setTimeFilter] = useState("all");
   const canPublish =
     roles.includes("admin_social_media") ||
     roles.includes("owner") ||
@@ -80,7 +82,7 @@ export const PublishPage = () => {
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
     const captionTasks = userTasks.filter((t) => {
-      const role = t.assignee_roles?.[0] ?? "content_editor";
+      const role = t.role ?? t.assignee_roles?.[0] ?? "content_editor";
       return (
         getTaskTypeConfig(role).label === "Caption" &&
         t.status !== "to_do" &&
@@ -120,7 +122,7 @@ export const PublishPage = () => {
           !!out.file_url
       );
       const nonScriptOutputs = contentOutputs.filter((out) => {
-        const role = out.task?.assignee_roles?.[0] ?? "content_editor";
+        const role = out.task?.role ?? out.task?.assignee_roles?.[0] ?? "content_editor";
         return getTaskTypeConfig(role).label !== "Script";
       });
       const candidates = nonScriptOutputs.length > 0 ? nonScriptOutputs : contentOutputs;
@@ -198,18 +200,22 @@ export const PublishPage = () => {
     });
   }, [apiTasks, allOutputs, isSuperadmin, user, apiContents]);
 
+  const timeframeFilteredPublishData = useMemo(() => {
+    return publishData.filter((item) => matchTimeframe(item.postDateRaw, timeFilter));
+  }, [publishData, timeFilter]);
+
   const cardData = useMemo(() => {
-    const total = publishData.length;
-    const onProgress = publishData.filter(
+    const total = timeframeFilteredPublishData.length;
+    const onProgress = timeframeFilteredPublishData.filter(
       (i) => i.status === "On Progress" || i.status === "Draft",
     ).length;
-    const review = publishData.filter(
+    const review = timeframeFilteredPublishData.filter(
       (i) => i.status === "Pending" || i.status === "Waiting Approval",
     ).length;
-    const readyToPublish = publishData.filter(
+    const readyToPublish = timeframeFilteredPublishData.filter(
       (i) => i.status === "Approved",
     ).length;
-    const scheduled = publishData.filter(
+    const scheduled = timeframeFilteredPublishData.filter(
       (i) => i.status === "Scheduled",
     ).length;
 
@@ -230,7 +236,7 @@ export const PublishPage = () => {
         iconBgColor: config.iconBgColor,
       };
     });
-  }, [publishData]);
+  }, [timeframeFilteredPublishData]);
 
   const publishMutation = useMutation({
     mutationFn: async ({
@@ -461,6 +467,8 @@ export const PublishPage = () => {
       ) : (
         <PublishContent
           items={publishData}
+          timeFilter={timeFilter}
+          onTimeFilterChange={setTimeFilter}
           onPublish={handlePublish}
           onCaption={handleCaption}
           onRemove={handleRemove}

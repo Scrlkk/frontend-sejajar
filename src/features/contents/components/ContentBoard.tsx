@@ -46,6 +46,7 @@ interface ContentBoardProps {
     cardId: string,
     status: ContentPlanCardItem["status"],
   ) => void;
+  readOnly?: boolean;
 }
 
 const activeStatuses: ContentPlanCardItem["status"][] = [
@@ -156,10 +157,12 @@ export function ContentBoard({
   openTasksAddModal,
   handleRestoreCard,
   onUpdateStatus,
+  readOnly = false,
 }: ContentBoardProps) {
   const navigate = useNavigate();
   const { roles, isClient } = usePermissions();
   const isOwner = roles.includes("owner");
+  const isLead = roles.includes("content_lead");
 
   const displayedStatuses =
     selectedFilter === "Deleted"
@@ -198,6 +201,9 @@ export function ContentBoard({
                   ? differenceInDays(new Date(), new Date(card.dueDate))
                   : 0;
                 const isOverdue = card.overdue && overdueDays > 0;
+                const showDropdown = !readOnly || 
+                  (isLead && ["On Progress", "Review", "Revision", "Scheduled", "Published"].includes(card.status)) ||
+                  (!isClient && card.status === "Published" && !!card.fileUrl);
 
                 return (
                   <div
@@ -209,176 +215,170 @@ export function ContentBoard({
                         : style.cardBorder
                     }`}
                   >
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => e.stopPropagation()}
-                          className="absolute top-2.5 right-2.5 text-slate-400 hover:text-slate-600 h-8 w-8 cursor-pointer rounded-lg focus-visible:ring-0 focus-visible:ring-offset-0"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-48 bg-white border border-gray-300/80 shadow-md rounded-xl p-1 z-50"
-                      >
-                        {card.status === "Deleted" ? (
-                          <DropdownMenuItem
-                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-emerald-700 rounded-lg cursor-pointer hover:bg-emerald-50 focus:bg-emerald-50 focus:text-emerald-800 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRestoreCard?.(card.id);
-                            }}
+                    {showDropdown && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute top-2.5 right-2.5 text-slate-400 hover:text-slate-600 h-8 w-8 cursor-pointer rounded-lg focus-visible:ring-0 focus-visible:ring-offset-0"
                           >
-                            <RefreshCw className="h-4 w-4 text-emerald-500 shrink-0" />
-                            <span>Restore Plan</span>
-                          </DropdownMenuItem>
-                        ) : (
-                          <>
-                            {!isClient && (
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-48 bg-white border border-gray-300/80 shadow-md rounded-xl p-1 z-50"
+                        >
+                          {isLead && ["On Progress", "Review", "Revision", "Scheduled", "Published"].includes(card.status) && (
+                            <DropdownMenuItem
+                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/tasks?search=${encodeURIComponent(card.title)}`);
+                              }}
+                            >
+                              <ListTodo className="h-4 w-4 text-slate-500 shrink-0" />
+                              <span>View Tasks</span>
+                            </DropdownMenuItem>
+                          )}
+
+                          {!isClient && card.status === "Published" && card.fileUrl && (
+                            <DropdownMenuItem
+                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-cyan-700 rounded-lg cursor-pointer hover:bg-cyan-50 focus:bg-cyan-50 focus:text-cyan-800 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(
+                                  card.fileUrl,
+                                  "_blank",
+                                  "noopener,noreferrer",
+                                );
+                              }}
+                            >
+                              <ExternalLink className="h-4 w-4 text-cyan-500 shrink-0" />
+                              <span>View Published URL</span>
+                            </DropdownMenuItem>
+                          )}
+
+                          {!readOnly && (
+                            card.status === "Deleted" ? (
+                              <DropdownMenuItem
+                                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-emerald-700 rounded-lg cursor-pointer hover:bg-emerald-50 focus:bg-emerald-50 focus:text-emerald-800 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRestoreCard?.(card.id);
+                                }}
+                              >
+                                <RefreshCw className="h-4 w-4 text-emerald-500 shrink-0" />
+                                <span>Restore Plan</span>
+                              </DropdownMenuItem>
+                            ) : (
                               <>
-                                <DropdownMenuItem
-                                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openEditModal(card);
-                                  }}
-                                >
-                                  <Pencil className="h-4 w-4 text-slate-500 shrink-0" />
-                                  <span>Edit Plan</span>
-                                </DropdownMenuItem>
-                                {card.status !== "Draft" && (
+                                {!isClient && (
+                                  <>
+                                    <DropdownMenuItem
+                                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openEditModal(card);
+                                      }}
+                                    >
+                                      <Pencil className="h-4 w-4 text-slate-500 shrink-0" />
+                                      <span>Edit Plan</span>
+                                    </DropdownMenuItem>
+                                    {card.status !== "Draft" && (
+                                      <DropdownMenuItem
+                                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openTasksAddModal(card);
+                                        }}
+                                      >
+                                        <ListTodo className="h-4 w-4 text-slate-500 shrink-0" />
+                                        <span>
+                                          {card.status === "Assigned" ? "Add Tasks" : "Edit Tasks"}
+                                        </span>
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem
+                                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openAssignModal(card);
+                                      }}
+                                    >
+                                      <UserPlus className="h-4 w-4 text-slate-500 shrink-0" />
+                                      <span>Assign Team</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSub>
+                                      <DropdownMenuSubTrigger
+                                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-default hover:bg-slate-50 focus:bg-slate-50 transition-colors [&_svg]:size-4"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <RefreshCw className="h-4 w-4 text-slate-500 shrink-0" />
+                                        <span>Change Status</span>
+                                      </DropdownMenuSubTrigger>
+                                      <DropdownMenuPortal>
+                                        <DropdownMenuSubContent
+                                          className="w-40 bg-white border border-gray-300 shadow-md rounded-xl p-1 z-50"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {activeStatuses.map((st) => (
+                                            <DropdownMenuItem
+                                              key={st}
+                                              disabled={card.status === st}
+                                              className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                onUpdateStatus?.(card.id, st);
+                                              }}
+                                            >
+                                              <span
+                                                className={`h-1.5 w-1.5 rounded-full shrink-0 ${getStatusStyle(st).dot}`}
+                                              />
+                                              <span>{st}</span>
+                                            </DropdownMenuItem>
+                                          ))}
+                                        </DropdownMenuSubContent>
+                                      </DropdownMenuPortal>
+                                    </DropdownMenuSub>
+                                  </>
+                                )}
+
+                                {(isOwner || card.status === "Revision") && (
                                   <DropdownMenuItem
                                     className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      openTasksAddModal(card);
+                                      openRevisionModal(card);
                                     }}
                                   >
-                                    <ListTodo className="h-4 w-4 text-slate-500 shrink-0" />
+                                    <RefreshCw className="h-4 w-4 text-slate-500 shrink-0" />
                                     <span>
-                                      {card.status === "Assigned" ? "Add Tasks" : "Edit Tasks"}
+                                      {isOwner
+                                        ? "Request Revision"
+                                        : "See Revision"}
                                     </span>
                                   </DropdownMenuItem>
                                 )}
-                                {[
-                                  "On Progress",
-                                  "Review",
-                                  "Revision",
-                                  "Scheduled",
-                                  "Published",
-                                ].includes(card.status) && (
-                                  <DropdownMenuItem
-                                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      navigate(`/tasks?id=${card.id}`);
-                                    }}
-                                  >
-                                    <ListTodo className="h-4 w-4 text-slate-500 shrink-0" />
-                                    <span>View Tasks</span>
-                                  </DropdownMenuItem>
-                                )}
+
                                 <DropdownMenuItem
-                                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
+                                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:text-red-700 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 focus:text-red-700 transition-colors"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openAssignModal(card);
+                                    handleDeleteCard(card);
                                   }}
                                 >
-                                  <UserPlus className="h-4 w-4 text-slate-500 shrink-0" />
-                                  <span>Assign Team</span>
+                                  <Trash2 className="h-4 w-4 text-red-500 shrink-0" />
+                                  <span>Delete</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger
-                                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-default hover:bg-slate-50 focus:bg-slate-50 transition-colors [&_svg]:size-4"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <RefreshCw className="h-4 w-4 text-slate-500 shrink-0" />
-                                    <span>Change Status</span>
-                                  </DropdownMenuSubTrigger>
-                                  <DropdownMenuPortal>
-                                    <DropdownMenuSubContent
-                                      className="w-40 bg-white border border-gray-300 shadow-md rounded-xl p-1 z-50"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      {activeStatuses.map((st) => (
-                                        <DropdownMenuItem
-                                          key={st}
-                                          disabled={card.status === st}
-                                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            onUpdateStatus?.(card.id, st);
-                                          }}
-                                        >
-                                          <span
-                                            className={`h-1.5 w-1.5 rounded-full shrink-0 ${getStatusStyle(st).dot}`}
-                                          />
-                                          <span>{st}</span>
-                                        </DropdownMenuItem>
-                                      ))}
-                                    </DropdownMenuSubContent>
-                                  </DropdownMenuPortal>
-                                </DropdownMenuSub>
                               </>
-                            )}
-
-                            {(isOwner || card.status === "Revision") && (
-                              <DropdownMenuItem
-                                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 focus:text-slate-800 transition-colors"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openRevisionModal(card);
-                                }}
-                              >
-                                <RefreshCw className="h-4 w-4 text-slate-500 shrink-0" />
-                                <span>
-                                  {isOwner
-                                    ? "Request Revision"
-                                    : "See Revision"}
-                                </span>
-                              </DropdownMenuItem>
-                            )}
-
-                            {!isClient && (
-                              <>
-                                {card.status === "Published" &&
-                                  card.fileUrl && (
-                                    <DropdownMenuItem
-                                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-cyan-700 rounded-lg cursor-pointer hover:bg-cyan-50 focus:bg-cyan-50 focus:text-cyan-800 transition-colors"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(
-                                          card.fileUrl,
-                                          "_blank",
-                                          "noopener,noreferrer",
-                                        );
-                                      }}
-                                    >
-                                      <ExternalLink className="h-4 w-4 text-cyan-500 shrink-0" />
-                                      <span>View Published URL</span>
-                                    </DropdownMenuItem>
-                                  )}
-                              </>
-                            )}
-
-                            <DropdownMenuItem
-                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 hover:text-red-700 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 focus:text-red-700 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteCard(card);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500 shrink-0" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                            )
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
 
                     <h4 className="text-sm max-w-50 font-semibold text-slate-900 leading-snug line-clamp-2 pr-6">
                       {card.title}

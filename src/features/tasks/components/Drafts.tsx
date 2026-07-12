@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Search,
   Plus,
@@ -12,54 +12,63 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
+import { TimeframeFilter } from "@/components/shared/TimeframeFilter";
+import { matchTimeframe } from "@/utils/timeframe";
 import type { DraftsItem } from "@/features/tasks/types";
 
 interface DraftsProps {
   drafts: DraftsItem[];
+  timeFilter: string;
+  onTimeFilterChange: (val: string) => void;
   onNewDraft?: () => void;
   onOpen?: (item: DraftsItem) => void;
 }
 
-export function Drafts({ drafts, onNewDraft, onOpen }: DraftsProps) {
+export function Drafts({
+  drafts,
+  timeFilter,
+  onTimeFilterChange,
+  onNewDraft,
+  onOpen,
+}: DraftsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  const filteredDrafts = drafts
-    .filter((item) => {
-      const matchesSearch = item.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+  const timeFilteredDrafts = useMemo(() => {
+    return drafts.filter((d) => matchTimeframe(d.deadline, timeFilter));
+  }, [drafts, timeFilter]);
 
-      if (activeTab === "all")
-        return matchesSearch && item.status.toLowerCase() !== "approved";
-      if (activeTab === "on_progress")
-        return matchesSearch && item.status === "On Progress";
-      if (activeTab === "pending")
-        return matchesSearch && item.status === "Pending";
-      if (activeTab === "revision")
-        return matchesSearch && item.status === "Revision";
-      if (activeTab === "approved")
-        return matchesSearch && item.status === "Approved";
-      if (activeTab === "overdue")
-        return matchesSearch && item.status === "Overdue";
+  const filteredDrafts = useMemo(() => {
+    return timeFilteredDrafts
+      .filter((item) => {
+        const matchesSearch = item.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
-      return matchesSearch;
-    })
-    .sort((a, b) => {
-      if (!a.deadline) return 1;
-      if (!b.deadline) return -1;
-      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-    });
+        if (activeTab === "all")
+          return matchesSearch && item.status.toLowerCase() !== "approved";
+        if (activeTab === "on_progress")
+          return matchesSearch && item.status === "On Progress";
+        if (activeTab === "pending")
+          return matchesSearch && item.status === "Pending";
+        if (activeTab === "revision")
+          return matchesSearch && item.status === "Revision";
+        if (activeTab === "approved")
+          return matchesSearch && item.status === "Approved";
+        if (activeTab === "overdue")
+          return matchesSearch && item.status === "Overdue";
 
-  const countStatus = (
-    statusName:
-      | "Pending"
-      | "Revision"
-      | "Approved"
-      | "Overdue"
-      | "On Progress"
-      | string,
-  ) => drafts.filter((d) => d.status === statusName).length;
+        return matchesSearch;
+      })
+      .sort((a, b) => {
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      });
+  }, [timeFilteredDrafts, searchQuery, activeTab]);
+
+  const countStatus = (statusName: string) =>
+    timeFilteredDrafts.filter((d) => d.status === statusName).length;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -79,21 +88,46 @@ export function Drafts({ drafts, onNewDraft, onOpen }: DraftsProps) {
   };
 
   return (
-    <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-6">
-      <div className="flex flex-col xl:flex-row items-center justify-between gap-4 pb-5 border-b border-gray-100">
+    <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg p-6 space-y-4">
+      {/* Row 1: Search Input (left), + Button (right) */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search drafts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/10 focus:border-red-800/60 transition-colors"
+          />
+        </div>
+
+        {onNewDraft && (
+          <Button
+            onClick={onNewDraft}
+            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 font-bold text-xs md:text-sm h-10 flex items-center gap-2 border-none shadow-none shrink-0 w-full sm:w-auto justify-center cursor-pointer"
+          >
+            <Plus className="h-4 w-4 stroke-[2.5]" />
+            New Draft
+          </Button>
+        )}
+      </div>
+
+      {/* Row 2: Tabs (left), TimeframeFilter (right) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-gray-100 w-full">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="w-full xl:w-auto overflow-x-auto"
+          className="w-full lg:w-auto overflow-x-auto"
         >
-          <TabsList className="bg-gray-200 p-1 rounded-xl h-11 gap-1 w-full xl:w-auto justify-start">
+          <TabsList className="bg-gray-200 p-1 rounded-xl h-11 gap-1 w-full lg:w-auto justify-start">
             <TabsTrigger
               value="all"
               className="rounded-lg text-xs font-bold px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-xs"
             >
               All (
               {
-                drafts.filter((d) => d.status.toLowerCase() !== "approved")
+                timeFilteredDrafts.filter((d) => d.status.toLowerCase() !== "approved")
                   .length
               }
               )
@@ -131,29 +165,15 @@ export function Drafts({ drafts, onNewDraft, onOpen }: DraftsProps) {
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto justify-end">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search drafts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/10 focus:border-red-800/60 transition-colors"
-            />
-          </div>
-
-          <Button
-            onClick={onNewDraft}
-            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 font-bold text-xs md:text-sm h-10 flex items-center gap-2 border-none shadow-none shrink-0 w-full sm:w-auto justify-center cursor-pointer"
-          >
-            <Plus className="h-4 w-4 stroke-[2.5]" />
-            New Draft
-          </Button>
+        <div className="w-full lg:w-auto flex justify-end">
+          <TimeframeFilter
+            value={timeFilter}
+            onValueChange={onTimeFilterChange}
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
         {filteredDrafts.length > 0 ? (
           filteredDrafts.map((item) => (
             <Card
@@ -174,7 +194,7 @@ export function Drafts({ drafts, onNewDraft, onOpen }: DraftsProps) {
                     </div>
 
                     <div className="space-y-2 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-base md:text-lg leading-snug truncate">
+                      <h3 className="font-bold text-gray-900 text-base md:text-lg leading-snug truncate">
                         {item.title}
                       </h3>
                       <div className="flex items-center gap-2 flex-wrap">

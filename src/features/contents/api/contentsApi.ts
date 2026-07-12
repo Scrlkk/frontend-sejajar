@@ -19,7 +19,7 @@ export interface CreateContentPayload {
   due_date?: string;
   priority: string;
   format?: string;
-  team_user_ids?: number[];
+  team_user_ids?: (number | { user_id: number; role: string })[];
 }
 
 export interface UpdateContentPayload {
@@ -37,7 +37,7 @@ export interface UpdateContentPayload {
   priority?: string;
   status?: string;
   format?: string;
-  team_user_ids?: number[];
+  team_user_ids?: (number | { user_id: number; role: string })[];
 }
 
 export const getContentsApi = async (

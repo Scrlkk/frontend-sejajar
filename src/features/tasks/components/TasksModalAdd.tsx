@@ -35,7 +35,13 @@ const formatRoleLabel = (role?: string) => {
     script_writer: "Script Writer",
     admin_social_media: "Social Media Admin",
   };
-  return mapping[role.toLowerCase()] || role.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  return (
+    mapping[role.toLowerCase()] ||
+    role
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ")
+  );
 };
 
 const formatDateToInput = (dateStr?: string | null) => {
@@ -60,12 +66,14 @@ export function TasksModalAdd({
   const [memberTasks, setMemberTasks] = useState<
     Record<number, { title: string; description: string; deadline: string }>
   >(() => {
-    const initialTasks: Record<number, { title: string; description: string; deadline: string }> =
-      {};
+    const initialTasks: Record<
+      number,
+      { title: string; description: string; deadline: string }
+    > = {};
     card?.assignedTeam?.forEach((_, idx) => {
       const existing = card.tasks?.[idx];
       const isPlaceholder = existing?.title === "Persiapan Konten";
-      
+
       let deadlineVal = "";
       if (existing?.deadline) {
         deadlineVal = formatDateToInput(existing.deadline);
@@ -83,10 +91,15 @@ export function TasksModalAdd({
   });
 
   const [initialTasksState, setInitialTasksState] = useState<
-    Record<number, { title: string; description: string; deadline: string; exists: boolean }>
+    Record<
+      number,
+      { title: string; description: string; deadline: string; exists: boolean }
+    >
   >(() => {
-    const initialTasks: Record<number, { title: string; description: string; deadline: string; exists: boolean }> =
-      {};
+    const initialTasks: Record<
+      number,
+      { title: string; description: string; deadline: string; exists: boolean }
+    > = {};
     card?.assignedTeam?.forEach((_, idx) => {
       const existing = card.tasks?.[idx];
       const isPlaceholder = existing?.title === "Persiapan Konten";
@@ -108,7 +121,9 @@ export function TasksModalAdd({
     return initialTasks;
   });
 
-  const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({});
+  const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>(
+    {},
+  );
 
   if (!card) return null;
 
@@ -130,7 +145,11 @@ export function TasksModalAdd({
     const task = memberTasks[idx];
     if (!task) return;
 
-    if (!task.title?.trim() || !task.description?.trim() || !task.deadline?.trim()) {
+    if (
+      !task.title?.trim() ||
+      !task.description?.trim() ||
+      !task.deadline?.trim()
+    ) {
       toast.error("Judul, deskripsi, dan tenggat waktu tugas harus diisi");
       return;
     }
@@ -206,7 +225,11 @@ export function TasksModalAdd({
                     const isLoading = loadingStates[idx] || false;
 
                     let buttonText = "Kirim Tugas";
-                    let isButtonDisabled = !task.title?.trim() || !task.description?.trim() || !task.deadline?.trim() || isLoading;
+                    let isButtonDisabled =
+                      !task.title?.trim() ||
+                      !task.description?.trim() ||
+                      !task.deadline?.trim() ||
+                      isLoading;
 
                     if (hasExisting) {
                       if (isChanged) {
@@ -245,7 +268,8 @@ export function TasksModalAdd({
                                 htmlFor={`title-${idx}`}
                                 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500"
                               >
-                                Task Title <span className="text-red-500">*</span>
+                                Task Title{" "}
+                                <span className="text-red-500">*</span>
                               </Label>
                               <Input
                                 id={`title-${idx}`}
@@ -264,14 +288,19 @@ export function TasksModalAdd({
                                 htmlFor={`deadline-${idx}`}
                                 className="text-[10px] font-semibold uppercase tracking-wider text-gray-500"
                               >
-                                Task Deadline <span className="text-red-500">*</span>
+                                Task Deadline{" "}
+                                <span className="text-red-500">*</span>
                               </Label>
                               <Input
                                 id={`deadline-${idx}`}
                                 type="date"
                                 value={task.deadline}
                                 onChange={(e) =>
-                                  handleTaskChange(idx, "deadline", e.target.value)
+                                  handleTaskChange(
+                                    idx,
+                                    "deadline",
+                                    e.target.value,
+                                  )
                                 }
                                 required
                                 className="rounded-lg border-gray-200 bg-white py-2 focus:outline-none focus:border-red-800 focus-visible:ring-0 focus-visible:ring-offset-0 text-xs transition-colors"
@@ -315,7 +344,9 @@ export function TasksModalAdd({
                                 : "bg-red-800 hover:bg-red-900 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             }`}
                           >
-                            {isLoading && <Loader2 className="h-3 w-3 animate-spin shrink-0" />}
+                            {isLoading && (
+                              <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+                            )}
                             <span>{buttonText}</span>
                           </Button>
                         </div>

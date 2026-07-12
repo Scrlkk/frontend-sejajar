@@ -1,6 +1,7 @@
 import { Search, PenLine, Clapperboard, Hash, Trash2, TriangleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TimeframeFilter } from "@/components/shared/TimeframeFilter";
 
 interface TasksFilterProps {
   searchQuery: string;
@@ -12,6 +13,8 @@ interface TasksFilterProps {
   showOverdue: boolean;
   setShowOverdue: (show: boolean) => void;
   showTypeFilters?: boolean;
+  timeFilter: string;
+  setTimeFilter: (filter: string) => void;
 }
 
 const typeFilters = [
@@ -31,12 +34,14 @@ export function TasksFilter({
   showOverdue,
   setShowOverdue,
   showTypeFilters = false,
+  timeFilter,
+  setTimeFilter,
 }: TasksFilterProps) {
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg px-4 py-3 sm:px-6 sm:py-2.5">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Search Input */}
-        <div className="relative w-full lg:w-80 xl:w-90">
+        <div className="relative w-full lg:w-72 xl:w-80 shrink-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
@@ -47,13 +52,13 @@ export function TasksFilter({
           />
         </div>
 
-        {/* Filters Group */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+        {/* Filters Group (Tabs + Overdue + Deleted + Timeframe) */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto justify-end flex-wrap">
           {showTypeFilters && (
             <Tabs
               value={activeTypeFilter}
               onValueChange={setActiveTypeFilter}
-              className="w-full sm:w-auto overflow-x-auto scrollbar-none"
+              className="w-full sm:w-auto overflow-x-auto scrollbar-none shrink-0"
             >
               <TabsList className="bg-gray-200/80 p-1 rounded-xl h-10 gap-1 w-full sm:w-auto justify-start flex-nowrap min-w-max">
                 {typeFilters.map((filter) => (
@@ -70,11 +75,15 @@ export function TasksFilter({
             </Tabs>
           )}
 
-          {/* Action Buttons Group */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Action Buttons & Timeframe Dropdown */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end shrink-0 flex-wrap sm:flex-nowrap">
             <button
               type="button"
-              onClick={() => setShowOverdue(!showOverdue)}
+              onClick={() => {
+                const nextVal = !showOverdue;
+                setShowOverdue(nextVal);
+                if (nextVal) setShowDeleted(false);
+              }}
               className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl text-xs font-semibold border transition-all cursor-pointer select-none shrink-0 ${
                 showOverdue
                   ? "bg-red-50 border-red-200 text-red-700 shadow-sm"
@@ -87,7 +96,11 @@ export function TasksFilter({
 
             <button
               type="button"
-              onClick={() => setShowDeleted(!showDeleted)}
+              onClick={() => {
+                const nextVal = !showDeleted;
+                setShowDeleted(nextVal);
+                if (nextVal) setShowOverdue(false);
+              }}
               className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl text-xs font-semibold border transition-all cursor-pointer select-none shrink-0 ${
                 showDeleted
                   ? "bg-red-50 border-red-200 text-red-700 shadow-sm"
@@ -95,8 +108,13 @@ export function TasksFilter({
               }`}
             >
               <Trash2 className="h-3.5 w-3.5" />
-              <span>Deleted Tasks</span>
+              <span>Deleted</span>
             </button>
+
+            <TimeframeFilter
+              value={timeFilter}
+              onValueChange={setTimeFilter}
+            />
           </div>
         </div>
       </div>

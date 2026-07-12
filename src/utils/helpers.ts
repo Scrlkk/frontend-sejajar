@@ -1,8 +1,7 @@
 export const buildQueryString = (params: Record<string, unknown>) =>
-  Object.entries(params)
-    .filter(([, v]) => v != null && v !== '')
-    .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
-    .join('&');
+  new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v != null && v !== '') as [string, string][]
+  ).toString();
 
 export const formatCurrencyIDR = (v: number) =>
   new Intl.NumberFormat('id-ID', {
@@ -23,7 +22,11 @@ export const formatCompactIDR = (v: number): string => {
   return formatCurrencyIDR(v);
 };
 
-export const formatDate = (d: string | number | Date | null | undefined) => {
+const formatDateWithIntl = (
+  d: string | number | Date | null | undefined,
+  options: Intl.DateTimeFormatOptions,
+  locale: string
+): string => {
   if (!d) return '';
   let date: Date;
   if (d instanceof Date) {
@@ -35,13 +38,14 @@ export const formatDate = (d: string | number | Date | null | undefined) => {
     date = safeNewDate(d);
   }
   if (isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('id-ID', {
+  return date.toLocaleDateString(locale, {
     timeZone: 'Asia/Jakarta',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+    ...options,
   });
 };
+
+export const formatDate = (d: string | number | Date | null | undefined) =>
+  formatDateWithIntl(d, { day: 'numeric', month: 'short', year: 'numeric' }, 'id-ID');
 
 export const wordCount = (text?: string) =>
   text?.trim().split(/\s+/).filter(Boolean).length ?? 0;
@@ -70,40 +74,14 @@ export const downloadFile = async (url: string, filename: string) => {
   }
 };
 
-export const formatDateEN = (d: string | number | Date | null | undefined) => {
-  if (!d) return '';
-  const date = safeNewDate(d);
-  if (isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('en-US', {
-    timeZone: 'Asia/Jakarta',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
+export const formatDateEN = (d: string | number | Date | null | undefined) =>
+  formatDateWithIntl(d, { month: 'short', day: 'numeric', year: 'numeric' }, 'en-US');
 
-export const formatDateLongEN = (d: string | number | Date | null | undefined): string => {
-  if (!d) return '';
-  const date = safeNewDate(d);
-  if (isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('en-US', {
-    timeZone: 'Asia/Jakarta',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
+export const formatDateLongEN = (d: string | number | Date | null | undefined): string =>
+  formatDateWithIntl(d, { month: 'long', day: 'numeric', year: 'numeric' }, 'en-US');
 
-export const formatChartDate = (d: string | number | Date | null | undefined): string => {
-  if (!d) return '';
-  const date = safeNewDate(d);
-  if (isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    month: 'short',
-    day: 'numeric',
-  });
-};
+export const formatChartDate = (d: string | number | Date | null | undefined): string =>
+  formatDateWithIntl(d, { month: 'short', day: 'numeric' }, 'id-ID');
 
 
 /**

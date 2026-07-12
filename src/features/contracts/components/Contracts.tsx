@@ -27,12 +27,16 @@ import {
 import { PillarsContract } from "@/features/pillars/components/PillarsContract";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
+import { TimeframeFilter } from "@/components/shared/TimeframeFilter";
+import { matchTimeframe } from "@/utils/timeframe";
 
 import type { ContractCardItem } from "../types";
 export type { ContractCardItem };
 
 interface ContractsProps {
   contracts: ContractCardItem[];
+  timeFilter: string;
+  onTimeFilterChange: (val: string) => void;
   onCardClick?: (item: ContractCardItem) => void;
   onAddClick?: () => void;
   onEditClick?: (item: ContractCardItem) => void;
@@ -43,6 +47,8 @@ interface ContractsProps {
 
 export function Contracts({
   contracts,
+  timeFilter,
+  onTimeFilterChange,
   onCardClick,
   onAddClick,
   onEditClick,
@@ -64,61 +70,68 @@ export function Contracts({
       item.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.code.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (activeTab === "deleted") return matchesSearch && isDeleted;
+    const matchesTime = matchTimeframe(item.rawStartDate || item.startDate, timeFilter);
+
+    if (activeTab === "deleted") return matchesSearch && isDeleted && matchesTime;
 
     if (isDeleted) return false;
 
     if (activeTab === "active")
-      return matchesSearch && item.status === "Active";
+      return matchesSearch && item.status === "Active" && matchesTime;
     if (activeTab === "completed")
-      return matchesSearch && item.status === "Completed";
+      return matchesSearch && item.status === "Completed" && matchesTime;
     if (activeTab === "overdue")
-      return matchesSearch && item.status === "Overdue";
+      return matchesSearch && item.status === "Overdue" && matchesTime;
     if (activeTab === "cancel")
-      return matchesSearch && (item.status === "Cancel" || item.status === "Canceled");
+      return matchesSearch && (item.status === "Cancel" || item.status === "Canceled") && matchesTime;
 
-    return matchesSearch;
+    return matchesSearch && matchesTime;
   });
 
   const countStatus = (statusName: string) => {
     if (statusName === "Cancel") {
-      return contracts.filter((c) => !c.deletedAt && (c.status === "Cancel" || c.status === "Canceled")).length;
+      return contracts.filter((c) => !c.deletedAt && (c.status === "Cancel" || c.status === "Canceled") && matchTimeframe(c.rawStartDate || c.startDate, timeFilter)).length;
     }
     if (statusName === "deleted") {
-      return contracts.filter((c) => !!c.deletedAt).length;
+      return contracts.filter((c) => !!c.deletedAt && matchTimeframe(c.rawStartDate || c.startDate, timeFilter)).length;
     }
-    return contracts.filter((c) => !c.deletedAt && c.status === statusName).length;
+    return contracts.filter((c) => !c.deletedAt && c.status === statusName && matchTimeframe(c.rawStartDate || c.startDate, timeFilter)).length;
   };
 
-  const activeContracts = contracts.filter((c) => !c.deletedAt);
+  const activeContracts = contracts.filter((c) => !c.deletedAt && matchTimeframe(c.rawStartDate || c.startDate, timeFilter));
+  const baseActiveContractsCount = contracts.filter((c) => !c.deletedAt).length;
   const hasBaseContracts =
     activeTab === "deleted"
       ? contracts.some((c) => !!c.deletedAt)
-      : activeContracts.length > 0;
+      : baseActiveContractsCount > 0;
 
   return (
     <Card className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/40 shadow-lg p-6 space-y-6">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-gray-100">
-        <div className="relative w-full md:w-90">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search contracts..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-            }}
-            className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/10 focus:border-red-800/60 transition-colors"
-          />
+      <div className="flex flex-col gap-4 border-gray-100">
+        {/* Row 1: Search Input (Full Width) */}
+        <div className="w-full">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search contracts..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+              }}
+              className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/10 focus:border-red-800/60 transition-colors"
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+        {/* Row 2: Tabs on the left, Timeframe + Add Contract on the right */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 w-full">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
-            className="w-full md:w-auto"
+            className="w-full lg:w-auto"
           >
-            <TabsList className="bg-gray-100/80 p-1 rounded-xl h-10 gap-1 w-full md:w-auto justify-start overflow-x-auto">
+            <TabsList className="bg-gray-100/80 p-1 rounded-xl h-10 gap-1 w-full lg:w-auto justify-start overflow-x-auto">
               <TabsTrigger
                 value="all"
                 className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
@@ -159,15 +172,21 @@ export function Contracts({
             </TabsList>
           </Tabs>
 
-          {canManageContracts && (
-            <Button
-              onClick={onAddClick}
-              className="bg-red-800 hover:bg-red-900 text-white rounded-lg h-10 px-4 gap-2 cursor-pointer shadow-sm text-sm font-semibold w-full sm:w-auto justify-center shrink-0"
-            >
-              <Plus className="h-4 w-4" />
-              Add Contract
-            </Button>
-          )}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto justify-end">
+            <TimeframeFilter
+              value={timeFilter}
+              onValueChange={onTimeFilterChange}
+            />
+            {canManageContracts && (
+              <Button
+                onClick={onAddClick}
+                className="bg-red-800 hover:bg-red-900 text-white rounded-lg h-10 px-4 gap-2 cursor-pointer shadow-sm text-sm font-semibold w-full sm:w-auto justify-center shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                Add Contract
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

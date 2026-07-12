@@ -41,13 +41,18 @@ export function AssignMembers({
         return !u.roles.some((r) => excludedRoles.includes(r));
       })
       .map((u) => {
-        const mappedRole = u.roles.map(getRoleLabel).find((label) =>
-          ["Script Writer", "Editor", "Admin Social Media"].includes(label)
-        ) || "Staff";
+        const matchedLabels = u.roles
+          .map(getRoleLabel)
+          .filter((label) =>
+            ["Script Writer", "Editor", "Admin Social Media"].includes(label)
+          );
+
+        const roles = matchedLabels.length > 0 ? matchedLabels : ["Staff"];
 
         return {
           name: u.full_name,
-          role: mappedRole,
+          role: roles.join(", "),
+          roles: roles,
           initials: getInitials(u.full_name),
           avatarBg: getAvatarBg(u.full_name),
         };
@@ -82,7 +87,7 @@ export function AssignMembers({
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
       const matchesRole =
-        selectedRole === "All" || candidate.role === selectedRole;
+        selectedRole === "All" || candidate.roles.includes(selectedRole);
       return matchesSearch && matchesRole;
     });
   }, [allCandidates, searchQuery, selectedRole]);
@@ -157,7 +162,8 @@ export function AssignMembers({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
               {filteredCandidates.map((candidate) => {
                 const isSelected = selectedNames.includes(candidate.name);
-                const roleStyle = getRoleStyles(candidate.role);
+                const primaryRole = candidate.roles[0] || "Staff";
+                const roleStyle = getRoleStyles(primaryRole);
                 return (
                   <div
                     key={candidate.name}

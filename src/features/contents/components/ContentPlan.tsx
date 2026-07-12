@@ -34,6 +34,7 @@ import {
 import { getInitials, getAvatarBg } from "@/utils/formatter";
 import toast from "react-hot-toast";
 import { createReviewApi } from "@/features/reviews/api/reviewsApi";
+import { getRoleLabel } from "@/features/users/constants/roleColors";
 
 import type { ContentPlanCardItem, TeamMember } from "@/features/contents/types";
 
@@ -45,6 +46,7 @@ export interface ContentPlanProps {
   /** Called by parent to receive the "open modal" trigger function */
   onRegisterOpenModal?: (openFn: () => void) => void;
   onRegisterFeedbackModal?: (openFn: () => void) => void;
+  readOnly?: boolean;
 }
 
 interface FilterOption {
@@ -101,6 +103,7 @@ export function ContentPlan({
   contractId,
   onRegisterOpenModal,
   onRegisterFeedbackModal,
+  readOnly = false,
 }: ContentPlanProps) {
   const queryClient = useQueryClient();
   const { id } = useParams();
@@ -174,7 +177,7 @@ export function ContentPlan({
         name: t.full_name,
         initials: getInitials(t.full_name),
         avatarBg: getAvatarBg(t.full_name),
-        role: t.roles?.[0] || "Team Member",
+        role: t.roles?.map(getRoleLabel).join(", ") || "Team Member",
       }));
 
       const tasksMap: Record<
@@ -182,7 +185,9 @@ export function ContentPlan({
         { title: string; description: string; deadline?: string | null }
       > = {};
       (c.teams || []).forEach((t, idx) => {
-        const userTask = tasksForContent.find((task) => task.assigned_to === t.id);
+        const userTask = tasksForContent.find(
+          (task) => task.assigned_to === t.id && task.role === t.role,
+        );
         if (userTask) {
           tasksMap[idx] = {
             title: userTask.title || "",
@@ -271,14 +276,25 @@ export function ContentPlan({
     }) => {
       const contentId = Number(cardId);
 
-      const selectedUserIds = assignedTeam
-        .map((member) => usersList.find((u) => u.full_name === member.name)?.id)
-        .filter((id): id is number => id !== undefined);
+      const selectedTeams = assignedTeam
+        .map((member) => {
+          const user = usersList.find((u) => u.full_name === member.name);
+          if (!user) return null;
+          let rawRole = "member";
+          if (member.role === "Script Writer") rawRole = "script_writer";
+          else if (member.role === "Editor" || member.role === "Content Editor") rawRole = "content_editor";
+          else if (member.role === "Admin Social Media" || member.role === "Social Media Admin") rawRole = "admin_social_media";
+          return {
+            user_id: user.id,
+            role: rawRole,
+          };
+        })
+        .filter((item): item is { user_id: number; role: string } => item !== null);
 
       const card = cards.find((c) => c.id === cardId);
       let newStatus: string | undefined;
       if (card) {
-        const hasAssignedTeam = selectedUserIds.length > 0;
+        const hasAssignedTeam = selectedTeams.length > 0;
         if (card.status === "Draft" && hasAssignedTeam) {
           newStatus = "assigned";
         } else if (card.status === "Assigned" && !hasAssignedTeam) {
@@ -287,7 +303,7 @@ export function ContentPlan({
       }
 
       await updateContentApi(contentId, {
-        team_user_ids: selectedUserIds,
+        team_user_ids: selectedTeams,
         ...(newStatus ? { status: newStatus } : {}),
       });
     },
@@ -324,14 +340,20 @@ export function ContentPlan({
       const userId = usersList.find((u) => u.full_name === member.name)?.id;
       if (!userId) return;
 
+      let rawRole = "member";
+      if (member.role === "Script Writer") rawRole = "script_writer";
+      else if (member.role === "Editor" || member.role === "Content Editor") rawRole = "content_editor";
+      else if (member.role === "Admin Social Media" || member.role === "Social Media Admin") rawRole = "admin_social_media";
+
       const existingTask = existingTasks.find(
-        (t) => t.assigned_to === userId,
+        (t) => t.assigned_to === userId && t.role === rawRole,
       );
       if (existingTask) {
         await updateTaskApi(existingTask.id, {
           title: taskData.title,
           description: taskData.description,
           deadline: taskData.deadline,
+          role: rawRole,
         });
       } else {
         await createTaskApi({
@@ -341,6 +363,7 @@ export function ContentPlan({
           description: taskData.description,
           status: "to_do",
           deadline: taskData.deadline,
+          role: rawRole,
         });
       }
 
@@ -766,6 +789,7 @@ export function ContentPlan({
         openTasksAddModal={openTasksAddModal}
         handleRestoreCard={handleRestoreCard}
         onUpdateStatus={handleUpdateStatus}
+        readOnly={readOnly}
       />
     </div>
   );

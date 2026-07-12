@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Send,
   Search,
@@ -16,6 +16,8 @@ import { PillarsCard } from "@/features/pillars/components/PillarsCard";
 import { StatusBadgeContent } from "@/features/pillars/components/StatusBadgeContent";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import toast from "react-hot-toast";
+import { TimeframeFilter } from "@/components/shared/TimeframeFilter";
+import { matchTimeframe } from "@/utils/timeframe";
 import {
   ModalPreviewPublish,
   type PreviewPublishItem,
@@ -56,6 +58,8 @@ export interface QueueItem {
 
 interface PublishContentProps {
   items: QueueItem[];
+  timeFilter: string;
+  onTimeFilterChange: (val: string) => void;
   onPublish?: (
     item: QueueItem,
     date?: string,
@@ -71,6 +75,8 @@ interface PublishContentProps {
 
 export function PublishContent({
   items,
+  timeFilter,
+  onTimeFilterChange,
   onPublish,
   onCaption,
   onCaptionClick,
@@ -191,57 +197,67 @@ export function PublishContent({
     );
   };
 
-  const onProgressCount = localItems.filter(
+  const timeFilteredItems = useMemo(() => {
+    return localItems.filter((item) => matchTimeframe(item.postDateRaw, timeFilter));
+  }, [localItems, timeFilter]);
+
+  const onProgressCount = timeFilteredItems.filter(
     (i) => i.status === "On Progress" || i.status === "Draft",
   ).length;
-  const readyToPublishCount = localItems.filter(
+  const readyToPublishCount = timeFilteredItems.filter(
     (i) => i.status === "Approved",
   ).length;
-  const scheduledCount = localItems.filter(
+  const scheduledCount = timeFilteredItems.filter(
     (i) => i.status === "Scheduled",
   ).length;
-  const pendingCount = localItems.filter(
+  const pendingCount = timeFilteredItems.filter(
     (i) => i.status === "Pending" || i.status === "Waiting Approval",
   ).length;
-  const revisionCount = localItems.filter(
+  const revisionCount = timeFilteredItems.filter(
     (i) => i.status === "Revision",
   ).length;
-  const publishedCount = localItems.filter(
+  const publishedCount = timeFilteredItems.filter(
     (i) => i.status === "Published",
   ).length;
+  const allNonPublishedCount = timeFilteredItems.filter(
+    (i) => i.status !== "Published",
+  ).length;
 
-  const filteredItems = localItems.filter((item) => {
-    const matchesSearch = item.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+  const filteredItems = useMemo(() => {
+    return timeFilteredItems.filter((item) => {
+      const matchesSearch = item.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    if (activeTab === "on_progress")
-      return (
-        matchesSearch &&
-        (item.status === "On Progress" || item.status === "Draft")
-      );
-    if (activeTab === "ready_to_publish")
-      return matchesSearch && item.status === "Approved";
-    if (activeTab === "scheduled")
-      return matchesSearch && item.status === "Scheduled";
-    if (activeTab === "waiting-approval" || activeTab === "pending")
-      return (
-        matchesSearch &&
-        (item.status === "Pending" || item.status === "Waiting Approval")
-      );
-    if (activeTab === "revision")
-      return matchesSearch && item.status === "Revision";
-    if (activeTab === "published")
-      return matchesSearch && item.status === "Published";
+      if (activeTab === "on_progress")
+        return (
+          matchesSearch &&
+          (item.status === "On Progress" || item.status === "Draft")
+        );
+      if (activeTab === "ready_to_publish")
+        return matchesSearch && item.status === "Approved";
+      if (activeTab === "scheduled")
+        return matchesSearch && item.status === "Scheduled";
+      if (activeTab === "waiting-approval" || activeTab === "pending")
+        return (
+          matchesSearch &&
+          (item.status === "Pending" || item.status === "Waiting Approval")
+        );
+      if (activeTab === "revision")
+        return matchesSearch && item.status === "Revision";
+      if (activeTab === "published")
+        return matchesSearch && item.status === "Published";
 
-    return matchesSearch;
-  });
+      return matchesSearch && item.status !== "Published";
+    });
+  }, [timeFilteredItems, searchQuery, activeTab]);
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 outline outline-gray-300/50 shadow-lg">
-      <div className="flex flex-col gap-3 p-4 border-b border-gray-100">
-        <div className="flex items-center gap-3 justify-end">
-          <div className="relative flex-1">
+      <div className="p-4 border-b border-gray-100 space-y-4">
+        {/* Row 1: Search Input (left), + Button (right) */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+          <div className="relative w-full sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
@@ -251,65 +267,76 @@ export function PublishContent({
               className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-800/10 focus:border-red-800/60 transition-colors"
             />
           </div>
+
           <Button
             onClick={onCaptionClick}
-            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 font-bold text-xs md:text-sm h-10 flex items-center gap-2 border-none shadow-none shrink-0 cursor-pointer"
+            className="bg-red-800 hover:bg-red-900 text-white rounded-xl px-4 py-2 font-bold text-xs md:text-sm h-10 flex items-center gap-2 border-none shadow-none shrink-0 w-full sm:w-auto justify-center cursor-pointer"
           >
             <Hash className="h-4 w-4 stroke-[2.5]" />
             Caption
           </Button>
         </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="inline-flex"
-        >
-          <TabsList className="bg-gray-100 p-1.5 rounded-xl h-10 gap-1 flex flex-wrap">
-            <TabsTrigger
-              value="all"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              All ({localItems.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="on_progress"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              On Progress ({onProgressCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="pending"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Review ({pendingCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="ready_to_publish"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Ready to Publish ({readyToPublishCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="scheduled"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Scheduled ({scheduledCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="published"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Published ({publishedCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="revision"
-              className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Revision ({revisionCount})
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Row 2: Tabs (left), TimeframeFilter (right) */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full lg:w-auto overflow-x-auto"
+          >
+            <TabsList className="bg-gray-200 p-1.5 rounded-xl h-11 gap-1 w-full lg:w-auto justify-start flex-wrap">
+              <TabsTrigger
+                value="all"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                All ({allNonPublishedCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="on_progress"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                On Progress ({onProgressCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="pending"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Review ({pendingCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="revision"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Revision ({revisionCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="ready_to_publish"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Ready to Publish ({readyToPublishCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="scheduled"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Scheduled ({scheduledCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="published"
+                className="rounded-lg text-xs font-semibold px-4 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Published ({publishedCount})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="w-full lg:w-auto flex justify-end">
+            <TimeframeFilter
+              value={timeFilter}
+              onValueChange={onTimeFilterChange}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="divide-y divide-gray-300">
@@ -542,7 +569,7 @@ export function PublishContent({
               </div>
             </div>
           ))
-        ) : items.length === 0 ? (
+        ) : filteredItems.length === 0 && !searchQuery ? (
           <div className="flex flex-col items-center justify-center py-20 px-4 text-center border border-dashed border-gray-200 bg-slate-50/10 rounded-b-xl">
             <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center border border-red-100 text-red-800 shadow-sm mb-4">
               <Send className="h-6 w-6 stroke-[1.5] rotate-45" />

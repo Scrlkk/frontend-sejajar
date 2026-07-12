@@ -87,7 +87,7 @@ export function ContentDetailModal({
           <DialogTitle className="text-xl font-bold text-gray-900">
             Content Plan Details
           </DialogTitle>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500">
             View the full details of this content plan below.
           </p>
         </DialogHeader>

@@ -29,6 +29,7 @@ export interface Task {
   content_scheduled_at?: string | null;
   pillars?: ContentPillar[];
   isOverdue?: boolean;
+  role?: string;
 }
 
 export interface CreateTaskPayload {
@@ -38,6 +39,7 @@ export interface CreateTaskPayload {
   description: string;
   deadline?: string;
   status?: string;
+  role?: string;
 }
 
 export interface UpdateTaskPayload {
@@ -46,6 +48,7 @@ export interface UpdateTaskPayload {
   assigned_to?: number;
   deadline?: string;
   status?: string;
+  role?: string;
 }
 
 export interface TaskOutput {
@@ -153,6 +156,7 @@ export interface TaskBoardItem {
   status: TaskStatusType;
   isOverdue: boolean;
   date: Date;
+  deadline?: string | null;
   priority: "low" | "medium" | "high" | "critical";
   description?: string;
   pillar?: string;

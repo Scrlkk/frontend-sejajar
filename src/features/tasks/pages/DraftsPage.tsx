@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 
 import { wordCount as helperWordCount, formatDate } from "@/utils/helpers";
+import { matchTimeframe } from "@/utils/timeframe";
 
 export const DraftsPage = () => {
   const { roles } = usePermissions();
@@ -29,6 +30,7 @@ export const DraftsPage = () => {
   const isSuperadmin = roles.includes("superadmin");
 
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
+  const [timeFilter, setTimeFilter] = useState("all");
 
   const { data: apiTasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: taskKeys.list(isSuperadmin ? "all" : user?.id),
@@ -59,7 +61,7 @@ export const DraftsPage = () => {
       : apiTasks.filter((t) => Number(t.assigned_to) === Number(user?.id));
 
     const scriptTasks = userTasks.filter((t) => {
-      const role = t.assignee_roles?.[0] ?? "content_editor";
+      const role = t.role ?? t.assignee_roles?.[0] ?? "content_editor";
       return getTaskTypeConfig(role).label === "Script" && t.status !== "to_do";
     });
 
@@ -116,20 +118,24 @@ export const DraftsPage = () => {
     });
   }, [apiTasks, allOutputs, isSuperadmin, user]);
 
+  const timeframeFilteredDrafts = useMemo(() => {
+    return drafts.filter((d) => matchTimeframe(d.deadline, timeFilter));
+  }, [drafts, timeFilter]);
+
   const cardData = useMemo(() => {
-    const total = drafts.length;
-    const toDo = drafts.filter((d) => d.status.toLowerCase() === "to do" || d.status.toLowerCase() === "to_do").length;
-    const onProgress = drafts.filter((d) => d.status.toLowerCase() === "in progress" || d.status.toLowerCase() === "on progress" || d.status.toLowerCase() === "on_progress").length;
-    const pending = drafts.filter((d) => d.status.toLowerCase() === "pending" || d.status.toLowerCase() === "review").length;
-    const revision = drafts.filter((d) => d.status.toLowerCase() === "revision").length;
+    const total = timeframeFilteredDrafts.length;
+    const onProgress = timeframeFilteredDrafts.filter((d) => d.status.toLowerCase() === "in progress" || d.status.toLowerCase() === "on progress" || d.status.toLowerCase() === "on_progress").length;
+    const pending = timeframeFilteredDrafts.filter((d) => d.status.toLowerCase() === "pending" || d.status.toLowerCase() === "review").length;
+    const revision = timeframeFilteredDrafts.filter((d) => d.status.toLowerCase() === "revision").length;
+    const overdue = timeframeFilteredDrafts.filter((d) => d.status.toLowerCase() === "overdue").length;
 
     return DRAFTS_CARD_CONFIG.map((config) => {
       let val = 0;
       if (config.title === "Total Drafts") val = total;
-      else if (config.title === "To Do") val = toDo;
       else if (config.title === "On Progress") val = onProgress;
       else if (config.title === "Review") val = pending;
       else if (config.title === "Revision") val = revision;
+      else if (config.title === "Overdue") val = overdue;
 
       return {
         title: config.title,
@@ -140,7 +146,7 @@ export const DraftsPage = () => {
         iconBgColor: config.iconBgColor,
       };
     });
-  }, [drafts]);
+  }, [timeframeFilteredDrafts]);
 
   const [selectedDraft, setSelectedDraft] = useState<DraftsItem | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -226,6 +232,8 @@ export const DraftsPage = () => {
       ) : (
         <Drafts
           drafts={drafts}
+          timeFilter={timeFilter}
+          onTimeFilterChange={setTimeFilter}
           onNewDraft={() => setIsPickerModalOpen(true)}
           onOpen={handleOpenDraft}
         />

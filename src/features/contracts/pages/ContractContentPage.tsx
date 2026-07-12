@@ -151,6 +151,7 @@ export function ContractContentPage() {
     (totalContents === 0 || completedContents < totalContents);
 
   const displayStatus = isOverdue ? "Overdue" : contract.status;
+  const isContractReadOnly = ["completed", "cancelled"].includes(contract.status.toLowerCase());
 
   const parseLocalMidnight = (dateStr: string) => {
     if (!dateStr) return new Date();
@@ -353,15 +354,17 @@ export function ContractContentPage() {
                 Feedback
               </Button>
             )}
-            <Button
-              variant="outline"
-              onClick={() => setIsAssignMembersOpen(true)}
-              className="rounded-xl h-10 px-4 gap-2 border-gray-200 hover:bg-gray-50 text-gray-700 cursor-pointer"
-            >
-              <Users className="h-4 w-4" />
-              Assign Team
-            </Button>
-            {!isClient && (
+            {!isContractReadOnly && (
+              <Button
+                variant="outline"
+                onClick={() => setIsAssignMembersOpen(true)}
+                className="rounded-xl h-10 px-4 gap-2 border-gray-200 hover:bg-gray-50 text-gray-700 cursor-pointer"
+              >
+                <Users className="h-4 w-4" />
+                Assign Team
+              </Button>
+            )}
+            {!isClient && !isContractReadOnly && (
               <Button
                 onClick={() => openContentModalRef.current?.()}
                 className="bg-red-800 hover:bg-red-900 text-white rounded-xl h-10 px-4 gap-2 cursor-pointer shadow-sm"
@@ -405,6 +408,7 @@ export function ContractContentPage() {
           contractId={contractId}
           onRegisterOpenModal={handleRegisterOpenModal}
           onRegisterFeedbackModal={handleRegisterFeedbackModal}
+          readOnly={isContractReadOnly}
         />
       </div>
 

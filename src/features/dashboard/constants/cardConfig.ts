@@ -77,7 +77,7 @@ export const OWNER_CARDS_TEMPLATE = [
   {
     key: "revenue",
     title: "Revenue",
-    description: "Revenue of This Month",
+    description: "Total Active Revenue",
     icon: TrendingUp,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
@@ -96,7 +96,7 @@ export const CONTENT_LEAD_CARDS_TEMPLATE = [
   {
     key: "total_content",
     title: "Total Content",
-    description: "This Month",
+    description: "Overall Contents",
     icon: Video,
     iconColor: "text-green-600",
     iconBgColor: "bg-green-600/10",
@@ -112,7 +112,7 @@ export const CONTENT_LEAD_CARDS_TEMPLATE = [
   {
     key: "published",
     title: "Published",
-    description: "This Month",
+    description: "Overall Published",
     icon: Send,
     iconColor: "text-blue-600",
     iconBgColor: "bg-blue-600/10",
