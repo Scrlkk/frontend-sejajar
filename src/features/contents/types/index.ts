@@ -19,6 +19,7 @@ export interface Content {
   contract_id: number;
   contract_name?: string;
   contract_code?: string;
+  contract_status?: string;
   platform_id: number;
   platform_name?: string;
   platform_color_key?: string | null;

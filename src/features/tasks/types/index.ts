@@ -16,6 +16,7 @@ export interface Task {
   content_title?: string;
   contract_id?: number;
   contract_name?: string;
+  contract_status?: string;
   contract_created_by?: number;
   pillar_name?: string;
   platform_name?: string;
@@ -167,6 +168,7 @@ export interface TaskBoardItem {
   content_title?: string;
   is_active?: boolean;
   contract_name?: string;
+  contract_status?: string;
   rolesArray?: string[];
   contentStatus?: string;
 }

@@ -6,11 +6,13 @@ import type { TaskCommentItem } from "@/features/tasks/types";
 interface FeedbackCommentProps {
   comments: TaskCommentItem[];
   onAddComment: (text: string) => void;
+  readOnly?: boolean;
 }
 
 export function FeedbackComment({
   comments,
   onAddComment,
+  readOnly = false,
 }: FeedbackCommentProps) {
   const [newComment, setNewComment] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -117,25 +119,31 @@ export function FeedbackComment({
         <div ref={chatEndRef} />
       </div>
 
-      <form
-        onSubmit={handleSend}
-        className="p-2.5 border-t bg-white flex items-center gap-2"
-      >
-        <input
-          type="text"
-          placeholder="Type feedback comment..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="flex-1 rounded-xl border border-gray-300 bg-slate-50/20 px-3.5 py-2 text-xs focus:outline-none focus:border-red-800 focus:ring-1 focus:ring-red-800/50 transition-all font-medium"
-        />
-        <Button
-          type="submit"
-          size="icon"
-          className="h-8 w-8 rounded-sm bg-red-800 hover:bg-red-900 text-white transition-all shrink-0 hover:scale-105 active:scale-95 shadow-sm"
+      {!readOnly ? (
+        <form
+          onSubmit={handleSend}
+          className="p-2.5 border-t bg-white flex items-center gap-2"
         >
-          <Send className="h-3.5 w-3.5" />
-        </Button>
-      </form>
+          <input
+            type="text"
+            placeholder="Type feedback comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="flex-1 rounded-xl border border-gray-300 bg-slate-50/20 px-3.5 py-2 text-xs focus:outline-none focus:border-red-800 focus:ring-1 focus:ring-red-800/50 transition-all font-medium"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className="h-8 w-8 rounded-sm bg-red-800 hover:bg-red-900 text-white transition-all shrink-0 hover:scale-105 active:scale-95 shadow-sm"
+          >
+            <Send className="h-3.5 w-3.5" />
+          </Button>
+        </form>
+      ) : (
+        <div className="p-3 border-t bg-slate-50 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+          Thread is read-only because the contract is completed
+        </div>
+      )}
     </div>
   );
 }

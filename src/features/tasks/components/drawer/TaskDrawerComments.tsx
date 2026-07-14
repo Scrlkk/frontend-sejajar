@@ -22,6 +22,7 @@ interface TaskDrawerCommentsProps {
   status: string;
   originalStatus: string;
   hasCommentedThisSession: boolean;
+  readOnly?: boolean;
 }
 
 export function TaskDrawerComments({
@@ -34,6 +35,7 @@ export function TaskDrawerComments({
   status,
   originalStatus,
   hasCommentedThisSession,
+  readOnly = false,
 }: TaskDrawerCommentsProps) {
   const showRevisionWarning =
     status.toLowerCase() === "revision" &&
@@ -78,7 +80,7 @@ export function TaskDrawerComments({
         )}
       </div>
 
-      <FeedbackComment comments={comments} onAddComment={onAddComment} />
+      <FeedbackComment comments={comments} onAddComment={onAddComment} readOnly={readOnly} />
     </div>
   );
 }

@@ -182,18 +182,20 @@ function ContractModalForm({
 
     let finalStatus = status;
 
-    if (currentProgress >= targetProgress && targetProgress > 0) {
-      finalStatus = "Completed";
-    } else if (finalStatus !== "Cancel") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const end = new Date(endDate);
-      end.setHours(0, 0, 0, 0);
+    if (!isEdit) {
+      if (currentProgress >= targetProgress && targetProgress > 0) {
+        finalStatus = "Completed";
+      } else if (finalStatus !== "Cancel") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(0, 0, 0, 0);
 
-      if (end < today) {
-        finalStatus = "Overdue";
-      } else {
-        finalStatus = "Active";
+        if (end < today) {
+          finalStatus = "Overdue";
+        } else {
+          finalStatus = "Active";
+        }
       }
     }
 

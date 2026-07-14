@@ -70,9 +70,13 @@ export function Contracts({
       item.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.code.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesTime = matchTimeframe(item.rawStartDate || item.startDate, timeFilter);
+    const matchesTime = matchTimeframe(
+      item.rawStartDate || item.startDate,
+      timeFilter,
+    );
 
-    if (activeTab === "deleted") return matchesSearch && isDeleted && matchesTime;
+    if (activeTab === "deleted")
+      return matchesSearch && isDeleted && matchesTime;
 
     if (isDeleted) return false;
 
@@ -83,22 +87,43 @@ export function Contracts({
     if (activeTab === "overdue")
       return matchesSearch && item.status === "Overdue" && matchesTime;
     if (activeTab === "cancel")
-      return matchesSearch && (item.status === "Cancel" || item.status === "Canceled") && matchesTime;
+      return (
+        matchesSearch &&
+        (item.status === "Cancel" || item.status === "Canceled") &&
+        matchesTime
+      );
 
     return matchesSearch && matchesTime;
   });
 
   const countStatus = (statusName: string) => {
     if (statusName === "Cancel") {
-      return contracts.filter((c) => !c.deletedAt && (c.status === "Cancel" || c.status === "Canceled") && matchTimeframe(c.rawStartDate || c.startDate, timeFilter)).length;
+      return contracts.filter(
+        (c) =>
+          !c.deletedAt &&
+          (c.status === "Cancel" || c.status === "Canceled") &&
+          matchTimeframe(c.rawStartDate || c.startDate, timeFilter),
+      ).length;
     }
     if (statusName === "deleted") {
-      return contracts.filter((c) => !!c.deletedAt && matchTimeframe(c.rawStartDate || c.startDate, timeFilter)).length;
+      return contracts.filter(
+        (c) =>
+          !!c.deletedAt &&
+          matchTimeframe(c.rawStartDate || c.startDate, timeFilter),
+      ).length;
     }
-    return contracts.filter((c) => !c.deletedAt && c.status === statusName && matchTimeframe(c.rawStartDate || c.startDate, timeFilter)).length;
+    return contracts.filter(
+      (c) =>
+        !c.deletedAt &&
+        c.status === statusName &&
+        matchTimeframe(c.rawStartDate || c.startDate, timeFilter),
+    ).length;
   };
 
-  const activeContracts = contracts.filter((c) => !c.deletedAt && matchTimeframe(c.rawStartDate || c.startDate, timeFilter));
+  const activeContracts = contracts.filter(
+    (c) =>
+      !c.deletedAt && matchTimeframe(c.rawStartDate || c.startDate, timeFilter),
+  );
   const baseActiveContractsCount = contracts.filter((c) => !c.deletedAt).length;
   const hasBaseContracts =
     activeTab === "deleted"
@@ -193,9 +218,10 @@ export function Contracts({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {filteredContracts.length > 0 ? (
           filteredContracts.map((item) => {
-            const progressPercentage = item.targetProgress > 0
-              ? (item.currentProgress / item.targetProgress) * 100
-              : 0;
+            const progressPercentage =
+              item.targetProgress > 0
+                ? (item.currentProgress / item.targetProgress) * 100
+                : 0;
 
             return (
               <Card
@@ -210,86 +236,98 @@ export function Contracts({
                 {item.deletedAt && (
                   <div className="absolute inset-0 rounded-xl pointer-events-none border border-dashed border-red-300/60" />
                 )}
-                {canManageContracts && (user?.roles?.includes("superadmin") || Number(item.createdByUserId) === Number(user?.id)) && (
-                  <div
-                    className="absolute right-5 top-6 z-10"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:text-red-logo hover:bg-gray-200/50 rounded-lg cursor-pointer transition-colors"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-44 bg-white border border-gray-200/80 shadow-md rounded-xl p-1 z-50"
-                      >
-                        {item.deletedAt ? (
-                          <DropdownMenuItem
-                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
-                            onClick={() => onRestoreClick?.(item.id)}
+                {canManageContracts &&
+                  (user?.roles?.includes("superadmin") ||
+                    Number(item.createdByUserId) === Number(user?.id)) && (
+                    <div
+                      className="absolute right-5 top-6 z-10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:text-red-logo hover:bg-gray-200/50 rounded-lg cursor-pointer transition-colors"
                           >
-                            <RotateCcw className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                            <span>Restore</span>
-                          </DropdownMenuItem>
-                        ) : (
-                          <>
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-44 bg-white border border-gray-200/80 shadow-md rounded-xl p-1 z-50"
+                        >
+                          {item.deletedAt ? (
                             <DropdownMenuItem
-                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
-                              onClick={() => onEditClick?.(item)}
+                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
+                              onClick={() => onRestoreClick?.(item.id)}
                             >
-                              <Pencil className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                              <span>Edit Contract</span>
+                              <RotateCcw className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                              <span>Restore</span>
                             </DropdownMenuItem>
+                          ) : (
+                            <>
+                              <DropdownMenuItem
+                                disabled={
+                                  item.status.toLowerCase() === "completed" ||
+                                  item.status.toLowerCase() === "cancelled"
+                                }
+                                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => onEditClick?.(item)}
+                              >
+                                <Pencil className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                                <span>Edit Contract</span>
+                              </DropdownMenuItem>
 
-                            <DropdownMenuSeparator className="border-gray-100 my-1" />
+                              <DropdownMenuSeparator className="border-gray-100 my-1" />
 
-                            <DropdownMenuLabel className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                              Set Status
-                            </DropdownMenuLabel>
+                              <DropdownMenuLabel className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                Set Status
+                              </DropdownMenuLabel>
 
-                            <DropdownMenuItem
-                              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
-                              onClick={() => onStatusChange?.(item.id, "Active")}
-                            >
-                              <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                              <span>Active</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50 transition-colors"
-                              onClick={() => onStatusChange?.(item.id, "Completed")}
-                            >
-                              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
-                              <span>Completed</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
-                              onClick={() => onStatusChange?.(item.id, "Cancel")}
-                            >
-                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
-                              <span>Cancel</span>
-                            </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-green-600 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50 transition-colors"
+                                onClick={() =>
+                                  onStatusChange?.(item.id, "Active")
+                                }
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
+                                <span>Active</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50 transition-colors"
+                                onClick={() =>
+                                  onStatusChange?.(item.id, "Completed")
+                                }
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                                <span>Completed</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-50 transition-colors"
+                                onClick={() =>
+                                  onStatusChange?.(item.id, "Cancel")
+                                }
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                                <span>Cancel</span>
+                              </DropdownMenuItem>
 
-                            <DropdownMenuSeparator className="border-gray-100 my-1" />
+                              <DropdownMenuSeparator className="border-gray-100 my-1" />
 
-                            <DropdownMenuItem
-                              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
-                              onClick={() => onDeleteClick?.(item.id)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5 text-red-500 shrink-0" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
+                              <DropdownMenuItem
+                                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-600 rounded-lg cursor-pointer hover:bg-red-50 focus:bg-red-50 transition-colors"
+                                onClick={() => onDeleteClick?.(item.id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
 
                 <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-400">
                   <span className="py-0.5">{item.code}</span>

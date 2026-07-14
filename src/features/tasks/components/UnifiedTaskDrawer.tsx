@@ -58,6 +58,7 @@ interface ExtendedDrawerItem {
   content_id?: number;
   task_id?: number;
   status: string;
+  contract_status?: string;
   revisionNote?: string;
   isOverdue?: boolean;
   title?: string;
@@ -285,15 +286,31 @@ export function UnifiedTaskDrawer({
     );
   }, [status, taskDetail?.status, task?.status, item?.status]);
 
+  const contractStatus = useMemo(() => {
+    return (
+      taskDetail?.contract_status ||
+      (task as ExtendedTaskBoardItem)?.contract_status ||
+      contentDetail?.contract_status ||
+      extendedItem?.contract_status
+    );
+  }, [taskDetail, task, contentDetail, extendedItem]);
+
+  const isContractReadOnly = useMemo(() => {
+    return ["completed", "cancelled"].includes(
+      contractStatus?.toLowerCase() || "",
+    );
+  }, [contractStatus]);
+
   const isAssignee = useMemo(() => {
     if (taskDetail?.assigned_to === undefined || user?.id === undefined)
       return false;
     return Number(taskDetail.assigned_to) === Number(user.id);
-  }, [taskDetail?.assigned_to, user?.id]);
+  }, [taskDetail, user]);
 
   const canDelete = useMemo(() => {
+    if (isContractReadOnly) return false;
     return isOwnerOrAdmin || (isAssignee && !isApproved);
-  }, [isOwnerOrAdmin, isAssignee, isApproved]);
+  }, [isOwnerOrAdmin, isAssignee, isApproved, isContractReadOnly]);
 
   const canSeeHistory = useMemo(() => {
     if (!isCaptionTask) return true;
@@ -628,7 +645,7 @@ export function UnifiedTaskDrawer({
                     key={st.key}
                     type="button"
                     onClick={() => setStatus(st.key)}
-                    disabled={!isAllowed}
+                    disabled={isContractReadOnly || !isAllowed}
                     className={`rounded-xl border py-2 px-3 text-xs font-semibold transition-all flex items-center gap-1.5 ${
                       isSelected ? st.activeClass : st.inactiveClass
                     } disabled:opacity-40 disabled:cursor-not-allowed`}
@@ -719,7 +736,9 @@ export function UnifiedTaskDrawer({
             deliverables={deliverables}
             loadingOutputs={loadingOutputs}
             canDelete={canDelete}
-            canUpload={hideUpload ? false : isAssignee}
+            canUpload={
+              isContractReadOnly ? false : hideUpload ? false : isAssignee
+            }
             isApproved={isApproved}
             itemType={
               itemType ||
@@ -758,29 +777,42 @@ export function UnifiedTaskDrawer({
             status={status}
             originalStatus={initialStatus}
             hasCommentedThisSession={hasCommentedThisSession}
+            readOnly={isContractReadOnly}
           />
         </div>
 
         <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-3 shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-700 px-5 text-xs font-semibold cursor-pointer"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={updateStatusMutation.isPending}
-            className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-semibold px-5 transition-all text-xs cursor-pointer shadow-sm disabled:opacity-50"
-          >
-            {updateStatusMutation.isPending && (
-              <Loader2 className="h-3 w-3 animate-spin mr-1 text-white inline" />
-            )}
-            Confirm Changes
-          </Button>
+          {isContractReadOnly ? (
+            <Button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-semibold px-5 transition-all text-xs cursor-pointer shadow-sm"
+            >
+              Close
+            </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="rounded-lg border-gray-200 hover:bg-gray-50 text-gray-700 px-5 text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSave}
+                disabled={updateStatusMutation.isPending}
+                className="rounded-lg bg-red-800 hover:bg-red-900 text-white font-semibold px-5 transition-all text-xs cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                {updateStatusMutation.isPending && (
+                  <Loader2 className="h-3 w-3 animate-spin mr-1 text-white inline" />
+                )}
+                Confirm Changes
+              </Button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>
